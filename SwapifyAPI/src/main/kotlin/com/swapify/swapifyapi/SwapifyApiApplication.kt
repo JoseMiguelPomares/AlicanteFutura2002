@@ -1,4 +1,4 @@
-package com.example.swapifyapi
+package com.swapify.swapifyapi
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
