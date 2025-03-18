@@ -1,5 +1,6 @@
 package com.swapify.swapifyapi.model.entities
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import jakarta.persistence.*
 import org.hibernate.annotations.ColumnDefault
 import org.hibernate.annotations.OnDelete
@@ -8,6 +9,7 @@ import java.time.Instant
 
 @Entity
 @Table(name = "items")
+@JsonIgnoreProperties("hibernateLazyInitializer", "handler")
 open class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "items_id_gen")

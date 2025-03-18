@@ -5,6 +5,7 @@ import com.swapify.swapifyapi.model.entities.Transaction
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import java.util.*
 
 @Service
 class TransactionService {
@@ -14,11 +15,11 @@ class TransactionService {
 
     //Función para obtener transacciones por la id del usuario
     fun getTransactionByUserId(userId: Long): ResponseEntity<List<Transaction>> {
-        return if (userId != null) {
-            val transactions = transactionDAO.findByOwnerId(userId)
-            ResponseEntity.ok(transactions)
+        val transaction: List<Transaction> = transactionDAO.findByOwnerIdWithAll(userId)
+        if (transaction.isNotEmpty()) {
+            return ResponseEntity.ok(transaction)
         } else {
-            ResponseEntity.notFound().build()
+            return ResponseEntity.notFound().build()
         }
     }
 }

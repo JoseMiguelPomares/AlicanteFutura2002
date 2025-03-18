@@ -16,8 +16,7 @@ class TransactionController {
     @Autowired
     lateinit var transactionService: TransactionService
 
-    
-    //TO-DO
+
     @GetMapping("/getByUserId/{userId}")
     fun getTransactionByUserId(@PathVariable userId: Long): ResponseEntity<List<Transaction>> {
         return transactionService.getTransactionByUserId(userId)
