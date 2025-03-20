@@ -2,11 +2,13 @@ package com.swapify.swapifyapi.services
 
 import com.swapify.swapifyapi.model.dao.IUserDAO
 import com.swapify.swapifyapi.model.dto.UserDTO
+import com.swapify.swapifyapi.model.dto.UserSignInDTO
 import com.swapify.swapifyapi.model.entities.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import java.time.Instant
 import java.util.*
 
 @Service
@@ -40,5 +42,20 @@ class UserService {
         } else {
             ResponseEntity.notFound().build()
         }
+    }
+
+    //Función para registrar un usuario por uso de DTO
+    fun registerUser(userSignInDTO: UserSignInDTO): ResponseEntity<UserSignInDTO> {
+        val user = User()
+
+        user.name = userSignInDTO.name
+        user.email = userSignInDTO.email
+        user.passwordHash = userSignInDTO.password
+        user.credits = 100
+        user.reputation = 5.0
+        user.createdAt = Instant.now()
+
+        userDAO.save(user)
+        return ResponseEntity(HttpStatus.CREATED)
     }
 }
