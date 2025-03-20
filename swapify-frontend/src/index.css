@@ -34,4 +34,6 @@ body {
   transform: scale(1.15);
 }
 
-
+.shadow-text {
+  text-shadow: 5px 5px 5px rgba(19, 76, 37, 0.5); /* Sombra verde suave */
+}

@@ -42,7 +42,7 @@ export const BarraNavegacion = () => {
           <Offcanvas.Body className="d-flex flex-column gap-3">
             {/* Botones principales */}
             <div className="d-flex flex-column gap-3">
-              <Button as={Link} to="/registro" variant="outline-success" className="w-100 py-3" onClick={() => setShowMenu(false)}>
+              <Button as={Link as any} to="/registro" variant="outline-success" className="w-100 py-3" onClick={() => setShowMenu(false)}>
                 Acceso / Registro
               </Button>
               <Button variant="outline-success" className="w-100 py-3" onClick={() => setShowMenu(false)}>

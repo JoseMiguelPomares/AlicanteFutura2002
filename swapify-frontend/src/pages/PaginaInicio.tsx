@@ -64,12 +64,42 @@ const mockProducts: Producto[] = [
   }
 ];
 
+/* export const PaginaInicio = () => {
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch data del backend al cargar la página
+  useEffect(() => {
+    const fetchProductos = async () => {
+      try {
+        const response = await fetch("https://tu-backend.com/api/productos"); // Cambia esta URL por el endpoint real
+        if (!response.ok) {
+          throw new Error("Error al cargar los productos");
+        }
+        const data: Producto[] = await response.json();
+        setProductos(data);
+      } catch (error) {
+        setError("No se pudieron cargar los productos");
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProductos();
+  }, []);
+
+  // Mostrar estado de carga o error
+  if (loading) return <p>Cargando productos...</p>;
+  if (error) return <p>Error: {error}</p>; */
+
 export const PaginaInicio = () => {
   const [productos, setProductos] = useState<Producto[]>(mockProducts);
 
   return (
     <Container className="mt-4">
-      <h1 className="mb-4 text-center fw-bold">Productos</h1>
+      <h1 className="mb-4 text-center fw-bold text-success shadow-text">Productos</h1>
       <Row xs={2} sm={2} md={3} lg={4} className="g-4 justify-content-center">
         {productos.map((producto) => (
           <Col key={producto.id}>

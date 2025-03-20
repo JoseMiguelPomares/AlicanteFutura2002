@@ -15,6 +15,11 @@ export const loginWithGoogle = async (): Promise<string | null> => {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
 
+    if (!user) {
+      console.warn("No se obtuvo usuario después de iniciar sesión.");
+      return null;
+    }
+
     // Obtener el token de autenticación
     const idToken = await user.getIdToken();
 
@@ -28,5 +33,6 @@ export const loginWithGoogle = async (): Promise<string | null> => {
     } else {
       console.error("Error en la autenticación con Google:", error);
     }
-  }  
+    return null; // 🔹 Retornar null en caso de error
+  }
 };

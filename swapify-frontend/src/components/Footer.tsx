@@ -66,7 +66,7 @@ export const Footer = () => {
                 <Row className="mt-4 border-top pt-4 mx-0 align-items-center">
                     <Col xs={12} md={6} className="text-center text-md-start px-0">
                         <small className="opacity-75">
-                            © {new Date().getFullYear()} Swapify - Todos los derechos reservados
+                            © {new Date().getFullYear()} Swapify ~ Equipo 2002 - Todos los derechos reservados
                         </small>
                     </Col>
 
