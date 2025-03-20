@@ -1,0 +1,37 @@
+body {
+    font-family: 'Roboto', sans-serif;
+  }  
+
+.hover-underline {
+  text-decoration: none;
+  position: relative;
+}
+
+.hover-underline:hover {
+  color: fff !important;
+}
+
+.hover-underline::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 1px;
+  bottom: 0;
+  left: 0;
+  background-color: white;
+  transition: width 0.3s ease;
+}
+
+.hover-underline:hover::after {
+  width: 100%;
+}
+
+.hover-scale {
+  transition: transform 0.2s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.15);
+}
+
+
