@@ -45,4 +45,10 @@ class ItemController {
     fun getItemsByCategoryAndId(@PathVariable category: String, @PathVariable id: Long): List<ItemDTO>{
         return itemService.getItemsByCategoryAndUserId(category, id)
     }
+
+    //Función para obtener un item por su título
+    @GetMapping("/getByTitle/{title}")
+    fun getItemsByTitle(@PathVariable title: String): List<ItemDTO>{
+        return itemService.getItemsByTitle(title)
+    }
 }

@@ -39,4 +39,5 @@ interface IItemDAO: CrudRepository<Item, Long> {
         """
     )
     fun findByCategoryAndId(category: String, userId: Long): List<Item>
+    fun findByTitle(title: String): MutableList<Item>
 }

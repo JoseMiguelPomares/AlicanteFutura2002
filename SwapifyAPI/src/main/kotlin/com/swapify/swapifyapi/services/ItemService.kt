@@ -88,4 +88,23 @@ class ItemService {
             emptyList()
         }
     }
+
+    //Función para obtener un item por su nombre
+    fun getItemsByTitle(title: String): List<ItemDTO>{
+        val items: List<Item> = itemDAO.findByTitle(title)
+        return if (items.isNotEmpty()){
+            items.map {
+                ItemDTO(
+                    it.user!!.name!!,
+                    it.title!!,
+                    it.description!!,
+                    it.category,
+                    it.imageUrl,
+                    it.status!!
+                )
+            }
+        } else {
+            emptyList()
+        }
+    }
 }
