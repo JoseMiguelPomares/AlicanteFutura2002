@@ -33,10 +33,10 @@ open class Transaction {
     open var owner: User? = null
 
     @ColumnDefault("'pending'")
-    @Column(name = "status", length = 50)
+    @Column(name = "status", length = 50, insertable = false)
     open var status: String? = null
 
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at")
+    @Column(name = "created_at", insertable = false)
     open var createdAt: Instant? = null
 }
