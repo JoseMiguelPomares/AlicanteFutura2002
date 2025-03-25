@@ -3,68 +3,18 @@ import { Container, Row, Col, Card } from "react-bootstrap";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-//! PRODUCTOS MOCKEADOS
+// Define la interfaz Producto
 interface Producto {
   id: number;
-  nombre: string;
-  descripcion: string;
-  precio: number;
-  imagen: string;
+  title: string;
+  description: string;
+  category: string;
+  imageUrl: string;
+  status: string;
+  createdAt: string;
 }
 
-const mockProducts: Producto[] = [
-  {
-    id: 1,
-    nombre: "Clases de Guitarra",
-    descripcion: "4 sesiones de 1 hora para todos los niveles",
-    precio: 80,
-    imagen: "https://plus.unsplash.com/premium_photo-1681396936891-ed738c53cb21?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y2xhc2VzJTIwZ3VpdGFycmF8ZW58MHx8MHx8fDA%3D"
-  },
-  {
-    id: 2,
-    nombre: "Jardinería Profesional",
-    descripcion: "Servicio completo de mantenimiento de jardines",
-    precio: 120,
-    imagen: "https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    id: 3,
-    nombre: "Bicicleta Montaña",
-    descripcion: "Bicicleta Trek Marlin 5 casi nueva, talla M",
-    precio: 250,
-    imagen: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    id: 4,
-    nombre: "Traducción Inglés-Español",
-    descripcion: "Servicio profesional de traducción de documentos",
-    precio: 45,
-    imagen: "https://media.istockphoto.com/id/518819490/es/foto/ingl%C3%A9s-traducci%C3%B3n-al-espa%C3%B1ol.webp?a=1&b=1&s=612x612&w=0&k=20&c=eFjz6PgxirVA6bDNFDtwIZjF5T7b_HtQqLflGQrI0zk="
-  },
-  {
-    id: 5,
-    nombre: "Mueble de Jardín",
-    descripcion: "Juego de mesa y 4 sillas en ratán sintético",
-    precio: 180,
-    imagen: "https://images.unsplash.com/photo-1598300056393-4aac492f4344?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    id: 6,
-    nombre: "Cuidado de Mascotas",
-    descripcion: "Cuidado diario para perros y gatos mientras viajas",
-    precio: 30,
-    imagen: "https://images.unsplash.com/photo-1583511655826-05700d52f4d9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    id: 7,
-    nombre: "Libros de Cocina",
-    descripcion: "Colección de 5 libros de cocina internacional",
-    precio: 60,
-    imagen: "https://images.unsplash.com/photo-1546548970-71785318a17b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-  }
-];
-
-/* export const PaginaInicio = () => {
+export const PaginaInicio = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +23,12 @@ const mockProducts: Producto[] = [
   useEffect(() => {
     const fetchProductos = async () => {
       try {
-        const response = await fetch("https://tu-backend.com/api/productos"); // Cambia esta URL por el endpoint real
+        const response = await fetch("http://localhost:8080/swapify/items/getAll", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
         if (!response.ok) {
           throw new Error("Error al cargar los productos");
         }
@@ -92,10 +47,7 @@ const mockProducts: Producto[] = [
 
   // Mostrar estado de carga o error
   if (loading) return <p>Cargando productos...</p>;
-  if (error) return <p>Error: {error}</p>; */
-
-export const PaginaInicio = () => {
-  const [productos, setProductos] = useState<Producto[]>(mockProducts);
+  if (error) return <p>Error: {error}</p>;
 
   return (
     <Container className="mt-4">
@@ -108,16 +60,16 @@ export const PaginaInicio = () => {
                 <Card className="h-100 shadow-sm border-0 rounded-4 overflow-hidden">
                   <Card.Img
                     variant="top"
-                    src={producto.imagen}
-                    alt={producto.nombre}
+                    src={producto.imageUrl}
+                    alt={producto.title}
                     className="img-fluid rounded-top"
                     style={{ height: "250px", objectFit: "cover" }}
                   />
                   <Card.Body className="d-flex flex-column">
-                    <Card.Title className="fw-bold text-dark" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",}}>{producto.nombre}</Card.Title>
-                    <Card.Text className="text-muted small" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",}}>{producto.descripcion}</Card.Text>
+                    <Card.Title className="fw-bold text-dark" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",}}>{producto.title}</Card.Title>
+                    <Card.Text className="text-muted small" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",}}>{producto.description}</Card.Text>
                     <div className="mt-auto">
-                      <h5 className="fw-bold text-primary">{producto.precio} Créditos</h5>
+                      <h5 className="fw-bold text-primary">{producto.category}</h5>
                     </div>
                   </Card.Body>
                 </Card>
