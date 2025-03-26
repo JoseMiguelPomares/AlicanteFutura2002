@@ -105,3 +105,7 @@ body {
 .secondary-bar .nav-link:hover {
   color: #20b03d !important;
 }
+
+.offCanvasCategorias {
+  text-decoration: none !important;
+}

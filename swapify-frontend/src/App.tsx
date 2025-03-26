@@ -1,4 +1,3 @@
-// Importaciones necesarias
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { PaginaInicio } from "./pages/PaginaInicio";
@@ -8,7 +7,6 @@ import { BarraNavegacion } from "./components/BarraNavegacion";
 // import { PaginaPerfil } from "./pages/PaginaPerfil";
 import { PaginaProducto } from "./pages/PaginaProducto";
 import { Footer } from "./components/Footer";
-import { Sidebar } from "./components/BarraLateral";
 
 // Componente principal de la aplicación
 export const App: React.FC = () => {
@@ -16,7 +14,6 @@ export const App: React.FC = () => {
     <BrowserRouter>
       <div className="d-flex flex-column min-vh-100">
         <BarraNavegacion />
-        <Sidebar />
         <main className="flex-grow-1">
           <Routes>
             <Route path="/" element={<PaginaInicio />} />
