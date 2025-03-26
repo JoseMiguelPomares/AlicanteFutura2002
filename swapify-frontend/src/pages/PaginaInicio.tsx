@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Container, Row, Col, Card } from "react-bootstrap";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ItemService } from "../services/itemService";
 
@@ -15,17 +15,17 @@ interface Producto {
   createdAt: string;
 }
 
+
+
 export const PaginaInicio = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const itemService = new ItemService();
+  const itemService = useRef(new ItemService()).current; // Instancia única
 
-  // Fetch data del backend al cargar la página
   useEffect(() => {
     const fetchProductos = async () => {
       try {
         const data = await itemService.getAll();
-        console.log(data)
         setProductos(data);
       } catch (error: any) {
         setError("No se pudieron cargar los productos");
@@ -34,9 +34,8 @@ export const PaginaInicio = () => {
     };
 
     fetchProductos();
-  }, [itemService]);
+  }, []); // Sin dependencias adicionales
 
-  // Mostrar estado de carga o error
   if (error) return <p className="text-danger text-center">{error}</p>;
 
   return (
