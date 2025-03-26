@@ -12,6 +12,8 @@ export const BarraNavegacion = () => {
   const isMobile = useMediaQuery({ maxWidth: 640 }); // Pantallas pequeñas
 
   return (
+    <>
+    {/* Barra Navegación PRINCIPAL */}
     <Navbar expand="lg" className="shadow-sm px-2" style={{
       background: "linear-gradient(90deg, rgba(32,176,61,1) 0%, rgba(163,208,161,1) 80%)",
     }}>
@@ -77,5 +79,27 @@ export const BarraNavegacion = () => {
         </Navbar.Collapse>
       </Container>
     </Navbar>
+
+
+    {/* Nueva barra horizontal debajo de la barra de navegación */}
+      <div className="secondary-bar">
+        <Container>
+          <div className="d-flex justify-content-around">
+            <Nav.Link as={Link} to="/categorias" className="text-dark fw-bold">
+              Categorías
+            </Nav.Link>
+            <Nav.Link as={Link} to="/ofertas" className="text-dark fw-bold">
+              Ofertas
+            </Nav.Link>
+            <Nav.Link as={Link} to="/novedades" className="text-dark fw-bold">
+              Novedades
+            </Nav.Link>
+            <Nav.Link as={Link} to="/contacto" className="text-dark fw-bold">
+              Contacto
+            </Nav.Link>
+          </div>
+        </Container>
+      </div>
+    </>
   );
 };

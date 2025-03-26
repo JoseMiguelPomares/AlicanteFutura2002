@@ -37,3 +37,71 @@ body {
 .shadow-text {
   text-shadow: 5px 5px 5px rgba(19, 76, 37, 0.5); /* Sombra verde suave */
 }
+
+/* Título con degradado */
+.gradient-text {
+  background: linear-gradient(90deg, #20b03d, #1e90ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 2.5rem;
+  text-transform: uppercase;
+  animation: gradient-animation 3s infinite;
+}
+
+/* Animación del degradado */
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* sidebar.css */
+.sidebar {
+  width: 250px;
+  border-right: 1px solid #ddd;
+  padding: 10px;
+}
+
+.sidebar h3 {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.sidebar li {
+  margin: 5px 0;
+  cursor: pointer !;
+}
+
+.sidebar li:hover {
+  color: #007bff;
+}
+
+.secondary-bar {
+  background-color: #f8f9fa;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 0;
+}
+
+.secondary-bar .nav-link {
+  font-weight: bold;
+  color: #333;
+  transition: color 0.4s ease;
+}
+
+.secondary-bar .nav-link:hover {
+  color: #20b03d !important;
+}

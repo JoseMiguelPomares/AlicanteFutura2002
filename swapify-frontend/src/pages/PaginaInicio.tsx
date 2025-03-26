@@ -16,7 +16,6 @@ interface Producto {
 
 export const PaginaInicio = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch data del backend al cargar la página
@@ -37,8 +36,6 @@ export const PaginaInicio = () => {
       } catch (error) {
         setError("No se pudieron cargar los productos");
         console.error(error);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -46,12 +43,17 @@ export const PaginaInicio = () => {
   }, []);
 
   // Mostrar estado de carga o error
-  if (loading) return <p>Cargando productos...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (error) return <p className="text-danger text-center">{error}</p>;
 
   return (
     <Container className="mt-4">
-      <h1 className="mb-4 text-center fw-bold text-success shadow-text">Productos</h1>
+      <motion.h1
+        className="mb-4 text-center fw-bold gradient-text"
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}>
+        ¡Explora los Mejores Productos y Servicios!
+      </motion.h1>
       <Row xs={2} sm={2} md={3} lg={4} className="g-4 justify-content-center">
         {productos.map((producto) => (
           <Col key={producto.id}>
@@ -66,8 +68,8 @@ export const PaginaInicio = () => {
                     style={{ height: "250px", objectFit: "cover" }}
                   />
                   <Card.Body className="d-flex flex-column">
-                    <Card.Title className="fw-bold text-dark" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",}}>{producto.title}</Card.Title>
-                    <Card.Text className="text-muted small" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",}}>{producto.description}</Card.Text>
+                    <Card.Title className="fw-bold text-dark" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", }}>{producto.title}</Card.Title>
+                    <Card.Text className="text-muted small" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", }}>{producto.description}</Card.Text>
                     <div className="mt-auto">
                       <h5 className="fw-bold text-primary">{producto.category}</h5>
                     </div>
