@@ -1,4 +1,3 @@
-// Importaciones necesarias
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { PaginaInicio } from "./pages/PaginaInicio";
