@@ -5,4 +5,8 @@ export class ItemService{
     getAll(){
         return axios.get(this.baseUrl + "getAll").then(res => res.data)
     }
+
+    getByUserId(){
+        return axios.get(this.baseUrl + "/userItems/{userId}").then(res => res.data)
+    }
 }
