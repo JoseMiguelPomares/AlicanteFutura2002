@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Container, Row, Col, Card } from "react-bootstrap";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { ItemService } from "../services/itemService";
 
 // Define la interfaz Producto
 interface Producto {
@@ -18,23 +19,16 @@ export const PaginaInicio = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const itemService = new ItemService();
 
   // Fetch data del backend al cargar la página
   useEffect(() => {
     const fetchProductos = async () => {
       try {
-        const response = await fetch("http://localhost:8080/swapify/items/getAll", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json"
-          }
-        });
-        if (!response.ok) {
-          throw new Error("Error al cargar los productos");
-        }
-        const data: Producto[] = await response.json();
+        const data = await itemService.getAll();
+        console.log(data)
         setProductos(data);
-      } catch (error) {
+      } catch (error: any) {
         setError("No se pudieron cargar los productos");
         console.error(error);
       } finally {
@@ -43,7 +37,7 @@ export const PaginaInicio = () => {
     };
 
     fetchProductos();
-  }, []);
+  }, [itemService]);
 
   // Mostrar estado de carga o error
   if (loading) return <p>Cargando productos...</p>;
