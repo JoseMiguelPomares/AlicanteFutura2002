@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { ItemService } from "../services/itemService";
 
 interface Producto {
   id: number;
@@ -10,15 +11,21 @@ interface Producto {
 }
 
 export const PaginaProducto = () => {
-  const { id } = useParams<{ id: string }>(); // Obtén el ID del producto desde la URL
+  const { id } = useParams<{ id: number}>(); // Obtén el ID del producto desde la URL
   const [producto, setProducto] = useState<Producto | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const itemService = useRef(new ItemService()).current;
 
   useEffect(() => {
+    if (!id) {
+      setError(true); // Handle the case where id is undefined
+      setLoading(false);
+      return;
+    }
     const fetchProducto = async () => {
       try {
-        const response = await fetch(`http://tu-backend.com/productos/${id}`);
+        const response = await itemService.getByUserId(id);
         if (!response.ok) throw new Error("Producto no encontrado");
         const data = await response.json();
         setProducto(data);
