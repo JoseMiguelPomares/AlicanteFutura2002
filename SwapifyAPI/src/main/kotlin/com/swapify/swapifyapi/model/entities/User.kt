@@ -1,12 +1,10 @@
 package com.swapify.swapifyapi.model.entities
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import jakarta.persistence.*
 import org.hibernate.annotations.ColumnDefault
 import java.time.Instant
 
 @Entity
-@JsonIgnoreProperties("hibernateLazyInitializer", "handler")
 @Table(name = "users")
 open class User {
     @Id

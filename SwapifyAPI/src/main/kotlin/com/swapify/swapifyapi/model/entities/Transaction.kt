@@ -1,6 +1,5 @@
 package com.swapify.swapifyapi.model.entities
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import jakarta.persistence.*
 import org.hibernate.annotations.ColumnDefault
 import org.hibernate.annotations.OnDelete
@@ -9,7 +8,6 @@ import java.time.Instant
 
 @Entity
 @Table(name = "transactions")
-@JsonIgnoreProperties("hibernateLazyInitializer", "handler")
 open class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "transactions_id_gen")
@@ -33,10 +31,10 @@ open class Transaction {
     open var owner: User? = null
 
     @ColumnDefault("'pending'")
-    @Column(name = "status", length = 50, insertable = false)
+    @Column(name = "status", length = 50)
     open var status: String? = null
 
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at", insertable = false)
+    @Column(name = "created_at")
     open var createdAt: Instant? = null
 }

@@ -1,6 +1,5 @@
 package com.swapify.swapifyapi.model.entities
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import jakarta.persistence.*
 import org.hibernate.annotations.ColumnDefault
 import org.hibernate.annotations.OnDelete
@@ -8,7 +7,6 @@ import org.hibernate.annotations.OnDeleteAction
 import java.time.Instant
 
 @Entity
-@JsonIgnoreProperties("hibernateLazyInitializer", "handler")
 @Table(name = "reviews")
 open class Review {
     @Id
