@@ -1,7 +1,9 @@
 package com.swapify.swapifyapi.services
 
+import com.swapify.api.utils.PasswordUtils
 import com.swapify.swapifyapi.model.dao.IUserDAO
 import com.swapify.swapifyapi.model.dto.UserDTO
+import com.swapify.swapifyapi.model.dto.UserLoginDTO
 import com.swapify.swapifyapi.model.dto.UserSignInDTO
 import com.swapify.swapifyapi.model.entities.User
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,7 +39,12 @@ class UserService {
     fun getUserReputCredit(id: Long): ResponseEntity<UserDTO> {
         val userOptional: Optional<User> = userDAO.findById(id)
         return if (userOptional.isPresent) {
-            val user = UserDTO(userOptional.get().id!!.toLong(), userOptional.get().name, userOptional.get().credits!!.toInt(), userOptional.get().reputation!!.toDouble())
+            val user = UserDTO(
+                userOptional.get().id!!.toLong(),
+                userOptional.get().name,
+                userOptional.get().credits!!.toInt(),
+                userOptional.get().reputation!!.toDouble()
+            )
             ResponseEntity.ok(user)
         } else {
             ResponseEntity.notFound().build()
@@ -57,5 +64,29 @@ class UserService {
 
         userDAO.save(user)
         return ResponseEntity(HttpStatus.CREATED)
+    }
+
+    //Función para el login de un usuario
+    fun loginUser(identification: String, password: String): ResponseEntity<User> {
+        val userEmailOptional: Optional<User> = userDAO.findByEmail(identification)
+        if (userEmailOptional.isPresent) {
+            val user = userEmailOptional.get()
+            if (PasswordUtils.checkPassword(password, user.passwordHash)) {
+                return ResponseEntity.ok(user)
+            } else {
+                return ResponseEntity.notFound().build()
+            }
+        } else {
+            val userNameOptional: Optional<User> = userDAO.findByName(identification)
+            if (userNameOptional.isPresent) {
+                val user = userNameOptional.get()
+                if (PasswordUtils.checkPassword(password, user.passwordHash)) {
+                    return ResponseEntity.ok(user)
+                } else {
+                    return ResponseEntity.notFound().build()
+                }
+            }
+        }
+        return ResponseEntity.notFound().build()
     }
 }

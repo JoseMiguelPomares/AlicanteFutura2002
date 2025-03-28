@@ -34,4 +34,9 @@ class UserController {
     fun registerUser(@RequestBody userSignInDTO: UserSignInDTO): ResponseEntity<UserSignInDTO>{
         return userService.registerUser(userSignInDTO)
     }
+
+    @GetMapping("/login/{identification}/{password}")
+    fun loginUser(@PathVariable identification: String, @PathVariable password: String): ResponseEntity<User>{
+        return userService.loginUser(identification, password)
+    }
 }

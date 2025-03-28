@@ -20,7 +20,7 @@ open class User {
     open var email: String? = null
 
     @Column(name = "password_hash", nullable = false, length = Integer.MAX_VALUE)
-    open var passwordHash: String? = null
+    open var passwordHash: String = null.toString()
 
     @ColumnDefault("100")
     @Column(name = "credits")
