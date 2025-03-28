@@ -8,6 +8,6 @@ export class ItemService{
     }
 
     getByUserId(userId: number): Promise<Response>{
-        return fetch(this.baseUrl + `/userItems/${userId}`)
+        return fetch(this.baseUrl + `userItems/${userId}`)
     }
 }

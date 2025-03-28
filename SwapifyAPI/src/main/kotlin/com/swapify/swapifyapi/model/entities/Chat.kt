@@ -23,4 +23,8 @@ open class Chat {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at")
     open var createdAt: Instant? = null
+
+    @ColumnDefault("CURRENT_TIMESTAMP")
+    @Column(name = "last_message_at")
+    open var lastMessageAt: Instant? = null
 }

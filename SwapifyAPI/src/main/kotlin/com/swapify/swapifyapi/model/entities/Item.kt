@@ -4,6 +4,7 @@ import jakarta.persistence.*
 import org.hibernate.annotations.ColumnDefault
 import org.hibernate.annotations.OnDelete
 import org.hibernate.annotations.OnDeleteAction
+import java.math.BigDecimal
 import java.time.Instant
 
 @Entity
@@ -23,14 +24,18 @@ open class Item {
     @Column(name = "title", nullable = false)
     open var title: String? = null
 
-    @Column(name = "description", nullable = false, length = Integer.MAX_VALUE)
+    @Column(name = "description", length = Integer.MAX_VALUE)
     open var description: String? = null
 
-    @Column(name = "category", length = 100)
+    @Column(name = "category", nullable = false, length = 100)
     open var category: String? = null
 
     @Column(name = "image_url", length = Integer.MAX_VALUE)
     open var imageUrl: String? = null
+
+    @ColumnDefault("0.0")
+    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    open var price: BigDecimal? = null
 
     @ColumnDefault("'available'")
     @Column(name = "status", length = 50)

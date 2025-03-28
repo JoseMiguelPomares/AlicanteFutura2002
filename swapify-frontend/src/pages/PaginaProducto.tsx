@@ -11,7 +11,8 @@ interface Producto {
 }
 
 export const PaginaProducto = () => {
-  const { id } = useParams<{ id: number}>(); // Obtén el ID del producto desde la URL
+  const { id } = useParams<{ id: string}>();
+  const idNumber = Number(id); // Obtén el ID del producto desde la URL
   const [producto, setProducto] = useState<Producto | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -25,7 +26,7 @@ export const PaginaProducto = () => {
     }
     const fetchProducto = async () => {
       try {
-        const response = await itemService.getByUserId(id);
+        const response = await itemService.getByUserId(idNumber);
         if (!response.ok) throw new Error("Producto no encontrado");
         const data = await response.json();
         setProducto(data);

@@ -4,6 +4,7 @@ import jakarta.persistence.*
 import org.hibernate.annotations.ColumnDefault
 import org.hibernate.annotations.OnDelete
 import org.hibernate.annotations.OnDeleteAction
+import java.math.BigDecimal
 import java.time.Instant
 
 @Entity
@@ -37,4 +38,10 @@ open class Transaction {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at")
     open var createdAt: Instant? = null
+
+    @Column(name = "completed_at")
+    open var completedAt: Instant? = null
+
+    @Column(name = "final_price", precision = 10, scale = 2)
+    open var finalPrice: BigDecimal? = null
 }
