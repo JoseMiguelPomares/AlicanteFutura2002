@@ -161,7 +161,7 @@ class User(
 
     // Method to verify password
     fun verifyPassword(password: String): Boolean {
-        return password.hashCode() == passwordHash
+        return PasswordUtils.checkPassword(password, passwordHash)
     }
 }
 

@@ -50,7 +50,7 @@ class UserService {
 
         user.name = userSignInDTO.name
         user.email = userSignInDTO.email
-        user.passwordHash = userSignInDTO.password
+        user.passwordHash = PasswordUtils.hashSHA256(userSignInDTO.password)
         user.credits = 100
         user.reputation = 5.0
         user.createdAt = Instant.now()
