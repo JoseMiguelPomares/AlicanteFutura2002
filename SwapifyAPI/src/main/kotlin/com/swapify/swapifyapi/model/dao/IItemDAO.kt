@@ -39,5 +39,13 @@ interface IItemDAO: CrudRepository<Item, Long> {
         """
     )
     fun findByCategoryAndId(category: String, userId: Long): List<Item>
+    @Query(
+        """
+        SELECT i 
+        FROM Item i
+        LEFT JOIN FETCH i.user
+        WHERE lower(i.title) = lower(:title)
+        """
+    )
     fun findByTitle(title: String): MutableList<Item>
 }

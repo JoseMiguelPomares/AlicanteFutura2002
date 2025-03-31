@@ -95,12 +95,12 @@ class ItemService {
         return if (items.isNotEmpty()){
             items.map {
                 ItemDTO(
-                    it.user!!.name!!,
-                    it.title!!,
-                    it.description!!,
+                    it.user!!.name.toString(),
+                    it.title.toString(),
+                    it.description.toString(),
                     it.category,
                     it.imageUrl,
-                    it.status!!
+                    it.status.toString()
                 )
             }
         } else {
