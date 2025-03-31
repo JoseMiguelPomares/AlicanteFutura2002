@@ -107,23 +107,9 @@ export const BarraLateral: React.FC<BarraLateralProps> = ({ mostrar, alCerrar })
       </Offcanvas.Header>
 
       <Offcanvas.Body className="p-0">
-        {/* Banner promocional */}
-        <div
-          className="p-3 mb-3 text-white text-center"
-          style={{
-            background: "linear-gradient(45deg, #20b03d, #1a3c34)",
-            borderRadius: "0 0 1rem 1rem",
-          }}
-        >
-          <h5 className="mb-2">¡Nuevas categorías!</h5>
-          <p className="mb-2 small">Descubre nuestras nuevas categorías de productos y servicios</p>
-          <Button variant="light" size="sm" className="rounded-pill px-3">
-            Explorar
-          </Button>
-        </div>
 
         {/* Categorías */}
-        <div className="px-3">
+        <div className="px-3 mt-3">
           {secciones.map((seccion, i) => (
             <section key={`sec-${i}`} className="mb-4">
               <h3 className="h6 fw-bold mb-3 text-uppercase text-muted px-3">{seccion.titulo}</h3>

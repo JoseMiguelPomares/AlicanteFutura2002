@@ -1,7 +1,6 @@
 import { Container, Row, Col, Nav, Stack } from "react-bootstrap";
 import { Instagram, Facebook, Twitter, Envelope } from "react-bootstrap-icons";
 import { Link } from "react-router-dom";
-import Image from "react-bootstrap/Image";
 import logo from "../assets/images/logosSwapify/logoNegroLargoFondoTransp.png";
 
 export const Footer = () => {
@@ -20,11 +19,6 @@ export const Footer = () => {
                             <Nav.Item as="li">
                                 <Link to="#" className="nav-link text-white-50 hover-underline p-0">
                                     Categorías
-                                </Link>
-                            </Nav.Item>
-                            <Nav.Item as="li" className="my-1">
-                                <Link to="#" className="nav-link text-white-50 hover-underline p-0">
-                                    Novedades
                                 </Link>
                             </Nav.Item>
                             <Nav.Item as="li">
