@@ -1,6 +1,6 @@
 body {
-  font-family: "Roboto", sans-serif;
-}
+    font-family: 'Roboto', sans-serif;
+  }  
 
 .hover-underline {
   text-decoration: none;
@@ -12,7 +12,7 @@ body {
 }
 
 .hover-underline::after {
-  content: "";
+  content: '';
   position: absolute;
   width: 0;
   height: 1px;
@@ -82,7 +82,7 @@ body {
 
 .sidebar li {
   margin: 5px 0;
-  cursor: pointer;
+  cursor: pointer !;
 }
 
 .sidebar li:hover {
@@ -109,40 +109,3 @@ body {
 .offCanvasCategorias {
   text-decoration: none !important;
 }
-
-/* Estilos adicionales para la página de inicio */
-.shadow-sm {
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
-}
-
-.rounded-4 {
-  border-radius: 0.75rem !important;
-}
-
-.hover-scale {
-  transition: transform 0.3s ease;
-}
-
-.hover-scale:hover {
-  transform: scale(1.05);
-}
-
-/* Mejoras para el texto con sombra */
-.shadow-text {
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* Animación suave para botones */
-.btn {
-  transition: all 0.3s ease;
-}
-
-/* Mejoras para tarjetas */
-.card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card:hover {
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
-}
-

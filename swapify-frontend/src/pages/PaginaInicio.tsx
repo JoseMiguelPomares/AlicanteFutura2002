@@ -5,7 +5,22 @@ import { Container, Row, Col, Card, Button, Badge } from "react-bootstrap"
 import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
-import { ArrowRight, Star, GraphUp, Gift, Award } from "react-bootstrap-icons"
+import {
+  ArrowRight,
+  Star,
+  GraphUp,
+  Gift,
+  Award,
+  ArrowDownCircle,
+  Tag,
+  Laptop,
+  House,
+  Book,
+  Handbag,
+  Tools,
+  Mortarboard,
+  Truck,
+} from "react-bootstrap-icons"
 
 // Define la interfaz Producto
 interface Producto {
@@ -93,56 +108,119 @@ export const PaginaInicio = () => {
 
   return (
     <>
-      {/* Hero Banner */}
-      <motion.div
-        className="position-relative overflow-hidden py-5 mb-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
+      {/* Hero Banner con diseño limpio */}
+      <div
+        className="position-relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(32,176,61,0.9) 0%, rgba(163,208,161,0.8) 100%)",
-          minHeight: "400px",
+          background: "linear-gradient(135deg, #f8f9fa 0%, #e9f7ef 100%)",
+          minHeight: "600px",
+          paddingTop: "80px",
+          paddingBottom: "80px",
         }}
       >
-        <Container className="position-relative">
+        <Container>
           <Row className="align-items-center">
-            <Col lg={6} className="text-white">
-              <motion.div
-                initial={{ x: -50, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.3, duration: 0.8 }}
-              >
-                <h1 className="display-4 fw-bold mb-3 shadow-text">Intercambia, Ahorra y Conecta</h1>
-                <p className="fs-5 mb-4">
+            <Col lg={6} className="mb-5 mb-lg-0">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+                <span className="badge bg-success px-3 py-2 mb-3 rounded-pill">Plataforma de intercambio</span>
+                <h1 className="display-4 fw-bold mb-3" style={{ color: "#1a3c34" }}>
+                  Intercambia, Ahorra y <span className="text-success">Conecta</span>
+                </h1>
+                <p className="fs-5 mb-4 text-dark">
                   Descubre una nueva forma de consumo sostenible. Intercambia productos y servicios con personas cerca
-                  de ti.
+                  de ti sin usar dinero.
                 </p>
-                <div className="d-flex gap-3">
-                  <Button as={Link as any} to="/registro" variant="light" size="lg" className="fw-bold shadow-sm">
+                <div className="d-flex gap-3 flex-wrap">
+                  <Button
+                    as={Link as any}
+                    to="/registro"
+                    variant="success"
+                    size="lg"
+                    className="fw-bold shadow-sm px-4 py-3"
+                  >
                     Únete Ahora
                   </Button>
-                  <Button variant="outline-light" size="lg" as={Link as any} to="/como-funciona">
+                  <Button
+                    variant="outline-success"
+                    size="lg"
+                    as={Link as any}
+                    to="/como-funciona"
+                    className="px-4 py-3"
+                  >
                     Cómo Funciona
                   </Button>
                 </div>
+
+                <div className="d-flex gap-4 mt-5">
+                  <div className="text-center">
+                    <h3 className="fw-bold text-success mb-0">1200+</h3>
+                    <p className="text-dark">Usuarios</p>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="fw-bold text-success mb-0">3500+</h3>
+                    <p className="text-dark">Productos</p>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="fw-bold text-success mb-0">98%</h3>
+                    <p className="text-dark">Satisfacción</p>
+                  </div>
+                </div>
               </motion.div>
             </Col>
-            <Col lg={6} className="d-none d-lg-block">
-              <motion.img
-                src="/placeholder.svg?height=400&width=500"
-                alt="Swapify Intercambios"
-                className="img-fluid rounded-4 shadow-lg"
-                initial={{ y: 50, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.8 }}
-              />
+            <Col lg={6} className="position-relative">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3, duration: 0.8 }}
+                className="position-relative"
+                style={{ zIndex: 2 }}
+              >
+                <div className="position-relative rounded-4 overflow-hidden shadow-lg" style={{ height: "400px" }}>
+                  <img
+                    src="https://images.unsplash.com/photo-1574740981348-fe6e45e9a294?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fGNvbmV4aW9uJTIwdHJ1ZXF1ZXxlbnwwfDB8MHx8fDI%3D0"
+                    alt="Swapify Intercambios"
+                    className="img-fluid w-100 h-100"
+                    style={{ objectFit: "cover" }}
+                  />
+                  <div
+                    className="position-absolute bottom-0 start-0 w-100 p-4 text-white"
+                    style={{
+                      background: "linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%)",
+                    }}
+                  >
+                    <h4 className="fw-bold mb-0">Intercambios sostenibles</h4>
+                    <p className="mb-0">Únete a la comunidad de intercambio más grande</p>
+                  </div>
+                </div>
+
+                {/* Elementos decorativos sutiles */}
+                <div className="position-absolute" style={{ top: "-20px", right: "-20px", zIndex: -1 }}>
+                  <div
+                    className="rounded-circle bg-success bg-opacity-10"
+                    style={{ width: "200px", height: "200px" }}
+                  ></div>
+                </div>
+                <div className="position-absolute" style={{ bottom: "-30px", left: "-30px", zIndex: -1 }}>
+                  <div
+                    className="rounded-circle bg-primary bg-opacity-10"
+                    style={{ width: "150px", height: "150px" }}
+                  ></div>
+                </div>
+              </motion.div>
             </Col>
           </Row>
+
+          {/* Flecha hacia abajo */}
+          <div className="text-center mt-5">
+            <motion.div animate={{ y: [0, 10, 0] }} transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1.5 }}>
+              <ArrowDownCircle size={40} className="text-success opacity-75" />
+            </motion.div>
+          </div>
         </Container>
-      </motion.div>
+      </div>
 
       {/* Sección de Categorías */}
-      <Container className="mb-5">
+      <Container className="my-5 py-5">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h2 className="fw-bold">Explora por Categoría</h2>
           <Link to="/categorias" className="text-decoration-none text-success fw-bold">
@@ -185,28 +263,30 @@ export const PaginaInicio = () => {
       </Container>
 
       {/* Productos Recientes */}
-      <Container className="mb-5 py-5 bg-light rounded-4">
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2 className="fw-bold">
-            <GraphUp className="text-primary me-2" /> Recién Añadidos
-          </h2>
-          <Link to="/recientes" className="text-decoration-none text-success fw-bold">
-            Ver más <ArrowRight />
-          </Link>
-        </div>
+      <div className="py-5" style={{ backgroundColor: "#f8f9fa" }}>
+        <Container className="mb-5">
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h2 className="fw-bold">
+              <GraphUp className="text-primary me-2" /> Recién Añadidos
+            </h2>
+            <Link to="/recientes" className="text-decoration-none text-success fw-bold">
+              Ver más <ArrowRight />
+            </Link>
+          </div>
 
-        <Row xs={1} sm={2} md={2} lg={4} className="g-4">
-          {productosFiltrados.recientes.map((producto) => (
-            <Col key={`reciente-${producto.id}`}>
-              <ProductCard producto={producto} />
-            </Col>
-          ))}
-        </Row>
-      </Container>
+          <Row xs={1} sm={2} md={2} lg={4} className="g-4">
+            {productosFiltrados.recientes.map((producto) => (
+              <Col key={`reciente-${producto.id}`}>
+                <ProductCard producto={producto} />
+              </Col>
+            ))}
+          </Row>
+        </Container>
+      </div>
 
       {/* Sección de Beneficios */}
-      <Container className="mb-5">
-        <h2 className="text-center fw-bold mb-4">¿Por qué elegir Swapify?</h2>
+      <Container className="my-5 py-5">
+        <h2 className="text-center fw-bold mb-5">¿Por qué elegir Swapify?</h2>
         <Row xs={1} md={3} className="g-4 text-center">
           <Col>
             <motion.div
@@ -248,47 +328,108 @@ export const PaginaInicio = () => {
       </Container>
 
       {/* Todos los Productos */}
-      <Container className="mb-5">
-        <h2 className="fw-bold mb-4">Todos los Productos</h2>
-        <Row xs={2} sm={2} md={3} lg={4} className="g-4">
-          {productosMostrados.map((producto) => (
-            <Col key={producto.id}>
-              <ProductCard producto={producto} />
-            </Col>
-          ))}
-        </Row>
+      <div className="py-5" style={{ backgroundColor: "#f8f9fa" }}>
+        <Container className="mb-5">
+          <h2 className="fw-bold mb-4">Todos los Productos</h2>
+          <Row xs={2} sm={2} md={3} lg={4} className="g-4">
+            {productosMostrados.map((producto) => (
+              <Col key={producto.id}>
+                <ProductCard producto={producto} />
+              </Col>
+            ))}
+          </Row>
 
-        {productosMostrados.length === 0 && (
-          <div className="text-center py-5">
-            <p className="text-muted">No hay productos disponibles en esta categoría.</p>
-          </div>
-        )}
-      </Container>
+          {productosMostrados.length === 0 && (
+            <div className="text-center py-5">
+              <p className="text-muted">No hay productos disponibles en esta categoría.</p>
+            </div>
+          )}
+        </Container>
+      </div>
 
       {/* CTA Final */}
-      <Container
-        fluid
-        className="py-5 mb-5 text-center"
+      <div
+        className="py-5 position-relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(32,176,61,0.9) 0%, rgba(163,208,161,0.8) 100%)",
+          background: "linear-gradient(120deg, #1a3c34 0%, #20b03d 100%)",
         }}
       >
-        <Container>
-          <h2 className="text-white fw-bold mb-3">¿Tienes algo para intercambiar?</h2>
-          <p className="text-white mb-4">
-            Únete a nuestra comunidad y comienza a intercambiar tus productos hoy mismo.
-          </p>
-          <Button variant="light" size="lg" className="fw-bold shadow-sm" as={Link as any} to="/vender">
-            Publicar Producto
-          </Button>
+        <Container className="py-4 position-relative" style={{ zIndex: 2 }}>
+          <Row className="align-items-center">
+            <Col lg={7} className="text-white">
+              <h2 className="display-5 fw-bold mb-3">¿Tienes algo para intercambiar?</h2>
+              <p className="fs-5 mb-4 opacity-75">
+                Únete a nuestra comunidad y comienza a intercambiar tus productos hoy mismo. Más de 3,500 productos
+                esperan por ti.
+              </p>
+              <Button variant="light" size="lg" className="fw-bold shadow-sm px-4" as={Link as any} to="/vender">
+                Publicar Producto
+              </Button>
+            </Col>
+            <Col lg={5} className="d-none d-lg-block text-center">
+              <img
+                src="https://images.unsplash.com/photo-1523495225575-104bd7a11999?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8Z2xvYmFsfGVufDB8fDB8fHwy"
+                alt="Eco-friendly"
+                className="img-fluid rounded-circle shadow-lg"
+                style={{ maxWidth: "300px" }}
+              />
+            </Col>
+          </Row>
         </Container>
-      </Container>
+      </div>
     </>
   )
 }
 
-// Componente de tarjeta de producto
+// Componente de tarjeta de producto mejorado
 const ProductCard = ({ producto }: { producto: Producto }) => {
+  // Función para determinar el icono según la categoría
+  const getCategoryIcon = (category: string) => {
+    switch (category.toLowerCase()) {
+      case "electrónica":
+        return <Laptop className="me-1" />
+      case "hogar":
+        return <House className="me-1" />
+      case "libros":
+        return <Book className="me-1" />
+      case "moda":
+        return <Handbag className="me-1" />
+      case "reparaciones":
+        return <Tools className="me-1" />
+      case "clases":
+        return <Mortarboard className="me-1" />
+      case "transporte":
+        return <Truck className="me-1" />
+      default:
+        return <Tag className="me-1" />
+    }
+  }
+
+  // Función para determinar el color del badge según la categoría
+  const getCategoryColor = (category: string) => {
+    switch (category.toLowerCase()) {
+      case "electrónica":
+        return "primary"
+      case "hogar":
+        return "success"
+      case "libros":
+        return "info"
+      case "moda":
+        return "danger"
+      case "reparaciones":
+        return "warning"
+      case "clases":
+        return "primary"
+      case "transporte":
+        return "success"
+      default:
+        return "secondary"
+    }
+  }
+
+  // Determinar si es un producto o servicio
+  const isService = ["reparaciones", "clases", "transporte"].includes(producto.category.toLowerCase())
+
   return (
     <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
       <Link to={`/productos/${producto.id}`} className="text-decoration-none">
@@ -301,9 +442,24 @@ const ProductCard = ({ producto }: { producto: Producto }) => {
               className="img-fluid"
               style={{ height: "200px", objectFit: "cover" }}
             />
-            <Badge bg="success" className="position-absolute top-0 end-0 m-2 px-2 py-1 rounded-pill">
+            <Badge
+              bg={getCategoryColor(producto.category)}
+              className="position-absolute top-0 end-0 m-2 px-2 py-1 rounded-pill"
+            >
+              {getCategoryIcon(producto.category)}
               {producto.category}
             </Badge>
+
+            {isService && (
+              <div
+                className="position-absolute bottom-0 start-0 w-100 p-2 text-white"
+                style={{
+                  background: "linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%)",
+                }}
+              >
+                <span className="badge bg-warning text-dark rounded-pill">Servicio</span>
+              </div>
+            )}
           </div>
           <Card.Body className="d-flex flex-column p-3">
             <Card.Title
