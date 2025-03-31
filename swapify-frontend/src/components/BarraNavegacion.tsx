@@ -95,9 +95,6 @@ export const BarraNavegacion = () => {
 
               {/* Enlaces de navegación */}
               <div className="border-top border-bottom py-3 my-2">
-                <Nav.Link as={Link} to="/ofertas" className="py-2" onClick={() => setShowMenu(false)}>
-                  Ofertas
-                </Nav.Link>
                 <Nav.Link as={Link} to="/contacto" className="py-2" onClick={() => setShowMenu(false)}>
                   Contacto
                 </Nav.Link>
@@ -164,9 +161,6 @@ export const BarraNavegacion = () => {
 
             {/* Resto de los enlaces */}
             <div className="d-none d-md-flex gap-5">
-              <Nav.Link as={Link} to="/ofertas" className="text-dark fw-bold">
-                Ofertas
-              </Nav.Link>
               <Nav.Link as={Link} to="/contacto" className="text-dark fw-bold">
                 Contacto
               </Nav.Link>
