@@ -10,8 +10,7 @@ import java.time.Instant
 @Table(name = "reviews")
 open class Review {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "reviews_id_gen")
-    @SequenceGenerator(name = "reviews_id_gen", sequenceName = "reviews_id_seq", allocationSize = 1)
+    @ColumnDefault("nextval('reviews_id_seq')")
     @Column(name = "id", nullable = false)
     open var id: Int? = null
 

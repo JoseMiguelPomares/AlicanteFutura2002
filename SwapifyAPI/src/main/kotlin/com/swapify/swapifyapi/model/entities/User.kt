@@ -1,6 +1,9 @@
 package com.swapify.swapifyapi.model.entities
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import org.hibernate.annotations.ColumnDefault
 import java.time.Instant
 
@@ -8,8 +11,7 @@ import java.time.Instant
 @Table(name = "users")
 open class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_id_gen")
-    @SequenceGenerator(name = "users_id_gen", sequenceName = "users_id_seq", allocationSize = 1)
+    @ColumnDefault("nextval('users_id_seq')")
     @Column(name = "id", nullable = false)
     open var id: Int? = null
 
@@ -20,7 +22,10 @@ open class User {
     open var email: String? = null
 
     @Column(name = "password_hash", nullable = false, length = Integer.MAX_VALUE)
-    open var passwordHash: String = null.toString()
+    open var passwordHash: String? = null
+
+    @Column(name = "location")
+    open var location: String? = null
 
     @ColumnDefault("100")
     @Column(name = "credits")

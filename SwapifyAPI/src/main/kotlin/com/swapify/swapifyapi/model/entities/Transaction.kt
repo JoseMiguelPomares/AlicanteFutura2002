@@ -11,8 +11,7 @@ import java.time.Instant
 @Table(name = "transactions")
 open class Transaction {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "transactions_id_gen")
-    @SequenceGenerator(name = "transactions_id_gen", sequenceName = "transactions_id_seq", allocationSize = 1)
+    @ColumnDefault("nextval('transactions_id_seq')")
     @Column(name = "id", nullable = false)
     open var id: Int? = null
 
@@ -31,7 +30,7 @@ open class Transaction {
     @JoinColumn(name = "owner_id")
     open var owner: User? = null
 
-    @ColumnDefault("'pending'")
+    @ColumnDefault("'Pending'")
     @Column(name = "status", length = 50)
     open var status: String? = null
 

@@ -41,7 +41,7 @@ class ItemService {
                     it.user!!.name!!,
                     it.title!!,
                     it.description!!,
-                    it.category,
+                    it.category!!.name,
                     it.imageUrl,
                     it.status!!
                 )
@@ -60,7 +60,7 @@ class ItemService {
                     it.user!!.name!!,
                     it.title!!,
                     it.description!!,
-                    it.category,
+                    it.category!!.name,
                     it.imageUrl,
                     it.status!!
                 )
@@ -79,7 +79,7 @@ class ItemService {
                     it.user!!.name!!,
                     it.title!!,
                     it.description!!,
-                    it.category,
+                    it.category!!.name,
                     it.imageUrl,
                     it.status!!
                 )
@@ -98,7 +98,7 @@ class ItemService {
                     it.user!!.name.toString(),
                     it.title.toString(),
                     it.description.toString(),
-                    it.category,
+                    it.category!!.name,
                     it.imageUrl,
                     it.status.toString()
                 )

@@ -11,8 +11,7 @@ import java.time.Instant
 @Table(name = "items")
 open class Item {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "items_id_gen")
-    @SequenceGenerator(name = "items_id_gen", sequenceName = "items_id_seq", allocationSize = 1)
+    @ColumnDefault("nextval('items_id_seq')")
     @Column(name = "id", nullable = false)
     open var id: Int? = null
 
@@ -27,8 +26,9 @@ open class Item {
     @Column(name = "description", length = Integer.MAX_VALUE)
     open var description: String? = null
 
-    @Column(name = "category", nullable = false, length = 100)
-    open var category: String? = null
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    open var category: Category? = null
 
     @Column(name = "image_url", length = Integer.MAX_VALUE)
     open var imageUrl: String? = null
@@ -37,7 +37,14 @@ open class Item {
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     open var price: BigDecimal? = null
 
-    @ColumnDefault("'available'")
+    @ColumnDefault("NULL")
+    @Column(name = "item_condition", length = 50)
+    open var itemCondition: String? = null
+
+    @Column(name = "location")
+    open var location: String? = null
+
+    @ColumnDefault("'Available'")
     @Column(name = "status", length = 50)
     open var status: String? = null
 
