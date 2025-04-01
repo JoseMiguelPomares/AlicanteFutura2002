@@ -1,6 +1,6 @@
 body {
-    font-family: 'Roboto', sans-serif;
-  }  
+  font-family: "Roboto", sans-serif;
+}
 
 .hover-underline {
   text-decoration: none;
@@ -12,7 +12,7 @@ body {
 }
 
 .hover-underline::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 0;
   height: 1px;
@@ -82,7 +82,7 @@ body {
 
 .sidebar li {
   margin: 5px 0;
-  cursor: pointer !;
+  cursor: pointer;
 }
 
 .sidebar li:hover {
@@ -109,3 +109,126 @@ body {
 .offCanvasCategorias {
   text-decoration: none !important;
 }
+
+/* Footer Styles */
+.footer-section {
+  background-color: #0f2a23;
+  color: #fff;
+}
+
+.main-footer {
+  position: relative;
+}
+
+.newsletter-section {
+  background: linear-gradient(135deg, #20b03d 0%, #1a3c34 100%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 12px;
+}
+
+.footer-links a {
+  color: #a3d0a1;
+  text-decoration: none;
+  transition: color 0.3s ease, transform 0.3s ease;
+  display: inline-block;
+}
+
+.footer-links a:hover {
+  color: #fff;
+  transform: translateX(5px);
+}
+
+.contact-info {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.contact-info li {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  color: #a3d0a1;
+}
+
+.contact-info a {
+  color: #a3d0a1;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.contact-info a:hover {
+  color: #fff;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  transition: all 0.3s ease;
+}
+
+.social-link:hover {
+  background-color: #20b03d;
+  transform: translateY(-3px);
+}
+
+.app-badge {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.app-badge:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.trust-badges {
+  color: #a3d0a1;
+}
+
+.bottom-footer {
+  background-color: #0a1f1a;
+  color: #a3d0a1;
+  font-size: 0.9rem;
+}
+
+.legal-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.legal-links a {
+  color: #a3d0a1;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.legal-links a:hover {
+  color: #fff;
+}
+
+@media (max-width: 767px) {
+  .trust-badges .d-flex {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+

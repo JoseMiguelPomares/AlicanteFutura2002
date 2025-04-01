@@ -219,31 +219,8 @@ export const PaginaInicio = () => {
         </Container>
       </div>
 
-      {/* Sección de Categorías */}
-      <Container className="my-5 py-5">
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2 className="fw-bold">Explora por Categoría</h2>
-          <Link to="/categorias" className="text-decoration-none text-success fw-bold">
-            Ver todas <ArrowRight />
-          </Link>
-        </div>
-
-        <div className="d-flex flex-wrap gap-2 mb-4">
-          {categorias.map((categoria, index) => (
-            <Button
-              key={index}
-              variant={categoriaActiva === categoria ? "success" : "outline-success"}
-              className="rounded-pill px-4 py-2"
-              onClick={() => filtrarPorCategoria(categoria)}
-            >
-              {categoria}
-            </Button>
-          ))}
-        </div>
-      </Container>
-
       {/* Productos Destacados */}
-      <Container className="mb-5">
+      <Container className="my-5">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h2 className="fw-bold">
             <Star className="text-warning me-2" /> Productos Destacados
@@ -285,7 +262,7 @@ export const PaginaInicio = () => {
       </div>
 
       {/* Sección de Beneficios */}
-      <Container className="my-5 py-5">
+      <Container className="mb-5 py-5">
         <h2 className="text-center fw-bold mb-5">¿Por qué elegir Swapify?</h2>
         <Row xs={1} md={3} className="g-4 text-center">
           <Col>
@@ -327,10 +304,32 @@ export const PaginaInicio = () => {
         </Row>
       </Container>
 
-      {/* Todos los Productos */}
-      <div className="py-5" style={{ backgroundColor: "#f8f9fa" }}>
+      {/* Sección de Categorías */}
+      <div className="py-1" style={{ backgroundColor: "#f8f9fa" }}>
+        <Container>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h2 className="fw-bold">Explora por Categoría</h2>
+            <Link to="/categorias" className="text-decoration-none text-success fw-bold">
+              Ver todas <ArrowRight />
+            </Link>
+          </div>
+          <div className="d-flex flex-wrap gap-2 mb-4">
+            {categorias.map((categoria, index) => (
+              <Button
+                key={index}
+                variant={categoriaActiva === categoria ? "success" : "outline-success"}
+                className="rounded-pill px-4 py-2"
+                onClick={() => filtrarPorCategoria(categoria)}
+              >
+                {categoria}
+              </Button>
+            ))}
+          </div>
+        </Container>
+      </div>
+      <div className="py-3" style={{ backgroundColor: "#f8f9fa" }}>
         <Container className="mb-5">
-          <h2 className="fw-bold mb-4">Todos los Productos</h2>
+          <h3 className="fw-bold mb-4">Productos y Servicios</h3>
           <Row xs={2} sm={2} md={3} lg={4} className="g-4">
             {productosMostrados.map((producto) => (
               <Col key={producto.id}>
@@ -338,7 +337,6 @@ export const PaginaInicio = () => {
               </Col>
             ))}
           </Row>
-
           {productosMostrados.length === 0 && (
             <div className="text-center py-5">
               <p className="text-muted">No hay productos disponibles en esta categoría.</p>
