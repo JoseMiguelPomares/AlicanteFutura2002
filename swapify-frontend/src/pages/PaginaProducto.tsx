@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useParams, Link } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
 import {
@@ -27,7 +29,6 @@ import {
   Heart,
   HeartFill,
   CheckCircle,
-  Person,
   ChevronLeft,
   ChevronRight,
 } from "react-bootstrap-icons"
@@ -53,6 +54,19 @@ interface Producto {
   }
 }
 
+// Interfaz para las reviews
+interface Review {
+  id: number
+  reviewer: {
+    id: number
+    name: string
+    avatar: string
+  }
+  rating: number
+  comment: string
+  date: string
+}
+
 export const PaginaProducto = () => {
   const { id } = useParams<{ id: string }>()
   const idNumber = Number(id)
@@ -62,6 +76,9 @@ export const PaginaProducto = () => {
   const [activeImage, setActiveImage] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
   const [productosRelacionados, setProductosRelacionados] = useState<Producto[]>([])
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [userRating, setUserRating] = useState<number>(5)
+  const [userComment, setUserComment] = useState<string>("")
   const itemService = useRef(new ItemService()).current
 
   // Imágenes de ejemplo para la galería (URLs simplificadas)
@@ -133,6 +150,46 @@ export const PaginaProducto = () => {
             categoria: "Electrónica",
           },
         ])
+
+        // Simular reviews
+        setReviews([
+          {
+            id: 1,
+            reviewer: {
+              id: 201,
+              name: "Carlos Rodríguez",
+              avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+            },
+            rating: 5,
+            comment:
+              "Excelente producto, llegó en perfectas condiciones y funciona muy bien. El vendedor fue muy amable y respondió rápidamente a todas mis preguntas.",
+            date: "2023-06-15",
+          },
+          {
+            id: 2,
+            reviewer: {
+              id: 202,
+              name: "Laura Martínez",
+              avatar: "https://randomuser.me/api/portraits/women/28.jpg",
+            },
+            rating: 4,
+            comment:
+              "Buen producto, aunque tardó un poco más de lo esperado en llegar. La calidad es buena y el precio justo.",
+            date: "2023-06-10",
+          },
+          {
+            id: 3,
+            reviewer: {
+              id: 203,
+              name: "Miguel Sánchez",
+              avatar: "https://randomuser.me/api/portraits/men/45.jpg",
+            },
+            rating: 5,
+            comment:
+              "Muy satisfecho con la compra. El producto es tal como se describe y el vendedor fue muy profesional.",
+            date: "2023-05-28",
+          },
+        ])
       } catch (error) {
         setError(true)
       } finally {
@@ -152,6 +209,62 @@ export const PaginaProducto = () => {
 
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite)
+  }
+
+  const handleSubmitReview = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Simular añadir una nueva review
+    const newReview: Review = {
+      id: reviews.length + 1,
+      reviewer: {
+        id: 999, // ID del usuario actual (simulado)
+        name: "Usuario Actual", // Nombre del usuario actual (simulado)
+        avatar: "https://randomuser.me/api/portraits/women/68.jpg", // Avatar del usuario actual (simulado)
+      },
+      rating: userRating,
+      comment: userComment,
+      date: new Date().toISOString().split("T")[0],
+    }
+
+    setReviews([newReview, ...reviews])
+    setUserComment("")
+    setUserRating(5)
+
+    // Aquí iría la lógica para enviar la review al backend
+    alert("¡Gracias por tu review!")
+  }
+
+  // Renderizar estrellas para un review
+  const renderStars = (rating: number) => {
+    return (
+      <div className="d-flex">
+        {[...Array(5)].map((_, i) =>
+          i < Math.floor(rating) ? (
+            <StarFill key={i} className="text-warning" />
+          ) : (
+            <Star key={i} className="text-warning" />
+          ),
+        )}
+      </div>
+    )
+  }
+
+  // Renderizar estrellas interactivas para el formulario
+  const renderRatingSelector = () => {
+    return (
+      <div className="d-flex mb-3">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span key={star} onClick={() => setUserRating(star)} style={{ cursor: "pointer" }}>
+            {star <= userRating ? (
+              <StarFill className="text-warning fs-4 me-1" />
+            ) : (
+              <Star className="text-warning fs-4 me-1" />
+            )}
+          </span>
+        ))}
+      </div>
+    )
   }
 
   if (loading) {
@@ -414,66 +527,66 @@ export const PaginaProducto = () => {
               </Card.Body>
             </Card>
           </Tab>
-          <Tab eventKey="preguntas" title="Preguntas y respuestas">
+          <Tab eventKey="reviews" title="Reviews">
             <Card className="border-0 shadow-sm rounded-4">
               <Card.Body>
-                <h4 className="h5 fw-bold mb-3">Preguntas y respuestas</h4>
+                <h4 className="h5 fw-bold mb-4">Reviews del producto</h4>
 
-                <div className="mb-4 pb-3 border-bottom">
-                  <div className="d-flex mb-2">
-                    <Person className="text-muted me-2" />
-                    <div>
-                      <p className="mb-1 fw-bold">Carlos Rodríguez</p>
-                      <p className="mb-1">¿Tiene garantía el producto?</p>
-                      <small className="text-muted">Hace 2 días</small>
-                    </div>
-                  </div>
-                  <div className="d-flex ms-4 mt-2">
-                    <Person className="text-success me-2" />
-                    <div>
-                      <p className="mb-1 fw-bold">
-                        {producto.vendedor?.nombre} <span className="badge bg-success">Vendedor</span>
-                      </p>
-                      <p className="mb-1">
-                        Hola Carlos, el producto tiene garantía de 6 meses desde la fecha de intercambio.
-                      </p>
-                      <small className="text-muted">Hace 1 día</small>
-                    </div>
-                  </div>
-                </div>
+                {/* Formulario para añadir un review */}
+                <Card className="mb-4 bg-light border-0">
+                  <Card.Body>
+                    <h5 className="h6 fw-bold mb-3">Deja tu review</h5>
+                    <Form onSubmit={handleSubmitReview}>
+                      {renderRatingSelector()}
+                      <Form.Group className="mb-3">
+                        <Form.Control
+                          as="textarea"
+                          rows={3}
+                          placeholder="Comparte tu experiencia con este producto..."
+                          value={userComment}
+                          onChange={(e) => setUserComment(e.target.value)}
+                          required
+                        />
+                      </Form.Group>
+                      <Button variant="success" type="submit" className="rounded-pill">
+                        Enviar review
+                      </Button>
+                    </Form>
+                  </Card.Body>
+                </Card>
 
-                <div className="mb-4">
-                  <div className="d-flex mb-2">
-                    <Person className="text-muted me-2" />
-                    <div>
-                      <p className="mb-1 fw-bold">Laura Martínez</p>
-                      <p className="mb-1">¿Aceptarías intercambio por una tablet?</p>
-                      <small className="text-muted">Hace 5 días</small>
-                    </div>
+                {/* Lista de reviews */}
+                {reviews.length > 0 ? (
+                  <div>
+                    {reviews.map((review) => (
+                      <div key={review.id} className="mb-4 pb-4 border-bottom">
+                        <div className="d-flex">
+                          <img
+                            src={review.reviewer.avatar || "/placeholder.svg"}
+                            alt={review.reviewer.name}
+                            className="rounded-circle me-3"
+                            width="50"
+                            height="50"
+                          />
+                          <div>
+                            <div className="d-flex align-items-center mb-2">
+                              <h5 className="h6 fw-bold mb-0 me-2">{review.reviewer.name}</h5>
+                              <span className="text-muted small">{new Date(review.date).toLocaleDateString()}</span>
+                            </div>
+                            <div className="mb-2">{renderStars(review.rating)}</div>
+                            <p className="mb-0">{review.comment}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="d-flex ms-4 mt-2">
-                    <Person className="text-success me-2" />
-                    <div>
-                      <p className="mb-1 fw-bold">
-                        {producto.vendedor?.nombre} <span className="badge bg-success">Vendedor</span>
-                      </p>
-                      <p className="mb-1">
-                        Hola Laura, depende del modelo y estado de la tablet. Podemos hablar por chat para más detalles.
-                      </p>
-                      <small className="text-muted">Hace 4 días</small>
-                    </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-muted mb-0">
+                      Este producto aún no tiene reviews. ¡Sé el primero en opinar!
+                    </p>
                   </div>
-                </div>
-
-                <Form>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Haz una pregunta al vendedor</Form.Label>
-                    <Form.Control as="textarea" rows={3} placeholder="Escribe tu pregunta aquí..." />
-                  </Form.Group>
-                  <Button variant="success" className="rounded-pill">
-                    Enviar pregunta
-                  </Button>
-                </Form>
+                )}
               </Card.Body>
             </Card>
           </Tab>
