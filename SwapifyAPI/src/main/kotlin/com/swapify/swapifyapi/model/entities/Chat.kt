@@ -11,6 +11,7 @@ import java.time.Instant
 open class Chat {
     @Id
     @ColumnDefault("nextval('chats_id_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     open var id: Int? = null
 

@@ -1,9 +1,6 @@
 package com.swapify.swapifyapi.model.entities
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import org.hibernate.annotations.ColumnDefault
 import java.time.Instant
 
@@ -12,6 +9,7 @@ import java.time.Instant
 open class User {
     @Id
     @ColumnDefault("nextval('users_id_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     open var id: Int? = null
 

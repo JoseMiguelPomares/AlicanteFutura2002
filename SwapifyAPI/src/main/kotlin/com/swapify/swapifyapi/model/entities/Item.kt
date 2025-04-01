@@ -12,6 +12,7 @@ import java.time.Instant
 open class Item {
     @Id
     @ColumnDefault("nextval('items_id_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     open var id: Int? = null
 
@@ -44,7 +45,7 @@ open class Item {
     @Column(name = "location")
     open var location: String? = null
 
-    @ColumnDefault("'Available'")
+    @ColumnDefault("Available")
     @Column(name = "status", length = 50)
     open var status: String? = null
 

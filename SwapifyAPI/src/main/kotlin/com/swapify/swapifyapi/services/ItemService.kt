@@ -2,9 +2,15 @@ package com.swapify.swapifyapi.services
 
 import com.swapify.swapifyapi.model.dao.IItemDAO
 import com.swapify.swapifyapi.model.dto.ItemDTO
+import com.swapify.swapifyapi.model.dto.NewItemDTO
+import com.swapify.swapifyapi.model.entities.Category
 import com.swapify.swapifyapi.model.entities.Item
+import com.swapify.swapifyapi.model.entities.User
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import java.time.Instant
 
 @Service
 class ItemService {
@@ -107,4 +113,28 @@ class ItemService {
             emptyList()
         }
     }
+
+    //Función para añadir un producto nuevo
+    fun addItem(newItemDTO: NewItemDTO): ResponseEntity<NewItemDTO>{
+        val item = Item()
+        item.user = User()
+        item.category = Category()
+
+        item.user!!.id = newItemDTO.userId
+        item.title = newItemDTO.title
+        item.description = newItemDTO.description
+        item.category!!.id = newItemDTO.categoryId
+        item.imageUrl = newItemDTO.imageUrl
+        item.price = newItemDTO.price
+        item.itemCondition = newItemDTO.itemCondition
+        item.location = newItemDTO.location
+        item.status = "Available"
+        item.createdAt = Instant.now()
+
+        itemDAO.save(item)
+        return ResponseEntity(HttpStatus.CREATED)
+    }
+
+    //Función para ordenar por precio menor
+
 }

@@ -1,14 +1,12 @@
 package com.swapify.swapifyapi.controllers
 
 import com.swapify.swapifyapi.model.dto.ItemDTO
+import com.swapify.swapifyapi.model.dto.NewItemDTO
 import com.swapify.swapifyapi.model.entities.Item
 import com.swapify.swapifyapi.services.ItemService
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.CrossOrigin
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/items")
@@ -52,5 +50,11 @@ class ItemController {
     @GetMapping("/getByTitle/{title}")
     fun getItemsByTitle(@PathVariable title: String): List<ItemDTO>{
         return itemService.getItemsByTitle(title)
+    }
+
+    //Función para añadir un item
+    @PostMapping("/addItem")
+    fun addItem(@RequestBody item: NewItemDTO): ResponseEntity<NewItemDTO> {
+        return itemService.addItem(item)
     }
 }

@@ -11,6 +11,7 @@ import java.time.Instant
 open class Review {
     @Id
     @ColumnDefault("nextval('reviews_id_seq')")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     open var id: Int? = null
 

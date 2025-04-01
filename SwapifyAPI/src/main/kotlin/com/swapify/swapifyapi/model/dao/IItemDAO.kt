@@ -3,6 +3,7 @@ package com.swapify.swapifyapi.model.dao
 import com.swapify.swapifyapi.model.entities.Item
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
+import java.math.BigDecimal
 
 interface IItemDAO: CrudRepository<Item, Long> {
     @Query(
@@ -48,4 +49,14 @@ interface IItemDAO: CrudRepository<Item, Long> {
         """
     )
     fun findByTitle(title: String): MutableList<Item>
+
+    @Query(
+        """
+        SELECT i 
+        FROM Item i
+        LEFT JOIN FETCH i.user
+        ORDER BY price ASC
+        """
+    )
+    fun findByLowerPrice(): MutableList<Item>
 }
