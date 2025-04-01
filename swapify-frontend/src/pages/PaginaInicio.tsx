@@ -22,12 +22,16 @@ import {
   Truck,
 } from "react-bootstrap-icons"
 
-// Define la interfaz Producto
+// Actualizar la interfaz Producto para reflejar la estructura de la base de datos
 interface Producto {
   id: number
   title: string
   description: string
-  category: string
+  category_id: number
+  category: {
+    id: number
+    name: string
+  }
   imageUrl: string
   status: string
   createdAt: string
@@ -51,10 +55,11 @@ export const PaginaInicio = () => {
       try {
         setCargando(true)
         const data = await itemService.getAll()
+        console.log("Productos cargados:", data) // Para depuración
         setProductos(data)
 
         // Extraer categorías únicas con tipado correcto
-        const categoriasSet = new Set(data.map((p: Producto) => p.category))
+        const categoriasSet = new Set(data.map((p: Producto) => p.category?.name || "otros"))
         const categoriasUnicas = ["Todos", ...Array.from(categoriasSet)] as string[]
         setCategorias(categoriasUnicas)
 
@@ -81,7 +86,7 @@ export const PaginaInicio = () => {
   }
 
   const productosMostrados =
-    categoriaActiva === "Todos" ? productos : productos.filter((p) => p.category === categoriaActiva)
+    categoriaActiva === "Todos" ? productos : productos.filter((p) => p.category?.name === categoriaActiva)
 
   if (error)
     return (
@@ -177,7 +182,7 @@ export const PaginaInicio = () => {
               >
                 <div className="position-relative rounded-4 overflow-hidden shadow-lg" style={{ height: "400px" }}>
                   <img
-                    src="https://images.unsplash.com/photo-1574740981348-fe6e45e9a294?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fGNvbmV4aW9uJTIwdHJ1ZXF1ZXxlbnwwfDB8MHx8fDI%3D0"
+                    src="https://images.unsplash.com/photo-1574740981348-fe6e45e9a294?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fGNvbmV4aW9uJTIwdHJ1ZXF1ZXxlbnwwfDB8MHx8fHwy%3D0"
                     alt="Swapify Intercambios"
                     className="img-fluid w-100 h-100"
                     style={{ objectFit: "cover" }}
@@ -347,7 +352,7 @@ export const PaginaInicio = () => {
 
       {/* CTA Final */}
       <div
-        className="py-5 position-relative overflow-hidden"
+        className="py-5 mb-5 position-relative overflow-hidden"
         style={{
           background: "linear-gradient(120deg, #1a3c34 0%, #20b03d 100%)",
         }}
@@ -382,21 +387,25 @@ export const PaginaInicio = () => {
 // Componente de tarjeta de producto mejorado
 const ProductCard = ({ producto }: { producto: Producto }) => {
   // Función para determinar el icono según la categoría
-  const getCategoryIcon = (category: string) => {
-    switch (category.toLowerCase()) {
+  const getCategoryIcon = (categoryName: string) => {
+    switch (categoryName.toLowerCase()) {
       case "electrónica":
+      case "tecnología":
         return <Laptop className="me-1" />
       case "hogar":
         return <House className="me-1" />
       case "libros":
         return <Book className="me-1" />
       case "moda":
+      case "ropa":
+      case "calzado":
         return <Handbag className="me-1" />
       case "reparaciones":
         return <Tools className="me-1" />
       case "clases":
         return <Mortarboard className="me-1" />
       case "transporte":
+      case "vehículos":
         return <Truck className="me-1" />
       default:
         return <Tag className="me-1" />
@@ -404,29 +413,36 @@ const ProductCard = ({ producto }: { producto: Producto }) => {
   }
 
   // Función para determinar el color del badge según la categoría
-  const getCategoryColor = (category: string) => {
-    switch (category.toLowerCase()) {
+  const getCategoryColor = (categoryName: string) => {
+    switch (categoryName.toLowerCase()) {
       case "electrónica":
+      case "tecnología":
         return "primary"
       case "hogar":
         return "success"
       case "libros":
         return "info"
       case "moda":
+      case "ropa":
+      case "calzado":
         return "danger"
       case "reparaciones":
         return "warning"
       case "clases":
         return "primary"
       case "transporte":
+      case "vehículos":
         return "success"
       default:
         return "secondary"
     }
   }
 
+  // Obtener el nombre de la categoría de forma segura
+  const categoryName = producto.category?.name || "otros"
+
   // Determinar si es un producto o servicio
-  const isService = ["reparaciones", "clases", "transporte"].includes(producto.category.toLowerCase())
+  const isService = ["reparaciones", "clases", "transporte"].includes(categoryName.toLowerCase())
 
   return (
     <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
@@ -441,11 +457,11 @@ const ProductCard = ({ producto }: { producto: Producto }) => {
               style={{ height: "200px", objectFit: "cover" }}
             />
             <Badge
-              bg={getCategoryColor(producto.category)}
+              bg={getCategoryColor(categoryName)}
               className="position-absolute top-0 end-0 m-2 px-2 py-1 rounded-pill"
             >
-              {getCategoryIcon(producto.category)}
-              {producto.category}
+              {getCategoryIcon(categoryName)}
+              {categoryName}
             </Badge>
 
             {isService && (

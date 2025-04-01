@@ -18,7 +18,7 @@ export const Footer = () => {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="footer-section">
+    <footer className="footer-section mt-5">
       {/* Main Footer */}
       <div className="main-footer pt-4">
         <Container>
