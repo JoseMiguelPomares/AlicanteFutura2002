@@ -35,7 +35,7 @@ export const BarraNavegacion = () => {
                 alt="Swapify Logo"
                 className="img-fluid"
                 // Invertir colores para que el logo se vea bien en fondo oscuro
-                style={{ height: "45px", filter: "brightness(0) invert(1)" }}
+                style={isMobile ? { width: "70px", filter: "brightness(0) invert(1)" } : { width: "100px", filter: "brightness(0) invert(1)" }}
               />
             </Navbar.Brand>
 

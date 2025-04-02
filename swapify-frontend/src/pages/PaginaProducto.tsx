@@ -35,22 +35,27 @@ import {
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
 
+// Interfaz actualizada para coincidir con la estructura de datos de la API
 interface Producto {
   id: number
-  nombre: string
-  descripcion: string
-  precio: number
-  imagen: string
-  categoria?: string
-  ubicacion?: string
-  fechaPublicacion?: string
-  estado?: string
-  vendedor?: {
+  title: string
+  description: string
+  price: number
+  imageUrl: string
+  category_id: number
+  category: {
     id: number
-    nombre: string
-    avatar: string
-    valoracion: number
-    verificado: boolean
+    name: string
+  }
+  status: string
+  createdAt: string
+  user?: {
+    id: number
+    name: string
+    email: string
+    imageUrl?: string
+    rating?: number
+    verified?: boolean
   }
 }
 
@@ -81,8 +86,8 @@ export const PaginaProducto = () => {
   const [userComment, setUserComment] = useState<string>("")
   const itemService = useRef(new ItemService()).current
 
-  // Imágenes de ejemplo para la galería (URLs simplificadas)
-  const imagenes = [
+  // Imágenes de ejemplo para la galería (se usarán si el producto no tiene imágenes)
+  const imagenesPorDefecto = [
     "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
     "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800",
     "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800",
@@ -99,59 +104,35 @@ export const PaginaProducto = () => {
     const fetchProducto = async () => {
       try {
         setLoading(true)
-        const response = await itemService.getByUserId(idNumber)
+        // Obtener el producto por su ID
+        const response = await itemService.getByItemId(idNumber)
 
-        if (!response.ok) throw new Error("Producto no encontrado")
-
-        const data = await response.json()
-
-        // Enriquecer los datos con información adicional de ejemplo
-        const productoEnriquecido = {
-          ...data,
-          categoria: "Electrónica",
-          ubicacion: "Madrid, España",
-          fechaPublicacion: "2023-05-15",
-          estado: "Como nuevo",
-          vendedor: {
-            id: 123,
-            nombre: "María García",
-            avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-            valoracion: 4.8,
-            verificado: true,
-          },
+        if (!response || !response.data) {
+          throw new Error("Producto no encontrado")
         }
 
-        setProducto(productoEnriquecido)
+        console.log("Datos del producto:", response.data) // Para depuración
 
-        // Simular productos relacionados
-        setProductosRelacionados([
-          {
-            id: 101,
-            nombre: "Auriculares Bluetooth",
-            descripcion: "Auriculares inalámbricos con cancelación de ruido",
-            precio: 80,
-            imagen: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=500",
-            categoria: "Electrónica",
-          },
-          {
-            id: 102,
-            nombre: "Smartwatch deportivo",
-            descripcion: "Reloj inteligente con monitor cardíaco",
-            precio: 120,
-            imagen: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=500",
-            categoria: "Electrónica",
-          },
-          {
-            id: 103,
-            nombre: "Altavoz portátil",
-            descripcion: "Altavoz Bluetooth resistente al agua",
-            precio: 65,
-            imagen: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=500",
-            categoria: "Electrónica",
-          },
-        ])
+        // Guardar los datos del producto tal como vienen de la API
+        setProducto(response.data)
 
-        // Simular reviews
+        // Buscar productos relacionados (por categoría similar)
+        try {
+          const allProductsResponse = await itemService.getAll()
+          console.log("Todos los productos:", allProductsResponse)
+
+          // Filtrar productos de la misma categoría, excluyendo el producto actual
+          const relacionados = allProductsResponse
+            .filter((p: Producto) => p.category?.id === response.data.category?.id && p.id !== response.data.id)
+            .slice(0, 4) // Limitar a 4 productos relacionados
+
+          setProductosRelacionados(relacionados)
+        } catch (error) {
+          console.error("Error al cargar productos relacionados:", error)
+          // Si falla, dejamos el array vacío
+        }
+
+        // Simular reviews (esto podría reemplazarse con una llamada a la API en el futuro)
         setReviews([
           {
             id: 1,
@@ -177,20 +158,9 @@ export const PaginaProducto = () => {
               "Buen producto, aunque tardó un poco más de lo esperado en llegar. La calidad es buena y el precio justo.",
             date: "2023-06-10",
           },
-          {
-            id: 3,
-            reviewer: {
-              id: 203,
-              name: "Miguel Sánchez",
-              avatar: "https://randomuser.me/api/portraits/men/45.jpg",
-            },
-            rating: 5,
-            comment:
-              "Muy satisfecho con la compra. El producto es tal como se describe y el vendedor fue muy profesional.",
-            date: "2023-05-28",
-          },
         ])
       } catch (error) {
+        console.error("Error al cargar el producto:", error)
         setError(true)
       } finally {
         setLoading(false)
@@ -199,7 +169,7 @@ export const PaginaProducto = () => {
 
     fetchProducto()
 
-    // Simular scroll al inicio cuando se carga un nuevo producto
+    // Scroll al inicio cuando se carga un nuevo producto
     window.scrollTo(0, 0)
   }, [id])
 
@@ -232,10 +202,10 @@ export const PaginaProducto = () => {
     setUserRating(5)
 
     // Aquí iría la lógica para enviar la review al backend
-    alert("¡Gracias por tu review!")
+    alert("¡Gracias por tu valoración!")
   }
 
-  // Renderizar estrellas para un review
+  // Renderizar estrellas para una valoración
   const renderStars = (rating: number) => {
     return (
       <div className="d-flex">
@@ -266,6 +236,9 @@ export const PaginaProducto = () => {
       </div>
     )
   }
+
+  // Determinar qué imágenes mostrar (usar la del producto o las de ejemplo)
+  const imagenes = producto?.imageUrl ? [producto.imageUrl, ...imagenesPorDefecto.slice(1)] : imagenesPorDefecto
 
   if (loading) {
     return (
@@ -305,10 +278,10 @@ export const PaginaProducto = () => {
         <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/categorias" }}>
           Categorías
         </Breadcrumb.Item>
-        <Breadcrumb.Item linkAs={Link} linkProps={{ to: `/categorias/${producto.categoria?.toLowerCase()}` }}>
-          {producto.categoria}
+        <Breadcrumb.Item linkAs={Link} linkProps={{ to: `/categorias/${producto.category?.name?.toLowerCase()}` }}>
+          {producto.category?.name || "Sin categoría"}
         </Breadcrumb.Item>
-        <Breadcrumb.Item active>{producto.nombre}</Breadcrumb.Item>
+        <Breadcrumb.Item active>{producto.title}</Breadcrumb.Item>
       </Breadcrumb>
 
       <Row>
@@ -318,7 +291,7 @@ export const PaginaProducto = () => {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
               <img
                 src={imagenes[activeImage] || "/placeholder.svg"}
-                alt={producto.nombre}
+                alt={producto.title}
                 className="img-fluid rounded-4 shadow-sm mb-3"
                 style={{ width: "100%", height: "400px", objectFit: "cover" }}
               />
@@ -344,7 +317,7 @@ export const PaginaProducto = () => {
 
             {/* Badge de estado */}
             <Badge bg="success" className="position-absolute top-0 start-0 m-3 px-3 py-2 rounded-pill">
-              {producto.estado}
+              {producto.status || "Disponible"}
             </Badge>
           </div>
 
@@ -370,7 +343,7 @@ export const PaginaProducto = () => {
         <Col lg={6}>
           <div className="d-flex justify-content-between align-items-start mb-3">
             <Badge bg="primary" className="rounded-pill px-3 py-2 mb-2">
-              {producto.categoria}
+              {producto.category?.name || "Sin categoría"}
             </Badge>
             <Button
               variant={isFavorite ? "danger" : "outline-danger"}
@@ -382,24 +355,24 @@ export const PaginaProducto = () => {
             </Button>
           </div>
 
-          <h1 className="fw-bold mb-3">{producto.nombre}</h1>
+          <h1 className="fw-bold mb-3">{producto.title}</h1>
 
           <div className="d-flex align-items-center mb-4">
             <div className="me-4 d-flex align-items-center">
               <GeoAlt className="text-muted me-1" />
-              <span className="text-muted">{producto.ubicacion}</span>
+              <span className="text-muted">Madrid, España</span> {/* Ubicación por defecto */}
             </div>
             <div className="d-flex align-items-center">
               <Calendar3 className="text-muted me-1" />
-              <span className="text-muted">{new Date(producto.fechaPublicacion || "").toLocaleDateString()}</span>
+              <span className="text-muted">{new Date(producto.createdAt || "").toLocaleDateString()}</span>
             </div>
           </div>
 
-          <h2 className="h3 fw-bold text-success mb-4">{producto.precio} Créditos</h2>
+          <h2 className="h3 fw-bold text-success mb-4">{producto.price || 0} Créditos</h2>
 
           <div className="mb-4">
             <h3 className="h5 fw-bold mb-2">Descripción</h3>
-            <p className="text-muted">{producto.descripcion}</p>
+            <p className="text-muted">{producto.description || "Sin descripción disponible"}</p>
           </div>
 
           {/* Información del vendedor */}
@@ -407,35 +380,33 @@ export const PaginaProducto = () => {
             <Card.Body>
               <div className="d-flex align-items-center mb-3">
                 <img
-                  src={producto.vendedor?.avatar || "/placeholder.svg"}
-                  alt={producto.vendedor?.nombre}
+                  src={producto.user?.imageUrl || "https://randomuser.me/api/portraits/women/44.jpg"}
+                  alt={producto.user?.name || "Vendedor"}
                   className="rounded-circle me-3"
                   width="50"
                   height="50"
                 />
                 <div>
                   <div className="d-flex align-items-center">
-                    <h4 className="h6 fw-bold mb-0 me-2">{producto.vendedor?.nombre}</h4>
-                    {producto.vendedor?.verificado && (
-                      <CheckCircle className="text-success" title="Usuario verificado" />
-                    )}
+                    <h4 className="h6 fw-bold mb-0 me-2">{producto.user?.name || "Vendedor"}</h4>
+                    {producto.user?.verified && <CheckCircle className="text-success" title="Usuario verificado" />}
                   </div>
                   <div className="d-flex align-items-center">
                     {[...Array(5)].map((_, i) =>
-                      i < Math.floor(producto.vendedor?.valoracion || 0) ? (
+                      i < Math.floor(producto.user?.rating || 4) ? (
                         <StarFill key={i} className="text-warning" size={14} />
                       ) : (
                         <Star key={i} className="text-warning" size={14} />
                       ),
                     )}
-                    <span className="ms-1 small text-muted">({producto.vendedor?.valoracion})</span>
+                    <span className="ms-1 small text-muted">({producto.user?.rating || 4})</span>
                   </div>
                 </div>
                 <Button
                   variant="outline-success"
                   className="ms-auto rounded-pill"
                   as={Link as any}
-                  to={`/perfil/${producto.vendedor?.id}`}
+                  to={`/perfil/${producto.user?.id || 0}`}
                 >
                   Ver perfil
                 </Button>
@@ -473,15 +444,15 @@ export const PaginaProducto = () => {
                     <ListGroup variant="flush">
                       <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
                         <span className="text-muted">Categoría</span>
-                        <span className="fw-bold">{producto.categoria}</span>
+                        <span className="fw-bold">{producto.category?.name || "Sin categoría"}</span>
                       </ListGroup.Item>
                       <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
                         <span className="text-muted">Estado</span>
-                        <span className="fw-bold">{producto.estado}</span>
+                        <span className="fw-bold">{producto.status || "Disponible"}</span>
                       </ListGroup.Item>
                       <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
                         <span className="text-muted">Ubicación</span>
-                        <span className="fw-bold">{producto.ubicacion}</span>
+                        <span className="fw-bold">Madrid, España</span> {/* Ubicación por defecto */}
                       </ListGroup.Item>
                     </ListGroup>
                   </Col>
@@ -489,9 +460,7 @@ export const PaginaProducto = () => {
                     <ListGroup variant="flush">
                       <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
                         <span className="text-muted">Fecha de publicación</span>
-                        <span className="fw-bold">
-                          {new Date(producto.fechaPublicacion || "").toLocaleDateString()}
-                        </span>
+                        <span className="fw-bold">{new Date(producto.createdAt || "").toLocaleDateString()}</span>
                       </ListGroup.Item>
                       <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
                         <span className="text-muted">ID del producto</span>
@@ -499,7 +468,7 @@ export const PaginaProducto = () => {
                       </ListGroup.Item>
                       <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
                         <span className="text-muted">Visitas</span>
-                        <span className="fw-bold">243</span>
+                        <span className="fw-bold">243</span> {/* Dato de ejemplo */}
                       </ListGroup.Item>
                     </ListGroup>
                   </Col>
@@ -527,15 +496,15 @@ export const PaginaProducto = () => {
               </Card.Body>
             </Card>
           </Tab>
-          <Tab eventKey="reviews" title="Reviews">
+          <Tab eventKey="reviews" title="Valoraciones">
             <Card className="border-0 shadow-sm rounded-4">
               <Card.Body>
-                <h4 className="h5 fw-bold mb-4">Reviews del producto</h4>
+                <h4 className="h5 fw-bold mb-4">Valoraciones del producto</h4>
 
-                {/* Formulario para añadir un review */}
+                {/* Formulario para añadir una valoración */}
                 <Card className="mb-4 bg-light border-0">
                   <Card.Body>
-                    <h5 className="h6 fw-bold mb-3">Deja tu review</h5>
+                    <h5 className="h6 fw-bold mb-3">Deja tu valoración</h5>
                     <Form onSubmit={handleSubmitReview}>
                       {renderRatingSelector()}
                       <Form.Group className="mb-3">
@@ -549,13 +518,13 @@ export const PaginaProducto = () => {
                         />
                       </Form.Group>
                       <Button variant="success" type="submit" className="rounded-pill">
-                        Enviar review
+                        Enviar valoración
                       </Button>
                     </Form>
                   </Card.Body>
                 </Card>
 
-                {/* Lista de reviews */}
+                {/* Lista de valoraciones */}
                 {reviews.length > 0 ? (
                   <div>
                     {reviews.map((review) => (
@@ -583,7 +552,7 @@ export const PaginaProducto = () => {
                 ) : (
                   <div className="text-center py-4">
                     <p className="text-muted mb-0">
-                      Este producto aún no tiene reviews. ¡Sé el primero en opinar!
+                      Este producto aún no tiene valoraciones. ¡Sé el primero en opinar!
                     </p>
                   </div>
                 )}
@@ -594,44 +563,46 @@ export const PaginaProducto = () => {
       </div>
 
       {/* Productos relacionados */}
-      <div className="mt-5">
-        <h3 className="fw-bold mb-4">Productos relacionados</h3>
-        <Row xs={1} sm={2} md={3} lg={4} className="g-4">
-          {productosRelacionados.map((prod) => (
-            <Col key={prod.id}>
-              <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-                <Link to={`/productos/${prod.id}`} className="text-decoration-none">
-                  <Card className="h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-                    <Card.Img
-                      variant="top"
-                      src={prod.imagen}
-                      alt={prod.nombre}
-                      style={{ height: "180px", objectFit: "cover" }}
-                    />
-                    <Card.Body className="p-3">
-                      <Badge bg="primary" className="mb-2 rounded-pill">
-                        {prod.categoria}
-                      </Badge>
-                      <Card.Title className="fw-bold text-dark mb-1" style={{ fontSize: "1rem" }}>
-                        {prod.nombre}
-                      </Card.Title>
-                      <Card.Text className="text-muted small mb-2" style={{ height: "40px", overflow: "hidden" }}>
-                        {prod.descripcion}
-                      </Card.Text>
-                      <div className="d-flex justify-content-between align-items-center">
-                        <span className="fw-bold text-success">{prod.precio} Créditos</span>
-                        <Button variant="outline-success" size="sm" className="rounded-pill">
-                          Ver
-                        </Button>
-                      </div>
-                    </Card.Body>
-                  </Card>
-                </Link>
-              </motion.div>
-            </Col>
-          ))}
-        </Row>
-      </div>
+      {productosRelacionados.length > 0 && (
+        <div className="mt-5">
+          <h3 className="fw-bold mb-4">Productos relacionados</h3>
+          <Row xs={1} sm={2} md={3} lg={4} className="g-4">
+            {productosRelacionados.map((prod) => (
+              <Col key={prod.id}>
+                <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
+                  <Link to={`/productos/${prod.id}`} className="text-decoration-none">
+                    <Card className="h-100 shadow-sm border-0 rounded-4 overflow-hidden">
+                      <Card.Img
+                        variant="top"
+                        src={prod.imageUrl || "/placeholder.svg"}
+                        alt={prod.title}
+                        style={{ height: "180px", objectFit: "cover" }}
+                      />
+                      <Card.Body className="p-3">
+                        <Badge bg="primary" className="mb-2 rounded-pill">
+                          {prod.category?.name || "Sin categoría"}
+                        </Badge>
+                        <Card.Title className="fw-bold text-dark mb-1" style={{ fontSize: "1rem" }}>
+                          {prod.title}
+                        </Card.Title>
+                        <Card.Text className="text-muted small mb-2" style={{ height: "40px", overflow: "hidden" }}>
+                          {prod.description}
+                        </Card.Text>
+                        <div className="d-flex justify-content-between align-items-center">
+                          <span className="fw-bold text-success">{prod.price || 0} Créditos</span>
+                          <Button variant="outline-success" size="sm" className="rounded-pill">
+                            Ver
+                          </Button>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </Link>
+                </motion.div>
+              </Col>
+            ))}
+          </Row>
+        </div>
+      )}
     </Container>
   )
 }
