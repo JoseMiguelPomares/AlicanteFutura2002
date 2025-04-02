@@ -10,4 +10,8 @@ export class ItemService{
     getByUserId(userId: number): Promise<Response>{
         return fetch(this.baseUrl + `userItems/${userId}`)
     }
+
+    getByItemId(itemId: number){
+        return axios.get(this.baseUrl + `getItemById/${itemId}`)
+    }
 }
