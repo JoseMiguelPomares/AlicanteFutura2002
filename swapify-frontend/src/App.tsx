@@ -8,11 +8,13 @@ import { BarraNavegacion } from "./components/BarraNavegacion";
 import { PaginaProducto } from "./pages/PaginaProducto";
 import { Footer } from "./components/Footer";
 import { PaginaVender } from "./pages/PaginaVender";
+import { ScrollToTop } from "./components/ScrollToTop";  
 
 // Componente principal de la aplicación
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <div className="d-flex flex-column min-vh-100">
         <BarraNavegacion />
         <main className="flex-grow-1">

@@ -119,7 +119,7 @@ export const PaginaInicio = () => {
         style={{
           background: "linear-gradient(135deg, #f8f9fa 0%, #e9f7ef 100%)",
           minHeight: "600px",
-          paddingTop: "80px",
+          paddingTop: "35px",
           paddingBottom: "80px",
         }}
       >
@@ -369,7 +369,7 @@ export const PaginaInicio = () => {
                 Publicar Producto
               </Button>
             </Col>
-            <Col lg={5} className="d-none d-lg-block text-center">
+            <Col lg={5} className="text-center mt-5 mt-md-0">
               <img
                 src="https://images.unsplash.com/photo-1523495225575-104bd7a11999?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8Z2xvYmFsfGVufDB8fDB8fHwy"
                 alt="Eco-friendly"
