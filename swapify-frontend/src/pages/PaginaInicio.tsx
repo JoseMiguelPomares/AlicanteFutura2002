@@ -5,6 +5,7 @@ import { Container, Row, Col, Card, Button, Badge } from "react-bootstrap"
 import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
+import { CategoryService } from "../services/categoryService"
 import {
   ArrowRight,
   Star,
@@ -51,17 +52,30 @@ export const PaginaInicio = () => {
   const itemService = useRef(new ItemService()).current
 
   useEffect(() => {
-    const fetchProductos = async () => {
+    const fetchData = async () => {
       try {
         setCargando(true)
+
+        // Cargar productos
         const data = await itemService.getAll()
-        console.log("Productos cargados:", data) // Para depuración
+        console.log("Productos cargados:", data)
         setProductos(data)
 
-        // Extraer categorías únicas con tipado correcto
-        const categoriasSet = new Set(data.map((p: Producto) => p.category?.name || "otros"))
-        const categoriasUnicas = ["Todos", ...Array.from(categoriasSet)] as string[]
-        setCategorias(categoriasUnicas)
+        // Cargar categorías desde el servicio
+        const categoryService = new CategoryService()
+        try {
+          const categoriasData = await categoryService.getAll()
+          console.log("Categorías cargadas:", categoriasData)
+          // Añadir "Todos" al inicio del array de categorías
+          const categoriasUnicas = ["Todos", ...categoriasData.map((cat: any) => cat.name)]
+          setCategorias(categoriasUnicas)
+        } catch (error) {
+          console.error("Error al cargar categorías:", error)
+          // Fallback: extraer categorías de los productos si falla la API
+          const categoriasSet = new Set(data.map((p: Producto) => p.category?.name || "otros"))
+          const categoriasUnicas = ["Todos", ...Array.from(categoriasSet)] as string[]
+          setCategorias(categoriasUnicas)
+        }
 
         // Filtrar productos para diferentes secciones
         setProductosFiltrados({
@@ -78,7 +92,7 @@ export const PaginaInicio = () => {
       }
     }
 
-    fetchProductos()
+    fetchData()
   }, [])
 
   const filtrarPorCategoria = (categoria: string) => {
@@ -431,6 +445,7 @@ const ProductCard = ({ producto }: { producto: Producto }) => {
       case "clases":
         return "primary"
       case "transporte":
+        return "success"
       case "vehículos":
         return "success"
       default:
