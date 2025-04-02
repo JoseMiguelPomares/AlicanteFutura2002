@@ -7,6 +7,7 @@ import { BarraNavegacion } from "./components/BarraNavegacion";
 // import { PaginaPerfil } from "./pages/PaginaPerfil";
 import { PaginaProducto } from "./pages/PaginaProducto";
 import { Footer } from "./components/Footer";
+import { PaginaVender } from "./pages/PaginaVender";
 
 // Componente principal de la aplicación
 export const App: React.FC = () => {
@@ -17,6 +18,7 @@ export const App: React.FC = () => {
         <main className="flex-grow-1">
           <Routes>
             <Route path="/" element={<PaginaInicio />} />
+            <Route path="/vender" element={<PaginaVender />} />
             {/* <Route path="/registro" element={<PaginaRegistro />} /> */}
             {/* <Route path="/login" element={<PaginaLogin />} /> */}
             {/* <Route path="/perfil" element={<PaginaPerfil />} /> */}

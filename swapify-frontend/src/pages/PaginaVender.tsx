@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Container, Form, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
-const PaginaVender = () => {
+export const PaginaVender = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -134,5 +134,3 @@ const PaginaVender = () => {
     </Container>
   );
 };
-
-export default PaginaVender;
