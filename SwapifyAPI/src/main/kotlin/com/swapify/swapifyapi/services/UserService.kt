@@ -26,7 +26,7 @@ class UserService {
     }
 
     //Funcion para obtener un usuario por su id
-    fun getUserById(id: Long): ResponseEntity<User> {
+    fun getUserById(id: Int): ResponseEntity<User> {
         val user: Optional<User> = userDAO.findById(id)
         return if (user.isPresent) {
             ResponseEntity.ok(user.get())
@@ -36,7 +36,7 @@ class UserService {
     }
 
     //Función para obtener el crédito y reputación de un usuario
-    fun getUserReputCredit(id: Long): ResponseEntity<UserDTO> {
+    fun getUserReputCredit(id: Int): ResponseEntity<UserDTO> {
         val userOptional: Optional<User> = userDAO.findById(id)
         return if (userOptional.isPresent) {
             val user = UserDTO(

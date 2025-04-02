@@ -2,12 +2,14 @@ package com.swapify.swapifyapi.model.entities
 
 import jakarta.persistence.*
 import org.hibernate.annotations.ColumnDefault
+import org.hibernate.annotations.DynamicInsert
 import org.hibernate.annotations.OnDelete
 import org.hibernate.annotations.OnDeleteAction
 import java.time.Instant
 
 @Entity
 @Table(name = "favorites")
+@DynamicInsert
 open class Favorite {
     @Id
     @ColumnDefault("nextval('favorites_id_seq')")

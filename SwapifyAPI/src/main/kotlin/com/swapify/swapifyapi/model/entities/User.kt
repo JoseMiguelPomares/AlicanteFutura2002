@@ -2,10 +2,12 @@ package com.swapify.swapifyapi.model.entities
 
 import jakarta.persistence.*
 import org.hibernate.annotations.ColumnDefault
+import org.hibernate.annotations.DynamicInsert
 import java.time.Instant
 
 @Entity
 @Table(name = "users")
+@DynamicInsert
 open class User {
     @Id
     @ColumnDefault("nextval('users_id_seq')")

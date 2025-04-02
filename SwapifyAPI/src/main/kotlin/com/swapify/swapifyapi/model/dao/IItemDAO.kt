@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 import java.math.BigDecimal
 
-interface IItemDAO: CrudRepository<Item, Long> {
+interface IItemDAO: CrudRepository<Item, Int> {
     @Query(
         """
         SELECT i FROM Item i

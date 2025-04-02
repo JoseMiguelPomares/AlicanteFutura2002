@@ -2,6 +2,7 @@ package com.swapify.swapifyapi.model.entities
 
 import jakarta.persistence.*
 import org.hibernate.annotations.ColumnDefault
+import org.hibernate.annotations.DynamicInsert
 import org.hibernate.annotations.OnDelete
 import org.hibernate.annotations.OnDeleteAction
 import java.math.BigDecimal
@@ -9,6 +10,7 @@ import java.time.Instant
 
 @Entity
 @Table(name = "transactions")
+@DynamicInsert
 open class Transaction {
     @Id
     @ColumnDefault("nextval('transactions_id_seq')")
@@ -31,7 +33,7 @@ open class Transaction {
     @JoinColumn(name = "owner_id")
     open var owner: User? = null
 
-    @ColumnDefault("'Pending'")
+    @ColumnDefault("Pending")
     @Column(name = "status", length = 50)
     open var status: String? = null
 

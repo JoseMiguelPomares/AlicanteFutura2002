@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface IUserDAO: CrudRepository<User, Long> {
+interface IUserDAO: CrudRepository<User, Int> {
     fun findByEmail(email: String): Optional<User>
     fun findByName(name: String): Optional<User>
 }

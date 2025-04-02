@@ -1,9 +1,11 @@
 package com.swapify.swapifyapi.model.entities
 
 import jakarta.persistence.*
+import org.hibernate.annotations.DynamicInsert
 
 @Entity
 @Table(name = "categories")
+@DynamicInsert
 open class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "categories_id_gen")

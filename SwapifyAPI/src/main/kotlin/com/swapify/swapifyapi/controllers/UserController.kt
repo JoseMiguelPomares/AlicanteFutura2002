@@ -21,12 +21,12 @@ class UserController {
     }
 
     @GetMapping("/getById/{id}")
-    fun getUserById(@PathVariable id: Long): ResponseEntity<User>{
+    fun getUserById(@PathVariable id: Int): ResponseEntity<User>{
         return userService.getUserById(id)
     }
 
     @GetMapping("/getReputCredit/{id}")
-    fun getUserReputCredit(@PathVariable id: Long): ResponseEntity<UserDTO>{
+    fun getUserReputCredit(@PathVariable id: Int): ResponseEntity<UserDTO>{
         return userService.getUserReputCredit(id)
     }
 

@@ -4,7 +4,7 @@ import com.swapify.swapifyapi.model.entities.Favorite
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 
-interface IFavoriteDAO: CrudRepository<Favorite, Long> {
+interface IFavoriteDAO: CrudRepository<Favorite, Int> {
     fun findByUserId(userId: Long): List<Favorite>
 
     /*@Query("""

@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.query.Param
 
-interface ITransactionDAO: CrudRepository<Transaction, Long> {
+interface ITransactionDAO: CrudRepository<Transaction, Int> {
     fun findByOwnerId(userId: Long): MutableList<Transaction>
     fun findByOwner(user: User): MutableList<Transaction>
     @Query(

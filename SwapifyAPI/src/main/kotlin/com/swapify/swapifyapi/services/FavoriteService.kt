@@ -11,6 +11,7 @@ class FavoriteService {
     @Autowired
     lateinit var favoriteDAO: IFavoriteDAO
 
+    //Función para obtener todos los favoritos de un usuario
     fun getFavoritesByUserId(userId: Long): List<Favorite>{
         val favoriteList: List<Favorite> = favoriteDAO.findByUserId(userId)
         return if (favoriteList.isNotEmpty()){

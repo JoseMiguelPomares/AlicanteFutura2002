@@ -135,6 +135,11 @@ class ItemService {
         return ResponseEntity(HttpStatus.CREATED)
     }
 
+    //Función para buscar por itemId
+    fun getItemById(itemId: Int): Item? {
+        return itemDAO.findById(itemId).orElse(null)
+    }
+
     //Función para ordenar por precio menor
 
 }

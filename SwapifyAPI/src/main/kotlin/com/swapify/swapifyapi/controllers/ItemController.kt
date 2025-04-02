@@ -57,4 +57,10 @@ class ItemController {
     fun addItem(@RequestBody item: NewItemDTO): ResponseEntity<NewItemDTO> {
         return itemService.addItem(item)
     }
+
+    //Función para para buscar por itemId
+    @GetMapping("/getItemById/{itemId}")
+    fun getItemById(@PathVariable itemId: Int): Item?{
+        return itemService.getItemById(itemId)
+    }
 }
