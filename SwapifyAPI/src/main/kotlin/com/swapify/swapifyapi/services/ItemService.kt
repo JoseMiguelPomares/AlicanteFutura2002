@@ -34,7 +34,7 @@ class ItemService {
 
     //Función para obtener todos los items
     fun getItems(): List<Item>{
-        val items: MutableIterable<Item> = itemDAO.findAll()
+        val items: List<Item> = itemDAO.findAllItems()
         return if (items.iterator().hasNext()){
             items.toList()
         } else {
@@ -149,5 +149,12 @@ class ItemService {
     }
 
     //Función para ordenar por precio menor
-
+    fun getItemByLowerPrice(): List<Item>{
+        val items: List<Item> = itemDAO.findByLowerPrice()
+        return if (items.isNotEmpty()){
+            items
+        } else {
+            emptyList()
+        }
+    }
 }

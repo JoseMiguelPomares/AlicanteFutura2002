@@ -17,9 +17,10 @@ interface IItemDAO: CrudRepository<Item, Int> {
 
     @Query(
         """
-        SELECT i FROM Item i
-        LEFT JOIN FETCH i.user
-        """
+    SELECT i FROM Item i
+    LEFT JOIN FETCH i.user
+    LEFT JOIN FETCH i.category
+    """
     )
     fun findAllItems(): List<Item>
 
@@ -69,4 +70,13 @@ interface IItemDAO: CrudRepository<Item, Int> {
         """
     )
     fun findByHigherPrice(): MutableList<Item>
+
+    @Query(
+        """
+    SELECT i FROM Item i
+    LEFT JOIN FETCH i.user
+    WHERE i.price BETWEEN :minPrice AND :maxPrice
+    """
+    )
+    fun findByPriceRange(minPrice: Double, maxPrice: Double): List<Item>
 }
