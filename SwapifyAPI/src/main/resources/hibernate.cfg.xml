@@ -14,6 +14,7 @@
     <mapping class="com.swapify.swapifyapi.model.entities.Review"/>
     <mapping class="com.swapify.swapifyapi.model.entities.Transaction"/>
     <mapping class="com.swapify.swapifyapi.model.entities.User"/>
+    <mapping class="com.swapify.swapifyapi.model.entities.Category"/>
 
     <!-- DB schema will be updated if needed -->
     <!-- <property name="hibernate.hbm2ddl.auto">update</property> -->

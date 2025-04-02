@@ -1,5 +1,6 @@
 package com.swapify.swapifyapi.services
 
+import com.swapify.swapifyapi.model.dao.ICategoryDAO
 import com.swapify.swapifyapi.model.dao.IItemDAO
 import com.swapify.swapifyapi.model.dto.ItemDTO
 import com.swapify.swapifyapi.model.dto.NewItemDTO
@@ -11,12 +12,15 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import java.time.Instant
+import java.util.Optional
 
 @Service
 class ItemService {
 
     @Autowired
     lateinit var itemDAO: IItemDAO
+    @Autowired
+    lateinit var categoryDAO: ICategoryDAO
 
     //Función para obtener todos los items de un usuario
     fun getItemsByUserId(userId: Long): List<Item>{
@@ -117,13 +121,17 @@ class ItemService {
     //Función para añadir un producto nuevo
     fun addItem(newItemDTO: NewItemDTO): ResponseEntity<NewItemDTO>{
         val item = Item()
+        val optionalCategory: Optional<Category> = categoryDAO.findById(newItemDTO.categoryId)
         item.user = User()
         item.category = Category()
+
 
         item.user!!.id = newItemDTO.userId
         item.title = newItemDTO.title
         item.description = newItemDTO.description
-        item.category!!.id = newItemDTO.categoryId
+        if (optionalCategory.isPresent){
+            item.category = optionalCategory.get()
+        }
         item.imageUrl = newItemDTO.imageUrl
         item.price = newItemDTO.price
         item.itemCondition = newItemDTO.itemCondition

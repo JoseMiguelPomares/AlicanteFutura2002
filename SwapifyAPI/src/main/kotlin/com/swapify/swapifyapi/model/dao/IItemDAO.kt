@@ -55,8 +55,18 @@ interface IItemDAO: CrudRepository<Item, Int> {
         SELECT i 
         FROM Item i
         LEFT JOIN FETCH i.user
-        ORDER BY price ASC
+        ORDER BY i.price ASC
         """
     )
     fun findByLowerPrice(): MutableList<Item>
+
+    @Query(
+        """
+        SELECT i 
+        FROM Item i
+        LEFT JOIN FETCH i.user
+        ORDER BY i.price DESC
+        """
+    )
+    fun findByHigherPrice(): MutableList<Item>
 }
