@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.time.Instant
 import java.util.Optional
 
@@ -151,6 +152,26 @@ class ItemService {
     //Función para ordenar por precio menor
     fun getItemByLowerPrice(): List<Item>{
         val items: List<Item> = itemDAO.findByLowerPrice()
+        return if (items.isNotEmpty()){
+            items
+        } else {
+            emptyList()
+        }
+    }
+
+    //Función para ordenar por precio mayor
+    fun getItemByHigherPrice(): List<Item>{
+        val items: List<Item> = itemDAO.findByHigherPrice()
+        return if (items.isNotEmpty()){
+            items
+        } else {
+            emptyList()
+        }
+    }
+
+    //Función para obtener los items por un rango de precios
+    fun getItemsByPriceRange(minPrice: BigDecimal, maxPrice: BigDecimal): List<Item>{
+        val items: List<Item> = itemDAO.findByPriceRange(minPrice, maxPrice)
         return if (items.isNotEmpty()){
             items
         } else {

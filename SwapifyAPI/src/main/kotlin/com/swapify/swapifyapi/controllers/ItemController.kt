@@ -7,6 +7,7 @@ import com.swapify.swapifyapi.services.ItemService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.math.BigDecimal
 
 @RestController
 @RequestMapping("/items")
@@ -62,5 +63,23 @@ class ItemController {
     @GetMapping("/getItemById/{itemId}")
     fun getItemById(@PathVariable itemId: Int): Item?{
         return itemService.getItemById(itemId)
+    }
+
+    //Función para ordenar por mener precio
+    @GetMapping("/getByLowerPrice")
+    fun getByLowerPrice(): List<Item>{
+        return itemService.getItemByLowerPrice()
+    }
+
+    //Función para ordenar por mayor precio
+    @GetMapping("/getByHigherPrice")
+    fun getByHigherPrice(): List<Item>{
+        return itemService.getItemByHigherPrice()
+    }
+
+    //Función para obtener items por rango de precio
+    @GetMapping("/getByPriceRange/{minPrice}/{maxPrice}")
+    fun getByPriceRange(@PathVariable minPrice: BigDecimal, @PathVariable maxPrice: BigDecimal): List<Item>{
+        return itemService.getItemsByPriceRange(minPrice, maxPrice)
     }
 }

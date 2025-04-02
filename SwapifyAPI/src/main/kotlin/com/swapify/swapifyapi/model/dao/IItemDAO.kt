@@ -78,5 +78,5 @@ interface IItemDAO: CrudRepository<Item, Int> {
     WHERE i.price BETWEEN :minPrice AND :maxPrice
     """
     )
-    fun findByPriceRange(minPrice: Double, maxPrice: Double): List<Item>
+    fun findByPriceRange(minPrice: BigDecimal, maxPrice: BigDecimal): List<Item>
 }
