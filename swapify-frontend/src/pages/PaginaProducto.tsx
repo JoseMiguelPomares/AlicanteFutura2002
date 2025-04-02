@@ -29,8 +29,6 @@ import {
   Heart,
   HeartFill,
   CheckCircle,
-  ChevronLeft,
-  ChevronRight,
 } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
@@ -56,20 +54,23 @@ interface Producto {
     imageUrl?: string
     rating?: number
     verified?: boolean
+    location?: string
   }
 }
 
-// Interfaz para las reviews
+// Interfaz para las reviews (para cuando se implementen en la API)
 interface Review {
   id: number
-  reviewer: {
-    id: number
-    name: string
-    avatar: string
-  }
+  user_id: number
+  item_id: number
   rating: number
   comment: string
-  date: string
+  created_at: string
+  user?: {
+    id: number
+    name: string
+    imageUrl?: string
+  }
 }
 
 export const PaginaProducto = () => {
@@ -78,21 +79,12 @@ export const PaginaProducto = () => {
   const [producto, setProducto] = useState<Producto | null>(null)
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [activeImage, setActiveImage] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
   const [productosRelacionados, setProductosRelacionados] = useState<Producto[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
   const [userRating, setUserRating] = useState<number>(5)
   const [userComment, setUserComment] = useState<string>("")
   const itemService = useRef(new ItemService()).current
-
-  // Imágenes de ejemplo para la galería (se usarán si el producto no tiene imágenes)
-  const imagenesPorDefecto = [
-    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
-    "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800",
-    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800",
-    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800",
-  ]
 
   useEffect(() => {
     if (!id) {
@@ -132,33 +124,9 @@ export const PaginaProducto = () => {
           // Si falla, dejamos el array vacío
         }
 
-        // Simular reviews (esto podría reemplazarse con una llamada a la API en el futuro)
-        setReviews([
-          {
-            id: 1,
-            reviewer: {
-              id: 201,
-              name: "Carlos Rodríguez",
-              avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-            },
-            rating: 5,
-            comment:
-              "Excelente producto, llegó en perfectas condiciones y funciona muy bien. El vendedor fue muy amable y respondió rápidamente a todas mis preguntas.",
-            date: "2023-06-15",
-          },
-          {
-            id: 2,
-            reviewer: {
-              id: 202,
-              name: "Laura Martínez",
-              avatar: "https://randomuser.me/api/portraits/women/28.jpg",
-            },
-            rating: 4,
-            comment:
-              "Buen producto, aunque tardó un poco más de lo esperado en llegar. La calidad es buena y el precio justo.",
-            date: "2023-06-10",
-          },
-        ])
+        // Aquí se cargarían las reviews desde la API cuando esté implementado
+        // Por ahora, dejamos el array vacío
+        setReviews([])
       } catch (error) {
         console.error("Error al cargar el producto:", error)
         setError(true)
@@ -173,36 +141,39 @@ export const PaginaProducto = () => {
     window.scrollTo(0, 0)
   }, [id])
 
-  const handleThumbnailClick = (index: number) => {
-    setActiveImage(index)
-  }
-
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite)
+    // Aquí se implementaría la lógica para guardar el favorito en la base de datos
   }
 
-  const handleSubmitReview = (e: React.FormEvent) => {
+  const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Simular añadir una nueva review
-    const newReview: Review = {
-      id: reviews.length + 1,
-      reviewer: {
-        id: 999, // ID del usuario actual (simulado)
-        name: "Usuario Actual", // Nombre del usuario actual (simulado)
-        avatar: "https://randomuser.me/api/portraits/women/68.jpg", // Avatar del usuario actual (simulado)
-      },
-      rating: userRating,
-      comment: userComment,
-      date: new Date().toISOString().split("T")[0],
+    // Aquí se implementaría la lógica para enviar la review a la API
+    try {
+      // Ejemplo de cómo sería la implementación:
+      // const response = await fetch('/api/reviews', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     item_id: producto?.id,
+      //     rating: userRating,
+      //     comment: userComment
+      //   })
+      // });
+
+      // if (response.ok) {
+      //   const newReview = await response.json();
+      //   setReviews([newReview, ...reviews]);
+      // }
+
+      alert("Funcionalidad de valoraciones en desarrollo. ¡Gracias por tu interés!")
+      setUserComment("")
+      setUserRating(5)
+    } catch (error) {
+      console.error("Error al enviar la valoración:", error)
+      alert("No se pudo enviar la valoración. Inténtalo de nuevo más tarde.")
     }
-
-    setReviews([newReview, ...reviews])
-    setUserComment("")
-    setUserRating(5)
-
-    // Aquí iría la lógica para enviar la review al backend
-    alert("¡Gracias por tu valoración!")
   }
 
   // Renderizar estrellas para una valoración
@@ -236,9 +207,6 @@ export const PaginaProducto = () => {
       </div>
     )
   }
-
-  // Determinar qué imágenes mostrar (usar la del producto o las de ejemplo)
-  const imagenes = producto?.imageUrl ? [producto.imageUrl, ...imagenesPorDefecto.slice(1)] : imagenesPorDefecto
 
   if (loading) {
     return (
@@ -275,76 +243,49 @@ export const PaginaProducto = () => {
         <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/" }}>
           Inicio
         </Breadcrumb.Item>
-        <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/categorias" }}>
-          Categorías
-        </Breadcrumb.Item>
-        <Breadcrumb.Item linkAs={Link} linkProps={{ to: `/categorias/${producto.category?.name?.toLowerCase()}` }}>
-          {producto.category?.name || "Sin categoría"}
-        </Breadcrumb.Item>
+        {producto.category && (
+          <>
+            <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/categorias" }}>
+              Categorías
+            </Breadcrumb.Item>
+            <Breadcrumb.Item linkAs={Link} linkProps={{ to: `/categorias/${producto.category?.name?.toLowerCase()}` }}>
+              {producto.category?.name}
+            </Breadcrumb.Item>
+          </>
+        )}
         <Breadcrumb.Item active>{producto.title}</Breadcrumb.Item>
       </Breadcrumb>
 
       <Row>
-        {/* Galería de imágenes */}
+        {/* Imagen del producto */}
         <Col lg={6} className="mb-4 mb-lg-0">
           <div className="position-relative">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
               <img
-                src={imagenes[activeImage] || "/placeholder.svg"}
+                src={producto.imageUrl || "/placeholder.svg?height=400&width=600"}
                 alt={producto.title}
                 className="img-fluid rounded-4 shadow-sm mb-3"
                 style={{ width: "100%", height: "400px", objectFit: "cover" }}
               />
             </motion.div>
 
-            {/* Controles de navegación */}
-            <Button
-              variant="light"
-              className="position-absolute top-50 start-0 translate-middle-y rounded-circle p-2 ms-2 shadow-sm"
-              onClick={() => setActiveImage((prev) => (prev === 0 ? imagenes.length - 1 : prev - 1))}
-              aria-label="Imagen anterior"
-            >
-              <ChevronLeft size={20} />
-            </Button>
-            <Button
-              variant="light"
-              className="position-absolute top-50 end-0 translate-middle-y rounded-circle p-2 me-2 shadow-sm"
-              onClick={() => setActiveImage((prev) => (prev === imagenes.length - 1 ? 0 : prev + 1))}
-              aria-label="Imagen siguiente"
-            >
-              <ChevronRight size={20} />
-            </Button>
-
             {/* Badge de estado */}
-            <Badge bg="success" className="position-absolute top-0 start-0 m-3 px-3 py-2 rounded-pill">
-              {producto.status || "Disponible"}
-            </Badge>
+            {producto.status && (
+              <Badge bg="success" className="position-absolute top-0 start-0 m-3 px-3 py-2 rounded-pill">
+                {producto.status}
+              </Badge>
+            )}
           </div>
-
-          {/* Miniaturas */}
-          <Row className="g-2">
-            {imagenes.map((img, index) => (
-              <Col xs={3} key={index}>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <img
-                    src={img || "/placeholder.svg"}
-                    alt={`Miniatura ${index + 1}`}
-                    className={`img-fluid rounded cursor-pointer ${activeImage === index ? "border border-success border-3" : "opacity-75"}`}
-                    style={{ height: "80px", width: "100%", objectFit: "cover", cursor: "pointer" }}
-                    onClick={() => handleThumbnailClick(index)}
-                  />
-                </motion.div>
-              </Col>
-            ))}
-          </Row>
         </Col>
 
         {/* Información del producto */}
         <Col lg={6}>
           <div className="d-flex justify-content-between align-items-start mb-3">
-            <Badge bg="primary" className="rounded-pill px-3 py-2 mb-2">
-              {producto.category?.name || "Sin categoría"}
-            </Badge>
+            {producto.category && (
+              <Badge bg="primary" className="rounded-pill px-3 py-2 mb-2">
+                {producto.category.name}
+              </Badge>
+            )}
             <Button
               variant={isFavorite ? "danger" : "outline-danger"}
               className="rounded-circle p-2"
@@ -358,61 +299,65 @@ export const PaginaProducto = () => {
           <h1 className="fw-bold mb-3">{producto.title}</h1>
 
           <div className="d-flex align-items-center mb-4">
-            <div className="me-4 d-flex align-items-center">
-              <GeoAlt className="text-muted me-1" />
-              <span className="text-muted">Madrid, España</span> {/* Ubicación por defecto */}
-            </div>
-            <div className="d-flex align-items-center">
-              <Calendar3 className="text-muted me-1" />
-              <span className="text-muted">{new Date(producto.createdAt || "").toLocaleDateString()}</span>
-            </div>
+            {producto.user?.location && (
+              <div className="me-4 d-flex align-items-center">
+                <GeoAlt className="text-muted me-1" />
+                <span className="text-muted">{producto.user.location}</span>
+              </div>
+            )}
+            {producto.createdAt && (
+              <div className="d-flex align-items-center">
+                <Calendar3 className="text-muted me-1" />
+                <span className="text-muted">{new Date(producto.createdAt).toLocaleDateString()}</span>
+              </div>
+            )}
           </div>
 
-          <h2 className="h3 fw-bold text-success mb-4">{producto.price || 0} Créditos</h2>
+          <h2 className="h3 fw-bold text-success mb-4">{producto.price} Créditos</h2>
 
-          <div className="mb-4">
-            <h3 className="h5 fw-bold mb-2">Descripción</h3>
-            <p className="text-muted">{producto.description || "Sin descripción disponible"}</p>
-          </div>
+          {producto.description && (
+            <div className="mb-4">
+              <h3 className="h5 fw-bold mb-2">Descripción</h3>
+              <p className="text-muted">{producto.description}</p>
+            </div>
+          )}
 
           {/* Información del vendedor */}
-          <Card className="border-0 shadow-sm rounded-4 mb-4">
-            <Card.Body>
-              <div className="d-flex align-items-center mb-3">
-                <img
-                  src={producto.user?.imageUrl || "https://randomuser.me/api/portraits/women/44.jpg"}
-                  alt={producto.user?.name || "Vendedor"}
-                  className="rounded-circle me-3"
-                  width="50"
-                  height="50"
-                />
-                <div>
-                  <div className="d-flex align-items-center">
-                    <h4 className="h6 fw-bold mb-0 me-2">{producto.user?.name || "Vendedor"}</h4>
-                    {producto.user?.verified && <CheckCircle className="text-success" title="Usuario verificado" />}
-                  </div>
-                  <div className="d-flex align-items-center">
-                    {[...Array(5)].map((_, i) =>
-                      i < Math.floor(producto.user?.rating || 4) ? (
-                        <StarFill key={i} className="text-warning" size={14} />
-                      ) : (
-                        <Star key={i} className="text-warning" size={14} />
-                      ),
+          {producto.user && (
+            <Card className="border-0 shadow-sm rounded-4 mb-4">
+              <Card.Body>
+                <div className="d-flex align-items-center mb-3">
+                  <img
+                    src={producto.user.imageUrl || "/placeholder.svg?height=50&width=50"}
+                    alt={producto.user.name}
+                    className="rounded-circle me-3"
+                    width="50"
+                    height="50"
+                  />
+                  <div>
+                    <div className="d-flex align-items-center">
+                      <h4 className="h6 fw-bold mb-0 me-2">{producto.user.name}</h4>
+                      {producto.user.verified && <CheckCircle className="text-success" title="Usuario verificado" />}
+                    </div>
+                    {producto.user.rating && (
+                      <div className="d-flex align-items-center">
+                        {renderStars(producto.user.rating)}
+                        <span className="ms-1 small text-muted">({producto.user.rating})</span>
+                      </div>
                     )}
-                    <span className="ms-1 small text-muted">({producto.user?.rating || 4})</span>
                   </div>
+                  <Button
+                    variant="outline-success"
+                    className="ms-auto rounded-pill"
+                    as={Link as any}
+                    to={`/perfil/${producto.user.id}`}
+                  >
+                    Ver perfil
+                  </Button>
                 </div>
-                <Button
-                  variant="outline-success"
-                  className="ms-auto rounded-pill"
-                  as={Link as any}
-                  to={`/perfil/${producto.user?.id || 0}`}
-                >
-                  Ver perfil
-                </Button>
-              </div>
-            </Card.Body>
-          </Card>
+              </Card.Body>
+            </Card>
+          )}
 
           {/* Botones de acción */}
           <div className="d-grid gap-2">
@@ -442,33 +387,37 @@ export const PaginaProducto = () => {
                 <Row>
                   <Col md={6}>
                     <ListGroup variant="flush">
-                      <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
-                        <span className="text-muted">Categoría</span>
-                        <span className="fw-bold">{producto.category?.name || "Sin categoría"}</span>
-                      </ListGroup.Item>
-                      <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
-                        <span className="text-muted">Estado</span>
-                        <span className="fw-bold">{producto.status || "Disponible"}</span>
-                      </ListGroup.Item>
-                      <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
-                        <span className="text-muted">Ubicación</span>
-                        <span className="fw-bold">Madrid, España</span> {/* Ubicación por defecto */}
-                      </ListGroup.Item>
+                      {producto.category && (
+                        <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
+                          <span className="text-muted">Categoría</span>
+                          <span className="fw-bold">{producto.category.name}</span>
+                        </ListGroup.Item>
+                      )}
+                      {producto.status && (
+                        <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
+                          <span className="text-muted">Estado</span>
+                          <span className="fw-bold">{producto.status}</span>
+                        </ListGroup.Item>
+                      )}
+                      {producto.user?.location && (
+                        <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
+                          <span className="text-muted">Ubicación</span>
+                          <span className="fw-bold">{producto.user.location}</span>
+                        </ListGroup.Item>
+                      )}
                     </ListGroup>
                   </Col>
                   <Col md={6}>
                     <ListGroup variant="flush">
-                      <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
-                        <span className="text-muted">Fecha de publicación</span>
-                        <span className="fw-bold">{new Date(producto.createdAt || "").toLocaleDateString()}</span>
-                      </ListGroup.Item>
+                      {producto.createdAt && (
+                        <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
+                          <span className="text-muted">Fecha de publicación</span>
+                          <span className="fw-bold">{new Date(producto.createdAt).toLocaleDateString()}</span>
+                        </ListGroup.Item>
+                      )}
                       <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
                         <span className="text-muted">ID del producto</span>
                         <span className="fw-bold">{producto.id}</span>
-                      </ListGroup.Item>
-                      <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
-                        <span className="text-muted">Visitas</span>
-                        <span className="fw-bold">243</span> {/* Dato de ejemplo */}
                       </ListGroup.Item>
                     </ListGroup>
                   </Col>
@@ -479,27 +428,20 @@ export const PaginaProducto = () => {
           <Tab eventKey="politicas" title="Políticas de intercambio">
             <Card className="border-0 shadow-sm rounded-4">
               <Card.Body>
-                <h4 className="h5 fw-bold mb-3">Políticas de intercambio</h4>
-                <p>El vendedor acepta los siguientes tipos de intercambio:</p>
-                <ul className="mb-4">
-                  <li>Intercambio directo por productos de valor similar</li>
-                  <li>Intercambio parcial (producto + créditos)</li>
-                  <li>Intercambio por servicios</li>
-                </ul>
-
-                <h4 className="h5 fw-bold mb-3">Condiciones</h4>
-                <ul>
-                  <li>El intercambio debe realizarse en persona</li>
-                  <li>El vendedor prefiere intercambios en su zona</li>
-                  <li>Se debe acordar el lugar y hora del intercambio previamente</li>
-                </ul>
+                <Alert variant="info">
+                  <Alert.Heading>Información sobre políticas de intercambio</Alert.Heading>
+                  <p>
+                    Las políticas de intercambio específicas para este producto aún no están disponibles en el sistema.
+                    Te recomendamos contactar directamente con el vendedor para conocer sus condiciones de intercambio.
+                  </p>
+                </Alert>
               </Card.Body>
             </Card>
           </Tab>
-          <Tab eventKey="reviews" title="Valoraciones">
+          <Tab eventKey="reviews" title="Reviews">
             <Card className="border-0 shadow-sm rounded-4">
               <Card.Body>
-                <h4 className="h5 fw-bold mb-4">Valoraciones del producto</h4>
+                <h4 className="h5 fw-bold mb-4">Reviews del producto</h4>
 
                 {/* Formulario para añadir una valoración */}
                 <Card className="mb-4 bg-light border-0">
@@ -531,16 +473,18 @@ export const PaginaProducto = () => {
                       <div key={review.id} className="mb-4 pb-4 border-bottom">
                         <div className="d-flex">
                           <img
-                            src={review.reviewer.avatar || "/placeholder.svg"}
-                            alt={review.reviewer.name}
+                            src={review.user?.imageUrl || "/placeholder.svg?height=50&width=50"}
+                            alt={review.user?.name || "Usuario"}
                             className="rounded-circle me-3"
                             width="50"
                             height="50"
                           />
                           <div>
                             <div className="d-flex align-items-center mb-2">
-                              <h5 className="h6 fw-bold mb-0 me-2">{review.reviewer.name}</h5>
-                              <span className="text-muted small">{new Date(review.date).toLocaleDateString()}</span>
+                              <h5 className="h6 fw-bold mb-0 me-2">{review.user?.name || "Usuario"}</h5>
+                              <span className="text-muted small">
+                                {new Date(review.created_at).toLocaleDateString()}
+                              </span>
                             </div>
                             <div className="mb-2">{renderStars(review.rating)}</div>
                             <p className="mb-0">{review.comment}</p>
@@ -574,14 +518,16 @@ export const PaginaProducto = () => {
                     <Card className="h-100 shadow-sm border-0 rounded-4 overflow-hidden">
                       <Card.Img
                         variant="top"
-                        src={prod.imageUrl || "/placeholder.svg"}
+                        src={prod.imageUrl || "/placeholder.svg?height=180&width=300"}
                         alt={prod.title}
                         style={{ height: "180px", objectFit: "cover" }}
                       />
                       <Card.Body className="p-3">
-                        <Badge bg="primary" className="mb-2 rounded-pill">
-                          {prod.category?.name || "Sin categoría"}
-                        </Badge>
+                        {prod.category && (
+                          <Badge bg="primary" className="mb-2 rounded-pill">
+                            {prod.category.name}
+                          </Badge>
+                        )}
                         <Card.Title className="fw-bold text-dark mb-1" style={{ fontSize: "1rem" }}>
                           {prod.title}
                         </Card.Title>
@@ -589,7 +535,7 @@ export const PaginaProducto = () => {
                           {prod.description}
                         </Card.Text>
                         <div className="d-flex justify-content-between align-items-center">
-                          <span className="fw-bold text-success">{prod.price || 0} Créditos</span>
+                          <span className="fw-bold text-success">{prod.price} Créditos</span>
                           <Button variant="outline-success" size="sm" className="rounded-pill">
                             Ver
                           </Button>
