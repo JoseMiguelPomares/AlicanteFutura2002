@@ -2,8 +2,8 @@ package com.swapify.swapifyapi.services
 
 import com.swapify.api.utils.PasswordUtils
 import com.swapify.swapifyapi.model.dao.IUserDAO
-import com.swapify.swapifyapi.model.dto.UserDTO
-import com.swapify.swapifyapi.model.dto.UserLoginDTO
+import com.swapify.swapifyapi.model.dto.CreditsUserDTO
+import com.swapify.swapifyapi.model.dto.ReputationUserDTO
 import com.swapify.swapifyapi.model.dto.UserSignInDTO
 import com.swapify.swapifyapi.model.entities.User
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,14 +36,28 @@ class UserService {
     }
 
     //Función para obtener el crédito y reputación de un usuario
-    fun getUserReputCredit(id: Int): ResponseEntity<UserDTO> {
+    fun getUserCredit(id: Int): ResponseEntity<CreditsUserDTO> {
         val userOptional: Optional<User> = userDAO.findById(id)
         return if (userOptional.isPresent) {
-            val user = UserDTO(
-                userOptional.get().id!!.toLong(),
+            val user = CreditsUserDTO(
+                userOptional.get().id!!,
                 userOptional.get().name,
                 userOptional.get().credits!!.toInt(),
-                userOptional.get().reputation!!.toDouble()
+            )
+            ResponseEntity.ok(user)
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
+
+    //Función para obtener el crédito y reputación de un usuario
+    fun getUserReput(id: Int): ResponseEntity<ReputationUserDTO> {
+        val userOptional: Optional<User> = userDAO.findById(id)
+        return if (userOptional.isPresent) {
+            val user = ReputationUserDTO(
+                userOptional.get().id!!,
+                userOptional.get().name,
+                userOptional.get().reputation!!.toDouble(),
             )
             ResponseEntity.ok(user)
         } else {

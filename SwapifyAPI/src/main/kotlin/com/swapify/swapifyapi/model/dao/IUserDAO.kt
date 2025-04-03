@@ -10,4 +10,6 @@ import java.util.Optional
 interface IUserDAO: CrudRepository<User, Int> {
     fun findByEmail(email: String): Optional<User>
     fun findByName(name: String): Optional<User>
+
+
 }

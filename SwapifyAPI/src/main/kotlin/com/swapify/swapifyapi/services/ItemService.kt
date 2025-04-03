@@ -3,6 +3,7 @@ package com.swapify.swapifyapi.services
 import com.swapify.swapifyapi.model.dao.ICategoryDAO
 import com.swapify.swapifyapi.model.dao.IItemDAO
 import com.swapify.swapifyapi.model.dto.ItemDTO
+import com.swapify.swapifyapi.model.dto.ModifyItemDTO
 import com.swapify.swapifyapi.model.dto.NewItemDTO
 import com.swapify.swapifyapi.model.entities.Category
 import com.swapify.swapifyapi.model.entities.Item
@@ -13,7 +14,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.Instant
-import java.util.Optional
+import java.util.*
 
 @Service
 class ItemService {
@@ -174,6 +175,70 @@ class ItemService {
         val items: List<Item> = itemDAO.findByPriceRange(minPrice, maxPrice)
         return if (items.isNotEmpty()){
             items
+        } else {
+            emptyList()
+        }
+    }
+
+    //Función para borrar un item
+    fun deleteItem(itemId: Int): ResponseEntity<Void> {
+        return if (itemDAO.existsById(itemId)) {
+            itemDAO.deleteById(itemId)
+            ResponseEntity(HttpStatus.NO_CONTENT)
+        } else {
+            ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+    }
+
+    //Función para modificar un item
+    fun updateItem(itemId: Int, itemDTO: ModifyItemDTO): ResponseEntity<ModifyItemDTO> {
+        val optionalItem: Optional<Item> = itemDAO.findById(itemId)
+        if (optionalItem.isPresent) {
+            val item: Item = optionalItem.get()
+
+            // Validar el valor de itemCondition
+            val allowedConditions = listOf("nuevo", "como_nuevo", "bueno", "aceptable", "usado")
+            if (!allowedConditions.contains(itemDTO.itemCondition.lowercase())) {
+                // Retorna un error si el valor no es válido
+                return ResponseEntity(HttpStatus.BAD_REQUEST)
+            }
+
+            // Actualizamos la categoría usando el repositorio de categorías
+            val optionalCategory: Optional<Category> = categoryDAO.findById(itemDTO.categoryId)
+            if (optionalCategory.isPresent) {
+                item.category = optionalCategory.get()
+            } else {
+                return ResponseEntity(HttpStatus.BAD_REQUEST)
+            }
+
+            item.title = itemDTO.title
+            item.description = itemDTO.description
+            item.imageUrl = itemDTO.imageUrl
+            item.price = itemDTO.price
+            item.itemCondition = itemDTO.itemCondition  // Ya validado
+            item.location = itemDTO.location
+
+            itemDAO.save(item)
+            return ResponseEntity(itemDTO, HttpStatus.OK)
+        } else {
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+    }
+
+    //Función para obtener los items añadidos recientemente
+    fun getRecentlyAddedItems(): List<ItemDTO> {
+        val items: List<Item> = itemDAO.findAllItems()
+        return if (items.isNotEmpty()) {
+            items.map {
+                ItemDTO(
+                    it.user!!.name!!,
+                    it.title!!,
+                    it.description!!,
+                    it.category!!.name,
+                    it.imageUrl,
+                    it.status!!
+                )
+            }
         } else {
             emptyList()
         }

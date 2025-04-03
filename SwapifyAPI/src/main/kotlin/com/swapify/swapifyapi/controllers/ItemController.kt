@@ -1,6 +1,7 @@
 package com.swapify.swapifyapi.controllers
 
 import com.swapify.swapifyapi.model.dto.ItemDTO
+import com.swapify.swapifyapi.model.dto.ModifyItemDTO
 import com.swapify.swapifyapi.model.dto.NewItemDTO
 import com.swapify.swapifyapi.model.entities.Item
 import com.swapify.swapifyapi.services.ItemService
@@ -82,4 +83,18 @@ class ItemController {
     fun getByPriceRange(@PathVariable minPrice: BigDecimal, @PathVariable maxPrice: BigDecimal): List<Item>{
         return itemService.getItemsByPriceRange(minPrice, maxPrice)
     }
+
+    //Función para eliminar un item
+    @DeleteMapping("/deleteItem/{itemId}")
+    fun deleteItem(@PathVariable itemId: Int): ResponseEntity<Void> {
+        return itemService.deleteItem(itemId)
+    }
+
+    //Función para modificar un item
+    @PutMapping("/modifyItem/{itemId}")
+    fun modifyItem(@PathVariable itemId: Int, @RequestBody item: ModifyItemDTO): ResponseEntity<ModifyItemDTO> {
+        return itemService.updateItem(itemId, item)
+    }
+
+
 }
