@@ -32,6 +32,7 @@ import {
 } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
+import { ReviewService } from "../services/reviewService"
 
 // Interfaz actualizada para coincidir con la estructura de datos de la API
 interface Producto {
@@ -58,11 +59,11 @@ interface Producto {
   }
 }
 
-// Interfaz para las reviews (para cuando se implementen en la API)
-interface Review {
+// Interfaz para las reviews
+export interface Review {
   id: number
-  user_id: number
-  item_id: number
+  reviewer_id: number
+  reviewed_id: number
   rating: number
   comment: string
   created_at: string
@@ -124,9 +125,10 @@ export const PaginaProducto = () => {
           // Si falla, dejamos el array vacío
         }
 
-        // Aquí se cargarían las reviews desde la API cuando esté implementado
-        // Por ahora, dejamos el array vacío
-        setReviews([])
+        // Cargar reseñas desde el servicio
+        const reviewService = new ReviewService();
+        const reviewsData = await reviewService.getReviewsByItemId(response.data.id);
+        setReviews(reviewsData);
       } catch (error) {
         console.error("Error al cargar el producto:", error)
         setError(true)
@@ -470,27 +472,29 @@ export const PaginaProducto = () => {
                 {reviews.length > 0 ? (
                   <div>
                     {reviews.map((review) => (
-                      <div key={review.id} className="mb-4 pb-4 border-bottom">
-                        <div className="d-flex">
-                          <img
-                            src={review.user?.imageUrl || "/placeholder.svg?height=50&width=50"}
-                            alt={review.user?.name || "Usuario"}
-                            className="rounded-circle me-3"
-                            width="50"
-                            height="50"
-                          />
+                      <ListGroup.Item key={review.id} className="px-0 py-3 border-bottom">
+                        <div className="d-flex gap-3">
+                          <div className="flex-shrink-0">
+                            <img
+                              src={review.user?.imageUrl || "/placeholder.svg"}
+                              className="rounded-circle"
+                              width="60"
+                              height="60"
+                              alt={review.user?.name || 'Usuario'}
+                            />
+                          </div>
                           <div>
-                            <div className="d-flex align-items-center mb-2">
-                              <h5 className="h6 fw-bold mb-0 me-2">{review.user?.name || "Usuario"}</h5>
-                              <span className="text-muted small">
+                            <div className="d-flex align-items-center gap-2 mb-2">
+                              <strong>{review.user?.name || 'Usuario Anónimo'}</strong>
+                              {renderStars(review.rating)}
+                              <span className="text-muted ms-2">
                                 {new Date(review.created_at).toLocaleDateString()}
                               </span>
                             </div>
-                            <div className="mb-2">{renderStars(review.rating)}</div>
                             <p className="mb-0">{review.comment}</p>
                           </div>
                         </div>
-                      </div>
+                      </ListGroup.Item>
                     ))}
                   </div>
                 ) : (

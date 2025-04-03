@@ -61,9 +61,6 @@ export const Footer = () => {
               <h5 className="text-white fw-bold mb-4">Explorar</h5>
               <ul className="footer-links">
                 <li>
-                  <Link to="/categorias">Categorías</Link>
-                </li>
-                <li>
                   <Link to="/como-funciona">Cómo funciona</Link>
                 </li>
                 <li>
@@ -71,9 +68,6 @@ export const Footer = () => {
                 </li>
                 <li>
                   <Link to="/recientes">Recién añadidos</Link>
-                </li>
-                <li>
-                  <Link to="/servicios">Servicios</Link>
                 </li>
               </ul>
             </Col>

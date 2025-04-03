@@ -2,8 +2,8 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { PaginaInicio } from "./pages/PaginaInicio";
 import { BarraNavegacion } from "./components/BarraNavegacion";
-// import { PaginaRegistro } from "./pages/PaginaRegistro";
-// import { PaginaLogin } from "./pages/PaginaLogin";
+import { PaginaRegistro } from "./pages/PaginaRegistro";
+import { PaginaLogin } from "./pages/PaginaLogin";
 import { PaginaPerfil } from "./pages/PaginaPerfil";
 import { PaginaProducto } from "./pages/PaginaProducto";
 import { Footer } from "./components/Footer";
@@ -22,8 +22,8 @@ export const App: React.FC = () => {
             <Route path="/" element={<PaginaInicio />} />
             <Route path="/perfil/:id" element={<PaginaPerfil />} />
             <Route path="/vender" element={<PaginaVender />} />
-            {/* <Route path="/registro" element={<PaginaRegistro />} /> */}
-            {/* <Route path="/login" element={<PaginaLogin />} /> */}
+            <Route path="/registro" element={<PaginaRegistro />} />
+            <Route path="/login" element={<PaginaLogin />} />
             <Route path="/productos/:id" element={<PaginaProducto />} />
           </Routes>
         </main>
