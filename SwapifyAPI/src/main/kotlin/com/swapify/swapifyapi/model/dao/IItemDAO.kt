@@ -10,6 +10,7 @@ interface IItemDAO: CrudRepository<Item, Int> {
         """
         SELECT i FROM Item i
         LEFT JOIN FETCH i.user
+        LEFT JOIN FETCH i.category
         WHERE i.user.id = :userId
         """
     )
