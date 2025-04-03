@@ -3,12 +3,12 @@ import axios from 'axios';
 export class ItemService{
     
     baseUrl = "http://localhost:8080/swapify/items/";
-    getAll(){
+    async getAll() {
         return axios.get(this.baseUrl + "getAll").then(res => res.data)
     }
 
-    getByUserId(userId: number): Promise<Response>{
-        return fetch(this.baseUrl + `userItems/${userId}`)
+    getByUserId(userId: number): Promise<any>{
+        return axios.get(this.baseUrl + `userItems/${userId}`).then(res => res.data)
     }
 
     getByItemId(itemId: number){

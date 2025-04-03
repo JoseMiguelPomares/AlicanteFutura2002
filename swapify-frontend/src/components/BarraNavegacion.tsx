@@ -35,7 +35,11 @@ export const BarraNavegacion = () => {
                 alt="Swapify Logo"
                 className="img-fluid"
                 // Invertir colores para que el logo se vea bien en fondo oscuro
-                style={isMobile ? { width: "70px", filter: "brightness(0) invert(1)" } : { width: "100px", filter: "brightness(0) invert(1)" }}
+                style={
+                  isMobile
+                    ? { width: "70px", filter: "brightness(0) invert(1)" }
+                    : { width: "100px", filter: "brightness(0) invert(1)" }
+                }
               />
             </Navbar.Brand>
 
@@ -85,6 +89,8 @@ export const BarraNavegacion = () => {
                   Acceso / Registro
                 </Button>
                 <Button
+                  as={Link as any}
+                  to="/vender"
                   variant="outline-success"
                   className="w-100 py-2 rounded-pill"
                   onClick={() => setShowMenu(false)}
@@ -122,7 +128,7 @@ export const BarraNavegacion = () => {
           {/* NAVBAR NORMAL en pantallas grandes */}
           <Navbar.Collapse id="navegacion-principal" className="d-none d-lg-flex align-items-center gap-3">
             {/* Botones y secciones adicionales */}
-            <Button variant="light" className="rounded-pill px-4">
+            <Button as={Link as any} to="/vender" variant="light" className="rounded-pill px-4">
               Vender
             </Button>
             <div className="d-flex align-items-center ms-auto gap-4">
