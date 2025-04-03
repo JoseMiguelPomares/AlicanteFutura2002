@@ -17,6 +17,7 @@ import {
   Form,
   ListGroup,
   Alert,
+  ProgressBar,
 } from "react-bootstrap"
 import {
   Star,
@@ -29,10 +30,16 @@ import {
   Heart,
   HeartFill,
   CheckCircle,
+  Award,
+  Clock,
+  ShieldCheck,
+  Envelope,
+  Telephone,
 } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
 import { ReviewService } from "../services/reviewService"
+import { UserService } from "../services/userService"
 
 // Interfaz actualizada para coincidir con la estructura de datos de la API
 interface Producto {
@@ -56,6 +63,12 @@ interface Producto {
     rating?: number
     verified?: boolean
     location?: string
+    joinDate?: string
+    reputation?: number
+    completedTransactions?: number
+    responseRate?: number
+    responseTime?: string
+    phone?: string
   }
 }
 
@@ -85,7 +98,9 @@ export const PaginaProducto = () => {
   const [reviews, setReviews] = useState<Review[]>([])
   const [userRating, setUserRating] = useState<number>(5)
   const [userComment, setUserComment] = useState<string>("")
+  const [userDetails, setUserDetails] = useState<Producto["user"] | null>(null)
   const itemService = useRef(new ItemService()).current
+  const userService = useRef(new UserService()).current
 
   useEffect(() => {
     if (!id) {
@@ -109,6 +124,18 @@ export const PaginaProducto = () => {
         // Guardar los datos del producto tal como vienen de la API
         setProducto(response.data)
 
+        // Si el producto tiene un usuario asociado, obtener más detalles del usuario
+        if (response.data.user?.id) {
+          try {
+            const userResponse = await userService.getById(response.data.user.id)
+            if (userResponse && userResponse.data) {
+              setUserDetails(userResponse.data)
+            }
+          } catch (error) {
+            console.error("Error al cargar detalles del usuario:", error)
+          }
+        }
+
         // Buscar productos relacionados (por categoría similar)
         try {
           const allProductsResponse = await itemService.getAll()
@@ -126,9 +153,9 @@ export const PaginaProducto = () => {
         }
 
         // Cargar reseñas desde el servicio
-        const reviewService = new ReviewService();
-        const reviewsData = await reviewService.getReviewsByItemId(response.data.id);
-        setReviews(reviewsData);
+        const reviewService = new ReviewService()
+        const reviewsData = await reviewService.getReviewsByItemId(response.data.id)
+        setReviews(reviewsData)
       } catch (error) {
         console.error("Error al cargar el producto:", error)
         setError(true)
@@ -238,6 +265,12 @@ export const PaginaProducto = () => {
     )
   }
 
+  // Combinar datos del usuario del producto con los detalles adicionales obtenidos
+  const user = {
+    ...producto.user,
+    ...userDetails,
+  }
+
   return (
     <Container className="py-5">
       {/* Breadcrumb */}
@@ -301,10 +334,10 @@ export const PaginaProducto = () => {
           <h1 className="fw-bold mb-3">{producto.title}</h1>
 
           <div className="d-flex align-items-center mb-4">
-            {producto.user?.location && (
+            {user?.location && (
               <div className="me-4 d-flex align-items-center">
                 <GeoAlt className="text-muted me-1" />
-                <span className="text-muted">{producto.user.location}</span>
+                <span className="text-muted">{user.location}</span>
               </div>
             )}
             {producto.createdAt && (
@@ -324,38 +357,129 @@ export const PaginaProducto = () => {
             </div>
           )}
 
-          {/* Información del vendedor */}
-          {producto.user && (
+          {/* Información del vendedor - Versión mejorada */}
+          {user && (
             <Card className="border-0 shadow-sm rounded-4 mb-4">
               <Card.Body>
-                <div className="d-flex align-items-center mb-3">
-                  <img
-                    src={producto.user.imageUrl || "/placeholder.svg?height=50&width=50"}
-                    alt={producto.user.name}
-                    className="rounded-circle me-3"
-                    width="50"
-                    height="50"
-                  />
-                  <div>
-                    <div className="d-flex align-items-center">
-                      <h4 className="h6 fw-bold mb-0 me-2">{producto.user.name}</h4>
-                      {producto.user.verified && <CheckCircle className="text-success" title="Usuario verificado" />}
+                <h4 className="h5 fw-bold mb-3">Información del vendedor</h4>
+
+                <div className="d-flex mb-4">
+                  <div className="position-relative me-3">
+                    <img
+                      src={user.imageUrl || "/placeholder.svg?height=80&width=80"}
+                      alt={user.name}
+                      className="rounded-circle"
+                      width="80"
+                      height="80"
+                      style={{ objectFit: "cover" }}
+                    />
+                    {user.verified && (
+                      <Badge
+                        bg="success"
+                        className="position-absolute bottom-0 end-0 rounded-circle p-1"
+                        title="Usuario verificado"
+                      >
+                        <CheckCircle size={16} />
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="flex-grow-1">
+                    <div className="d-flex justify-content-between align-items-start">
+                      <div>
+                        <h5 className="fw-bold mb-1">{user.name}</h5>
+                        {user.reputation !== undefined && (
+                          <div className="d-flex align-items-center mb-2">
+                            {renderStars(user.reputation)}
+                            <span className="ms-2 text-muted">({user.reputation.toFixed(1)})</span>
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        variant="outline-success"
+                        className="rounded-pill"
+                        as={Link as any}
+                        to={`/perfil/${user.id}`}
+                      >
+                        Ver perfil
+                      </Button>
                     </div>
-                    {producto.user.rating && (
+
+                    <div className="d-flex flex-wrap gap-3 mt-2">
+                      {user.joinDate && (
+                        <div className="d-flex align-items-center text-muted small">
+                          <Calendar3 className="me-1" />
+                          <span>Miembro desde {new Date(user.joinDate).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                      {user.completedTransactions !== undefined && (
+                        <div className="d-flex align-items-center text-muted small">
+                          <Award className="me-1" />
+                          <span>{user.completedTransactions} transacciones</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Estadísticas del vendedor */}
+                <div className="row g-3">
+                  {user.responseRate !== undefined && (
+                    <div className="col-md-6">
+                      <div className="bg-light rounded p-3">
+                        <div className="d-flex justify-content-between mb-2">
+                          <span className="text-muted small">Tasa de respuesta</span>
+                          <span className="fw-bold small">{user.responseRate}%</span>
+                        </div>
+                        <ProgressBar
+                          variant={user.responseRate > 80 ? "success" : user.responseRate > 50 ? "warning" : "danger"}
+                          now={user.responseRate}
+                          style={{ height: "6px" }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {user.responseTime && (
+                    <div className="col-md-6">
+                      <div className="bg-light rounded p-3">
+                        <div className="d-flex align-items-center">
+                          <Clock className="text-success me-2" />
+                          <div>
+                            <span className="d-block small">Tiempo de respuesta</span>
+                            <span className="fw-bold">{user.responseTime}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Información de contacto */}
+                <div className="mt-3 pt-3 border-top">
+                  <h6 className="fw-bold mb-3">Información de contacto</h6>
+                  <div className="d-flex flex-column gap-2">
+                    {user.email && (
                       <div className="d-flex align-items-center">
-                        {renderStars(producto.user.rating)}
-                        <span className="ms-1 small text-muted">({producto.user.rating})</span>
+                        <Envelope className="text-success me-2" />
+                        <span>{user.email}</span>
+                      </div>
+                    )}
+                    {user.phone && (
+                      <div className="d-flex align-items-center">
+                        <Telephone className="text-success me-2" />
+                        <span>{user.phone}</span>
                       </div>
                     )}
                   </div>
-                  <Button
-                    variant="outline-success"
-                    className="ms-auto rounded-pill"
-                    as={Link as any}
-                    to={`/perfil/${producto.user.id}`}
-                  >
-                    Ver perfil
-                  </Button>
+                </div>
+
+                {/* Garantías */}
+                <div className="mt-3 pt-3 border-top">
+                  <div className="d-flex align-items-center">
+                    <ShieldCheck className="text-success me-2" size={20} />
+                    <span className="small">Este vendedor cumple con las políticas de Swapify</span>
+                  </div>
                 </div>
               </Card.Body>
             </Card>
@@ -401,10 +525,10 @@ export const PaginaProducto = () => {
                           <span className="fw-bold">{producto.status}</span>
                         </ListGroup.Item>
                       )}
-                      {producto.user?.location && (
+                      {user?.location && (
                         <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
                           <span className="text-muted">Ubicación</span>
-                          <span className="fw-bold">{producto.user.location}</span>
+                          <span className="fw-bold">{user.location}</span>
                         </ListGroup.Item>
                       )}
                     </ListGroup>
@@ -480,12 +604,12 @@ export const PaginaProducto = () => {
                               className="rounded-circle"
                               width="60"
                               height="60"
-                              alt={review.user?.name || 'Usuario'}
+                              alt={review.user?.name || "Usuario"}
                             />
                           </div>
                           <div>
                             <div className="d-flex align-items-center gap-2 mb-2">
-                              <strong>{review.user?.name || 'Usuario Anónimo'}</strong>
+                              <strong>{review.user?.name || "Usuario Anónimo"}</strong>
                               {renderStars(review.rating)}
                               <span className="text-muted ms-2">
                                 {new Date(review.created_at).toLocaleDateString()}

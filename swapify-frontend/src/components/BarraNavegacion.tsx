@@ -1,6 +1,8 @@
 "use client"
 
-import { Link } from "react-router-dom"
+import type React from "react"
+
+import { Link, useNavigate } from "react-router-dom"
 import { Container, Navbar, Form, Nav, Button, Offcanvas, InputGroup } from "react-bootstrap"
 import { Cart, Person, List, Search, Bell, BoxArrowInRight } from "react-bootstrap-icons"
 import { useState } from "react"
@@ -13,7 +15,18 @@ import { BarraLateral } from "./BarraLateral"
 export const BarraNavegacion = () => {
   const [showSidebar, setShowSidebar] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
   const isMobile = useMediaQuery({ maxWidth: 640 }) // Pantallas pequeñas
+  const navigate = useNavigate()
+
+  // Manejar la búsqueda
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchTerm.trim()) {
+      navigate(`/busqueda?q=${encodeURIComponent(searchTerm.trim())}`)
+      setSearchTerm("")
+    }
+  }
 
   return (
     <>
@@ -44,17 +57,21 @@ export const BarraNavegacion = () => {
             </Navbar.Brand>
 
             {/* Barra de búsqueda mejorada */}
-            <InputGroup className="flex-grow-1 me-lg-4">
-              <Form.Control
-                type="search"
-                placeholder="Buscar productos, servicios o categorías..."
-                className="border-0 py-2"
-                aria-label="Buscar"
-              />
-              <Button variant="light" className="border-0">
-                <Search size={18} />
-              </Button>
-            </InputGroup>
+            <Form onSubmit={handleSearch} className="flex-grow-1 me-lg-4">
+              <InputGroup>
+                <Form.Control
+                  type="search"
+                  placeholder="Buscar productos, servicios o categorías..."
+                  className="border-0 py-2"
+                  aria-label="Buscar"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <Button variant="light" className="border-0" type="submit">
+                  <Search size={18} />
+                </Button>
+              </InputGroup>
+            </Form>
 
             {/* Toggle del menú (visible en móviles) */}
             <Navbar.Toggle
@@ -192,4 +209,3 @@ export const BarraNavegacion = () => {
     </>
   )
 }
-
