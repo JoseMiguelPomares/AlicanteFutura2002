@@ -227,7 +227,7 @@ class ItemService {
 
     //Función para obtener los items añadidos recientemente
     fun getRecentlyAddedItems(): List<ItemDTO> {
-        val items: List<Item> = itemDAO.findAllItems()
+        val items: List<Item> = itemDAO.findByItemTime()
         return if (items.isNotEmpty()) {
             items.map {
                 ItemDTO(
