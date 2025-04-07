@@ -80,4 +80,14 @@ interface IItemDAO: CrudRepository<Item, Int> {
     """
     )
     fun findByPriceRange(minPrice: BigDecimal, maxPrice: BigDecimal): List<Item>
+
+    @Query(
+        """
+        SELECT i 
+        FROM Item i
+        LEFT JOIN FETCH i.user
+        ORDER BY i.createdAt DESC
+        """
+    )
+    fun findByItemTime(): MutableList<Item>
 }

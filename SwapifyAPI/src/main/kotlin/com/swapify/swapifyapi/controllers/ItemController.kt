@@ -96,5 +96,9 @@ class ItemController {
         return itemService.updateItem(itemId, item)
     }
 
-
+    //Función para obtener items añadidos recientemente
+    @GetMapping("/getRecentlyAdded")
+    fun getRecentlyAdded(): List<ItemDTO> {
+        return itemService.getRecentlyAddedItems()
+    }
 }
