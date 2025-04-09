@@ -154,7 +154,7 @@ export const PaginaProducto = () => {
 
         // Cargar reseñas desde el servicio
         const reviewService = new ReviewService()
-        const reviewsData = await reviewService.getReviewsByItemId(response.data.id)
+        const reviewsData = await reviewService.getReviewsByItem(response.data.id)
         setReviews(reviewsData)
       } catch (error) {
         console.error("Error al cargar el producto:", error)

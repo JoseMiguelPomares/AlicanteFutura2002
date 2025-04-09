@@ -10,30 +10,32 @@ import { Footer } from "./components/Footer"
 import { PaginaVender } from "./pages/PaginaVender"
 import { ScrollToTop } from "./components/ScrollToTop"
 import { PaginaBusqueda } from "./pages/PaginaBusqueda"
+import { AuthProvider } from "./contexts/AuthContext"
 
 // Componente principal de la aplicación
 export const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <div className="d-flex flex-column min-vh-100">
-        <BarraNavegacion />
-        <main className="flex-grow-1">
-          <Routes>
-            <Route path="/" element={<PaginaInicio />} />
-            <Route path="/perfil/:id" element={<PaginaPerfil />} />
-            <Route path="/vender" element={<PaginaVender />} />
-            <Route path="/registro" element={<PaginaRegistro />} />
-            <Route path="/login" element={<PaginaLogin />} />
-            <Route path="/productos/:id" element={<PaginaProducto />} />
-            <Route path="/busqueda" element={<PaginaBusqueda />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <ScrollToTop />
+        <div className="d-flex flex-column min-vh-100">
+          <BarraNavegacion />
+          <main className="flex-grow-1">
+            <Routes>
+              <Route path="/" element={<PaginaInicio />} />
+              <Route path="/perfil/:id" element={<PaginaPerfil />} />
+              <Route path="/vender" element={<PaginaVender />} />
+              <Route path="/registro" element={<PaginaRegistro />} />
+              <Route path="/login" element={<PaginaLogin />} />
+              <Route path="/productos/:id" element={<PaginaProducto />} />
+              <Route path="/busqueda" element={<PaginaBusqueda />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
 
 export default App
-

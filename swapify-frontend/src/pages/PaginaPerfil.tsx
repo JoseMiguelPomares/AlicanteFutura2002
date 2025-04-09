@@ -1,13 +1,16 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
-import { useParams } from "react-router-dom"
-import { Container, Row, Col, Card, Button, Badge, Tabs, Tab, ListGroup, Image } from "react-bootstrap"
-import { CheckCircle, GeoAlt, Calendar3 } from "react-bootstrap-icons"
+import { useParams, Link } from "react-router-dom"
+import { Container, Row, Col, Card, Button, Badge, Tabs, Tab, ListGroup, Image, Form, Alert } from "react-bootstrap"
+import { CheckCircle, GeoAlt, Calendar3, StarFill, Star, Plus, Chat, Pencil } from "react-bootstrap-icons"
 import { ItemService } from "../services/itemService"
 import { UserService } from "../services/userService"
+import { useAuth } from "../contexts/AuthContext"
+import { ReviewService } from "../services/reviewService"
 
-// Actualizar la interfaz User para incluir el campo reputation
 interface User {
   id: number
   name: string
@@ -34,14 +37,46 @@ interface Item {
   createdAt: string
 }
 
+// Añadir esta interfaz para las reviews
+interface Review {
+  id: number
+  reviewer_id: number
+  reviewed_id: number
+  rating: number
+  comment: string
+  created_at: string
+  reviewer?: {
+    id: number
+    name: string
+    imageUrl?: string
+  }
+}
+
 export const PaginaPerfil = () => {
   const { id } = useParams<{ id: string }>()
-  const [user, setUser] = useState<User | null>(null)
+  const [userProfile, setUser] = useState<User | null>(null)
   const [userItems, setUserItems] = useState<Item[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const itemService = new ItemService()
   const userService = new UserService()
+
+  // Dentro de la función PaginaPerfil, añadir estos estados
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [newReview, setNewReview] = useState({
+    rating: 5,
+    comment: "",
+  })
+  const [reviewStats, setReviewStats] = useState({
+    averageRating: 0,
+    totalReviews: 0,
+  })
+  const [submittingReview, setSubmittingReview] = useState(false)
+  const [reviewError, setReviewError] = useState<string | null>(null)
+  const { user, isAuthenticated } = useAuth()
+  const reviewService = new ReviewService()
+  // Comprobar si es mi propia página de usuario o es la de un tercero
+  const isOwnProfile = isAuthenticated && user?.id === Number(id)
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -72,6 +107,130 @@ export const PaginaPerfil = () => {
     fetchUserData()
   }, [id])
 
+  // Añadir este useEffect para cargar las reviews
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (id) {
+        try {
+          // Obtener las reviews del usuario
+          const reviewsData = await reviewService.getReviewsByUserId(Number(id))
+          setReviews(reviewsData)
+
+          // Obtener estadísticas de reviews
+          const stats = await reviewService.getUserReviewStats(Number(id))
+          setReviewStats(stats)
+        } catch (error) {
+          console.error("Error al cargar reviews:", error)
+        }
+      }
+    }
+
+    fetchReviews()
+  }, [id])
+
+  // Añadir estas funciones para manejar las reviews
+  const handleReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNewReview({ ...newReview, comment: e.target.value })
+  }
+
+  const handleRatingChange = (rating: number) => {
+    setNewReview({ ...newReview, rating })
+  }
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!isAuthenticated || !user) {
+      setReviewError("Debes iniciar sesión para dejar una valoración")
+      return
+    }
+
+    if (user.id === Number(id)) {
+      setReviewError("No puedes valorarte a ti mismo")
+      return
+    }
+
+    setSubmittingReview(true)
+    setReviewError(null)
+
+    try {
+      const reviewData = {
+        reviewer_id: user.id,
+        reviewed_id: Number(id),
+        rating: newReview.rating,
+        comment: newReview.comment,
+      }
+
+      const createdReview = await reviewService.createReview(reviewData)
+
+      // Añadir la nueva review al estado
+      setReviews([
+        {
+          ...createdReview,
+          reviewer: {
+            id: user.id,
+            name: user.name,
+            imageUrl: user.imageUrl,
+          },
+        },
+        ...reviews,
+      ])
+
+      // Actualizar estadísticas
+      const newTotalReviews = reviewStats.totalReviews + 1
+      const newAverageRating =
+        (reviewStats.averageRating * reviewStats.totalReviews + newReview.rating) / newTotalReviews
+
+      setReviewStats({
+        totalReviews: newTotalReviews,
+        averageRating: newAverageRating,
+      })
+
+      // Limpiar el formulario
+      setNewReview({
+        rating: 5,
+        comment: "",
+      })
+    } catch (error) {
+      setReviewError("Error al enviar la valoración. Inténtalo de nuevo.")
+      console.error("Error al enviar review:", error)
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
+
+  // Función para renderizar estrellas
+  const renderStars = (rating: number) => {
+    return (
+      <div className="d-flex">
+        {[...Array(5)].map((_, i) =>
+          i < Math.floor(rating) ? (
+            <StarFill key={i} className="text-warning" />
+          ) : (
+            <Star key={i} className="text-warning" />
+          ),
+        )}
+      </div>
+    )
+  }
+
+  // Función para renderizar selector de estrellas
+  const renderRatingSelector = () => {
+    return (
+      <div className="d-flex mb-3">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span key={star} onClick={() => handleRatingChange(star)} style={{ cursor: "pointer" }}>
+            {star <= newReview.rating ? (
+              <StarFill className="text-warning fs-4 me-1" />
+            ) : (
+              <Star className="text-warning fs-4 me-1" />
+            )}
+          </span>
+        ))}
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <Container className="py-5 text-center">
@@ -83,7 +242,7 @@ export const PaginaPerfil = () => {
     )
   }
 
-  if (error || !user) {
+  if (error || !userProfile) {
     return (
       <Container className="py-5 text-center">
         <div className="alert alert-danger">
@@ -103,12 +262,12 @@ export const PaginaPerfil = () => {
             <Card.Body className="text-center p-4">
               <div className="position-relative mb-4">
                 <Image
-                  src={user.imageUrl || "/placeholder.svg"}
+                  src={userProfile.imageUrl || "/placeholder.svg"}
                   roundedCircle
                   className="shadow-sm"
                   style={{ width: "150px", height: "150px", objectFit: "cover" }}
                 />
-                {user.verified && (
+                {userProfile.verified && (
                   <Badge
                     bg="success"
                     className="position-absolute bottom-0 end-0 rounded-circle p-2"
@@ -120,27 +279,34 @@ export const PaginaPerfil = () => {
               </div>
 
               {/* En la sección donde se muestra el nombre del usuario, añadir la reputación */}
-              <h3 className="fw-bold mb-1">{user.name}</h3>
-              {user.reputation !== undefined && (
-                <div className="d-flex justify-content-center align-items-center mb-2">
-                  <Badge bg="info" className="rounded-pill px-3 py-2">
-                    <span className="fw-bold">Reputación: {user.reputation.toFixed(1)}</span>
-                  </Badge>
-                </div>
-              )}
+              <h3 className="fw-bold mb-1">{userProfile.name}</h3>
+              <div className="d-flex justify-content-center align-items-center mb-2">
+                <Badge bg="info" className="rounded-pill px-3 py-2">
+                  <span className="fw-bold">
+                    Reputación: {reviewStats.averageRating.toFixed(1)} ({reviewStats.totalReviews} valoraciones)
+                  </span>
+                </Badge>
+              </div>
 
-
-              {user.location && (
+              {userProfile.location && (
                 <p className="text-muted mb-3">
                   <GeoAlt className="me-1" />
-                  {user.location}
+                  {userProfile.location}
                 </p>
               )}
 
               <div className="d-grid gap-2">
-                <Button variant="success" className="rounded-pill">
-                  Contactar
-                </Button>
+                {!isOwnProfile ? (
+                  <Button variant="outline-success" className="rounded-pill px-4 me-2">
+                    <Chat className="me-2" />
+                    Contactar
+                  </Button>
+                ) : (
+                  <Button variant="outline-primary" className="rounded-pill px-4 me-2" as={Link as any} to="/editar-perfil">
+                    <Pencil className="me-2" />
+                    Editar Perfil
+                  </Button>
+                )}
               </div>
             </Card.Body>
           </Card>
@@ -149,12 +315,12 @@ export const PaginaPerfil = () => {
             <Card.Body className="p-4">
               <h4 className="fw-bold mb-3">Información</h4>
               <ListGroup variant="flush">
-                {user.joinDate && (
+                {userProfile.joinDate && (
                   <ListGroup.Item className="px-0 py-2 d-flex justify-content-between border-bottom">
                     <span className="text-muted">Miembro desde</span>
                     <span className="fw-medium">
                       <Calendar3 className="me-1" />
-                      {new Date(user.joinDate).toLocaleDateString()}
+                      {new Date(userProfile.joinDate).toLocaleDateString()}
                     </span>
                   </ListGroup.Item>
                 )}
@@ -164,7 +330,7 @@ export const PaginaPerfil = () => {
                 </ListGroup.Item>
                 <ListGroup.Item className="px-0 py-2 d-flex justify-content-between">
                   <span className="text-muted">Valoraciones</span>
-                  <span className="fw-medium">0</span>
+                  <span className="fw-medium">{reviewStats.totalReviews}</span>
                 </ListGroup.Item>
               </ListGroup>
             </Card.Body>
@@ -222,7 +388,22 @@ export const PaginaPerfil = () => {
               ) : (
                 <Card className="border-0 shadow-sm rounded-4">
                   <Card.Body className="text-center py-5">
-                    <p className="text-muted mb-0">Este usuario aún no ha publicado productos.</p>
+                    {isOwnProfile ? (
+                      <>
+                        <p className="text-muted mb-3">Todavía no has publicado ningún producto o servicio.</p>
+                        <Button
+                          as={Link as any}
+                          to="/vender"
+                          variant="success"
+                          className="rounded-pill px-4"
+                        >
+                          <Plus className="me-2" />
+                          Publicar un producto o servicio
+                        </Button>
+                      </>
+                    ) : (
+                      <p className="text-muted mb-0">Este usuario aún no ha publicado productos.</p>
+                    )}
                   </Card.Body>
                 </Card>
               )}
@@ -231,8 +412,8 @@ export const PaginaPerfil = () => {
             <Tab eventKey="sobre" title="Sobre mí">
               <Card className="border-0 shadow-sm rounded-4">
                 <Card.Body className="p-4">
-                  {user.description ? (
-                    <p className="mb-0">{user.description}</p>
+                  {userProfile.description ? (
+                    <p className="mb-0">{userProfile.description}</p>
                   ) : (
                     <p className="text-muted text-center mb-0">Este usuario aún no ha añadido una descripción.</p>
                   )}
@@ -243,9 +424,68 @@ export const PaginaPerfil = () => {
             <Tab eventKey="valoraciones" title="Valoraciones">
               <Card className="border-0 shadow-sm rounded-4">
                 <Card.Body className="p-4">
-                  <p className="text-muted text-center mb-0">
-                    Las valoraciones de usuarios estarán disponibles próximamente.
-                  </p>
+                  {isAuthenticated && user?.id !== Number(id) && (
+                    <div className="mb-4">
+                      <h5 className="fw-bold mb-3">Deja tu valoración</h5>
+                      <Form onSubmit={handleSubmitReview}>
+                        {renderRatingSelector()}
+                        <Form.Group className="mb-3">
+                          <Form.Control
+                            as="textarea"
+                            rows={3}
+                            placeholder="Comparte tu experiencia con este usuario..."
+                            value={newReview.comment}
+                            onChange={handleReviewChange}
+                            required
+                          />
+                        </Form.Group>
+                        {reviewError && (
+                          <Alert variant="danger" className="mb-3">
+                            {reviewError}
+                          </Alert>
+                        )}
+                        <Button variant="success" type="submit" className="rounded-pill" disabled={submittingReview}>
+                          {submittingReview ? "Enviando..." : "Enviar valoración"}
+                        </Button>
+                      </Form>
+                    </div>
+                  )}
+
+                  <h5 className="fw-bold mb-3">Valoraciones recibidas</h5>
+
+                  {reviews.length > 0 ? (
+                    <div>
+                      {reviews.map((review) => (
+                        <div key={review.id} className="mb-3 pb-3 border-bottom">
+                          <div className="d-flex gap-3">
+                            <div className="flex-shrink-0">
+                              <img
+                                src={review.reviewer?.imageUrl || "/placeholder.svg?height=50&width=50"}
+                                className="rounded-circle"
+                                width="50"
+                                height="50"
+                                alt={review.reviewer?.name || "Usuario"}
+                              />
+                            </div>
+                            <div>
+                              <div className="d-flex align-items-center gap-2 mb-2">
+                                <Link to={`/perfil/${review.reviewer_id}`} className="fw-bold text-decoration-none">
+                                  {review.reviewer?.name || "Usuario"}
+                                </Link>
+                                <div className="ms-2">{renderStars(review.rating)}</div>
+                                <span className="text-muted ms-2 small">
+                                  {new Date(review.created_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p className="mb-0">{review.comment}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted text-center">Este usuario aún no tiene valoraciones.</p>
+                  )}
                 </Card.Body>
               </Card>
             </Tab>

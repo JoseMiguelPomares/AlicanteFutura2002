@@ -12,12 +12,18 @@ import logo from "../assets/images/logosSwapify/logoNegroLargoFondoTransp.png"
 import logoPequeno from "../assets/images/logosSwapify/logoNegroTransp.png" // Logo para móviles
 import { BarraLateral } from "./BarraLateral"
 
+// Importar el hook useAuth
+import { useAuth } from "../contexts/AuthContext"
+
 export const BarraNavegacion = () => {
   const [showSidebar, setShowSidebar] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const isMobile = useMediaQuery({ maxWidth: 640 }) // Pantallas pequeñas
   const navigate = useNavigate()
+
+  // Añadir dentro de la función BarraNavegacion
+  const { user, isAuthenticated, logout } = useAuth()
 
   // Manejar la búsqueda
   const handleSearch = (e: React.FormEvent) => {
@@ -95,22 +101,46 @@ export const BarraNavegacion = () => {
             <Offcanvas.Body className="d-flex flex-column gap-3">
               {/* Botones principales */}
               <div className="d-flex flex-column gap-3">
+                {isAuthenticated ? (
+                  <>
+                    <Button
+                      as={Link as any}
+                      to={`/perfil/${user?.id}`}
+                      variant="success"
+                      className="w-100 py-2 rounded-pill"
+                      onClick={() => setShowMenu(false)}
+                    >
+                      <Person className="me-2" size={18} />
+                      Mi Perfil
+                    </Button>
+                    <Button
+                      variant="outline-danger"
+                      className="w-100 py-2 rounded-pill"
+                      onClick={() => {
+                        logout()
+                        setShowMenu(false)
+                      }}
+                    >
+                      Cerrar Sesión
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    as={Link as any}
+                    to="/registro"
+                    variant="success"
+                    className="w-100 py-2 rounded-pill"
+                    onClick={() => setShowMenu(false)}
+                  >
+                    <BoxArrowInRight className="me-2" size={18} />
+                    Acceso / Registro
+                  </Button>
+                )}
                 <Button
                   as={Link as any}
-                  to="/registro"
-                  variant="success"
-                  className="w-100 py-2 rounded-pill"
-                  onClick={() => setShowMenu(false)}
-                >
-                  <BoxArrowInRight className="me-2" size={18} />
-                  Acceso / Registro
-                </Button>
-                <Button
-                  as={Link as any}
-                  to="/vender"
-                  variant="outline-success"
-                  className="w-100 py-2 rounded-pill"
-                  onClick={() => setShowMenu(false)}
+                  to={isAuthenticated ? "/vender" : "/login?redirect=/vender"}
+                  variant="light"
+                  className="rounded-pill px-4"
                 >
                   Vender
                 </Button>
@@ -145,7 +175,13 @@ export const BarraNavegacion = () => {
           {/* NAVBAR NORMAL en pantallas grandes */}
           <Navbar.Collapse id="navegacion-principal" className="d-none d-lg-flex align-items-center gap-3">
             {/* Botones y secciones adicionales */}
-            <Button as={Link as any} to="/vender" variant="light" className="rounded-pill px-4">
+            <Button
+              as={Link as any}
+              to={isAuthenticated ? "/vender" : "/login?redirect=/vender"}
+              variant="light"
+              className="w-100 py-2 rounded-pill"
+              onClick={() => setShowMenu(false)}
+            >
               Vender
             </Button>
             <div className="d-flex align-items-center ms-auto gap-4">
@@ -155,13 +191,38 @@ export const BarraNavegacion = () => {
                   2
                 </span>
               </Nav.Link>
-              <Nav.Link as={Link} to="/perfil" className="text-white">
-                <Person size={22} />
-              </Nav.Link>
-              <Button variant="outline-light" className="d-flex align-items-center gap-2 rounded-pill">
-                <Cart size={18} />
-                <span className="fw-bold">150 Créditos</span>
-              </Button>
+              {isAuthenticated ? (
+                <>
+                  <Nav.Link as={Link} to={`/perfil/${user?.id}`} className="text-white">
+                    <Person size={22} />
+                  </Nav.Link>
+                  <Button variant="outline-light" className="d-flex align-items-center gap-2 rounded-pill">
+                    <Cart size={18} />
+                    <span className="fw-bold">150 Créditos</span>
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    className="rounded-pill"
+                    onClick={() => {
+                      logout();
+                      navigate('/');  // Redirect to home page after logout
+                    }}
+                  >
+                    Salir
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  as={Link as any}
+                  to="/login"
+                  variant="outline-light"
+                  className="d-flex align-items-center gap-2 rounded-pill"
+                >
+                  <BoxArrowInRight size={18} />
+                  <span className="fw-bold">Iniciar Sesión</span>
+                </Button>
+              )}
             </div>
           </Navbar.Collapse>
         </Container>
@@ -190,16 +251,18 @@ export const BarraNavegacion = () => {
             </div>
 
             {/* Botón de acceso/registro (visible solo en pantallas grandes) */}
-            <Button
-              as={Link as any}
-              to="/registro"
-              variant="success"
-              size="sm"
-              className="d-none d-md-flex align-items-center gap-2 rounded-pill px-3"
-            >
-              <BoxArrowInRight size={16} />
-              Acceder
-            </Button>
+            {isAuthenticated && (
+              <Button
+                as={Link as any}
+                to={`/perfil/${user?.id}`}
+                variant="success"
+                size="sm"
+                className="d-none d-md-flex align-items-center gap-2 rounded-pill px-3"
+              >
+                <Person size={16} />
+                Mi Perfil
+              </Button>
+            )}
           </div>
         </Container>
       </div>
@@ -209,3 +272,4 @@ export const BarraNavegacion = () => {
     </>
   )
 }
+

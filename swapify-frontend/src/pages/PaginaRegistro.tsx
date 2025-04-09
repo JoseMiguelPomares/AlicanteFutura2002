@@ -14,11 +14,14 @@ import {
   EyeSlashFill,
   CheckCircleFill,
 } from "react-bootstrap-icons"
-import authService from "../services/authService"
 import { motion } from "framer-motion"
+import { UserService } from "../services/userService"
+import { useAuth } from "../contexts/AuthContext" // Importar el hook useAuth
 
 export const PaginaRegistro = () => {
   const navigate = useNavigate()
+  const { login } = useAuth() // Usar el hook useAuth
+  const userService = new UserService()
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -70,11 +73,27 @@ export const PaginaRegistro = () => {
     setError(null)
 
     try {
-      const response = await authService.register(formData.email, formData.password)
-      localStorage.setItem("token", response.data.token)
+      // Ahora pasamos también el nombre al método register
+      await userService.register({
+        email: formData.email,
+        password: formData.password,
+        name: formData.name
+      })
+
+      // Iniciar sesión automáticamente después del registro
+      await login(formData.email, formData.password)
+
+      // Redirigir al usuario a la página principal
       navigate("/")
-    } catch (error) {
-      setError("Error en el registro. Por favor, inténtalo de nuevo.")
+    } catch (error: any) {
+      // Mejorar el manejo de errores para mostrar mensajes más específicos
+      if (error.response && error.response.data && error.response.data.message) {
+        setError(error.response.data.message)
+      } else if (error.message) {
+        setError(error.message)
+      } else {
+        setError("Error en el registro. Por favor, inténtalo de nuevo.")
+      }
     } finally {
       setLoading(false)
     }
@@ -222,7 +241,6 @@ export const PaginaRegistro = () => {
                             <CheckCircleFill />
                           </span>
                         )}
-                        <Form.Control.Feedback type="invalid">Las contraseñas no coinciden.</Form.Control.Feedback>
                       </div>
                     </Form.Group>
 

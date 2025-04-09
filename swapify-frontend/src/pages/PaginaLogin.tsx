@@ -6,8 +6,9 @@ import { useState } from "react"
 import { Container, Card, Button, Form, Row, Col, Alert } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import { ArrowLeft, EnvelopeFill, LockFill, EyeFill, EyeSlashFill } from "react-bootstrap-icons"
-import authService from "../services/authService"
 import { motion } from "framer-motion"
+// En la parte superior, importa el hook useAuth
+import { useAuth } from "../contexts/AuthContext"
 
 export const PaginaLogin = () => {
   const navigate = useNavigate()
@@ -17,7 +18,10 @@ export const PaginaLogin = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [validated, setValidated] = useState<boolean>(false)
+  // Añade esta línea cerca del inicio de la función PaginaLogin
+  const { login } = useAuth()
 
+  // Reemplaza la función handleEmailLogin con:
   const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = e.currentTarget
@@ -33,8 +37,7 @@ export const PaginaLogin = () => {
     setError(null)
 
     try {
-      const response = await authService.login(email, password)
-      localStorage.setItem("token", response.data.token)
+      await login(email, password)
       navigate("/")
     } catch (error) {
       setError("Credenciales inválidas. Por favor, verifica tu email y contraseña.")
