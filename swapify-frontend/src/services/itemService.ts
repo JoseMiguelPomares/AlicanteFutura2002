@@ -7,7 +7,7 @@ export class ItemService{
         return axios.get(this.baseUrl + "getAll").then(res => res.data)
     }
 
-    getByUserId(userId: number): Promise<any>{
+    getByUserId(userId: number){
         return axios.get(this.baseUrl + `userItems/${userId}`).then(res => res.data)
     }
 
