@@ -84,7 +84,7 @@ export const PaginaPerfil = () => {
         setLoading(true)
 
         // Obtener datos del usuario desde la API
-        const response = await userService.getById(Number(id))
+        const response = await userService.getUserById(Number(id))
         const userData = response.data
         setUser(userData)
 

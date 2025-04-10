@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Container, Card, Button, Form, Row, Col, Alert } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import {
@@ -13,14 +13,16 @@ import {
   EyeFill,
   EyeSlashFill,
   CheckCircleFill,
+  Google,
 } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 import { UserService } from "../services/userService"
 import { useAuth } from "../contexts/AuthContext" // Importar el hook useAuth
 
+// Actualizar la función PaginaRegistro para añadir autenticación social
 export const PaginaRegistro = () => {
   const navigate = useNavigate()
-  const { login } = useAuth() // Usar el hook useAuth
+  const { login, loginWithGoogle, error: authError } = useAuth() // Usar el hook useAuth
   const userService = new UserService()
   const [formData, setFormData] = useState({
     name: "",
@@ -30,9 +32,30 @@ export const PaginaRegistro = () => {
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
+  const [socialAuthLoading, setSocialAuthLoading] = useState<boolean>(false)
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [validated, setValidated] = useState<boolean>(false)
   const [step, setStep] = useState<number>(1)
+
+  useEffect(() => {
+    if (authError) {
+      setError(authError)
+    }
+  }, [authError])
+
+  // Agregar estas funciones para manejar la autenticación social
+  const handleGoogleLogin = async () => {
+    try {
+      setSocialAuthLoading(true)
+      setError(null)
+      await loginWithGoogle()
+      navigate("/")
+    } catch (error) {
+      // El error ya se establece en el contexto de autenticación
+    } finally {
+      setSocialAuthLoading(false)
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -77,7 +100,7 @@ export const PaginaRegistro = () => {
       await userService.register({
         email: formData.email,
         password: formData.password,
-        name: formData.name
+        name: formData.name,
       })
 
       // Iniciar sesión automáticamente después del registro
@@ -179,6 +202,25 @@ export const PaginaRegistro = () => {
                       </div>
                     </Form.Group>
 
+                    {step === 1 && (
+                      <div className="my-4">
+                        <div className="text-center mb-3">
+                          <span className="text-muted">O regístrate con</span>
+                        </div>
+                        <div className="d-grid gap-2">
+                          <Button
+                            variant="outline-danger"
+                            className="d-flex align-items-center justify-content-center gap-2"
+                            onClick={handleGoogleLogin}
+                            disabled={socialAuthLoading}
+                          >
+                            <Google size={20} />
+                            <span>Continuar con Google</span>
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="d-grid">
                       <Button variant="success" type="submit" size="lg" className="rounded-pill">
                         Continuar
@@ -262,7 +304,6 @@ export const PaginaRegistro = () => {
                     </div>
                   </Form>
                 )}
-
                 <div className="text-center mt-4">
                   <p className="mb-0">
                     ¿Ya tienes cuenta?{" "}
@@ -293,4 +334,3 @@ export const PaginaRegistro = () => {
     </Container>
   )
 }
-

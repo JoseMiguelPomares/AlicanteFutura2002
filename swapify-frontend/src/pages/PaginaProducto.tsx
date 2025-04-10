@@ -4,38 +4,8 @@ import type React from "react"
 
 import { useParams, Link } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
-import {
-  Container,
-  Row,
-  Col,
-  Button,
-  Badge,
-  Breadcrumb,
-  Tabs,
-  Tab,
-  Card,
-  Form,
-  ListGroup,
-  Alert,
-  ProgressBar,
-} from "react-bootstrap"
-import {
-  Star,
-  StarFill,
-  Calendar3,
-  GeoAlt,
-  ArrowClockwise,
-  ChatLeftText,
-  Share,
-  Heart,
-  HeartFill,
-  CheckCircle,
-  Award,
-  Clock,
-  ShieldCheck,
-  Envelope,
-  Telephone,
-} from "react-bootstrap-icons"
+import { Container, Row, Col, Button, Badge, Breadcrumb, Tabs, Tab, Card, Form, ListGroup, Alert, ProgressBar, } from "react-bootstrap"
+import { Star, StarFill, Calendar3, GeoAlt, ArrowClockwise, ChatLeftText, Share, Heart, HeartFill, CheckCircle, Award, Clock, ShieldCheck, Envelope, Telephone, } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
 import { ReviewService } from "../services/reviewService"
@@ -124,10 +94,10 @@ export const PaginaProducto = () => {
         // Guardar los datos del producto tal como vienen de la API
         setProducto(response.data)
 
-        // Si el producto tiene un usuario asociado, obtener más detalles del usuario
+        // Obtener más detalles del usuario
         if (response.data.user?.id) {
           try {
-            const userResponse = await userService.getById(response.data.user.id)
+            const userResponse = await userService.getUserById(response.data.user.id)
             if (userResponse && userResponse.data) {
               setUserDetails(userResponse.data)
             }
@@ -680,4 +650,3 @@ export const PaginaProducto = () => {
     </Container>
   )
 }
-

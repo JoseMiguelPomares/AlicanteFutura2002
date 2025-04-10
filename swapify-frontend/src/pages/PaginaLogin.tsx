@@ -2,24 +2,34 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Container, Card, Button, Form, Row, Col, Alert } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import { ArrowLeft, EnvelopeFill, LockFill, EyeFill, EyeSlashFill } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 // En la parte superior, importa el hook useAuth
 import { useAuth } from "../contexts/AuthContext"
+// Justo después de la importación del useAuth, importamos los íconos para los proveedores sociales
+import { Google } from "react-bootstrap-icons"
 
+// Reemplazar la función PaginaLogin por esta versión actualizada
 export const PaginaLogin = () => {
   const navigate = useNavigate()
   const [email, setEmail] = useState<string>("")
   const [password, setPassword] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
+  const [socialAuthLoading, setSocialAuthLoading] = useState<boolean>(false)
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [validated, setValidated] = useState<boolean>(false)
   // Añade esta línea cerca del inicio de la función PaginaLogin
-  const { login } = useAuth()
+  const { login, loginWithGoogle, error: authError } = useAuth()
+
+  useEffect(() => {
+    if (authError) {
+      setError(authError)
+    }
+  }, [authError])
 
   // Reemplaza la función handleEmailLogin con:
   const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -43,6 +53,20 @@ export const PaginaLogin = () => {
       setError("Credenciales inválidas. Por favor, verifica tu email y contraseña.")
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Agregar estas funciones para manejar la autenticación social
+  const handleGoogleLogin = async () => {
+    try {
+      setSocialAuthLoading(true)
+      setError(null)
+      await loginWithGoogle()
+      navigate("/")
+    } catch (error) {
+      // El error ya se establece en el contexto de autenticación
+    } finally {
+      setSocialAuthLoading(false)
     }
   }
 
@@ -134,6 +158,23 @@ export const PaginaLogin = () => {
                   </div>
                 </Form>
 
+                <div className="my-4">
+                  <div className="text-center mb-3">
+                    <span className="text-muted">O inicia sesión con</span>
+                  </div>
+                  <div className="d-grid gap-2">
+                    <Button
+                      variant="outline-danger"
+                      className="d-flex align-items-center justify-content-center gap-2"
+                      onClick={handleGoogleLogin}
+                      disabled={socialAuthLoading}
+                    >
+                      <Google size={20} />
+                      <span>Continuar con Google</span>
+                    </Button>
+                  </div>
+                </div>
+
                 <div className="text-center mt-4">
                   <p className="mb-0">
                     ¿No tienes cuenta?{" "}
@@ -164,4 +205,3 @@ export const PaginaLogin = () => {
     </Container>
   )
 }
-

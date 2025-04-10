@@ -10,10 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-firebase/auth": "^0.2.10",
     "@types/react-bootstrap": "^0.32.37",
     "axios": "^1.8.4",
     "bootstrap": "^5.3.3",
-    "firebase": "^11.4.0",
+    "firebase": "^11.6.0",
     "framer-motion": "^12.5.0",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.9",
