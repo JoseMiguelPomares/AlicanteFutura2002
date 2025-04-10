@@ -3,6 +3,7 @@ package com.swapify.swapifyapi.controllers
 import com.swapify.swapifyapi.model.dto.CreditsUserDTO
 import com.swapify.swapifyapi.model.dto.ReputationUserDTO
 import com.swapify.swapifyapi.model.dto.UserSignInDTO
+import com.swapify.swapifyapi.model.dto.SocialAuthUserDTO
 import com.swapify.swapifyapi.model.entities.User
 import com.swapify.swapifyapi.services.UserService
 import org.springframework.beans.factory.annotation.Autowired
@@ -50,5 +51,11 @@ class UserController {
     @GetMapping("/login/{identification}/{password}")
     fun loginUser(@PathVariable identification: String, @PathVariable password: String): ResponseEntity<User>{
         return userService.loginUser(identification, password)
+    }
+
+    // Función para autenticación Google, en caso de que el usuario ya exista, se actualiza su información, sino se crea un nuevo usuario
+    @PostMapping("/social-auth")
+    fun socialAuth(@RequestBody socialAuthUserDTO: SocialAuthUserDTO): ResponseEntity<User> {
+        return userService.handleSocialAuth(socialAuthUserDTO)
     }
 }

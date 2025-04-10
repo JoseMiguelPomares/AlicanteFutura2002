@@ -118,6 +118,7 @@ export const BarraNavegacion = () => {
                       className="w-100 py-2 rounded-pill"
                       onClick={() => {
                         logout()
+                        navigate('/');  // Redirect to home page after logout
                         setShowMenu(false)
                       }}
                     >

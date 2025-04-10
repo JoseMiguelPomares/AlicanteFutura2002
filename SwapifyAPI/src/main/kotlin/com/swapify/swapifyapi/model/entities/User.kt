@@ -21,8 +21,8 @@ open class User {
     @Column(name = "email", nullable = false, length = 100)
     open var email: String? = null
 
-    @Column(name = "password_hash", nullable = false, length = Integer.MAX_VALUE)
-    open var passwordHash: String? = null
+    @Column(name = "password_hash", length = Integer.MAX_VALUE)
+    open var passwordHash: String? = null // Hacer opcional para usuarios sociales
 
     @Column(name = "location")
     open var location: String? = null
@@ -38,4 +38,12 @@ open class User {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at")
     open var createdAt: Instant? = null
+
+    // Nuevo campo para almacenar el ID de Google
+    @Column(name = "social_id", unique = true, length = 100)
+    open var socialId: String? = null
+
+    // Nuevo campo para almacenar la URL de la imagen del usuario
+    @Column(name = "image_url", length = 255)
+    open var imageUrl: String? = null
 }

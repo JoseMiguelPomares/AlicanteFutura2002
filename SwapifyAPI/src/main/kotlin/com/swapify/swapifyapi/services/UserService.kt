@@ -5,6 +5,7 @@ import com.swapify.swapifyapi.model.dao.IUserDAO
 import com.swapify.swapifyapi.model.dto.CreditsUserDTO
 import com.swapify.swapifyapi.model.dto.ReputationUserDTO
 import com.swapify.swapifyapi.model.dto.UserSignInDTO
+import com.swapify.swapifyapi.model.dto.SocialAuthUserDTO
 import com.swapify.swapifyapi.model.entities.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -102,5 +103,46 @@ class UserService {
             }
         }
         return ResponseEntity.notFound().build()
+    }
+
+    // Función para manejar la autenticación con Google
+    fun handleSocialAuth(socialAuthUserDTO: SocialAuthUserDTO): ResponseEntity<User> {
+        // Validar que email y nombre no estén vacíos
+        if (socialAuthUserDTO.email.isNullOrBlank() || socialAuthUserDTO.name.isNullOrBlank()) {
+            println("Email o nombre faltante en SocialAuthUserDTO")
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
+        }
+    
+        println("Recibido SocialAuthUserDTO: $socialAuthUserDTO")
+    
+        return try {
+            // Buscar al usuario por email o socialId
+            println("Buscando usuario por email: ${socialAuthUserDTO.email}")
+            val existingUser = userDAO.findByEmail(socialAuthUserDTO.email)
+    
+            if (existingUser.isPresent) {
+                println("Usuario encontrado: ${existingUser.get()}")
+                ResponseEntity.ok(existingUser.get())
+            } else {
+                println("Creando un nuevo usuario...")
+                // Crear un nuevo usuario si no existe
+                val newUser = User().apply {
+                    name = socialAuthUserDTO.name
+                    email = socialAuthUserDTO.email
+                    socialId = socialAuthUserDTO.socialId
+                    imageUrl = socialAuthUserDTO.imageUrl
+                    createdAt = Instant.now()
+                    passwordHash = null // Usuarios sociales no requieren contraseña
+
+                }
+                userDAO.save(newUser)
+                println("Usuario creado: $newUser")
+                ResponseEntity.status(HttpStatus.CREATED).body(newUser)
+            }
+        } catch (ex: Exception) {
+            println("Error en handleSocialAuth: ${ex.message}")
+            ex.printStackTrace()
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null)
+        }
     }
 }
