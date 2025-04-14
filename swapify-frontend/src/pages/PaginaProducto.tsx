@@ -4,12 +4,36 @@ import type React from "react"
 
 import { useParams, Link } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
-import { Container, Row, Col, Button, Badge, Breadcrumb, Tabs, Tab, Card, Form, ListGroup, Alert, } from "react-bootstrap"
-import { Star, StarFill, Calendar3, GeoAlt, ArrowClockwise, ChatLeftText, Share, Heart, HeartFill, CheckCircle, Award, ShieldCheck, } from "react-bootstrap-icons"
+import {
+  Container,
+  Row,
+  Col,
+  Button,
+  Badge,
+  Breadcrumb,
+  Tabs,
+  Tab,
+  Card,
+  Form,
+  ListGroup,
+  Alert,
+} from "react-bootstrap"
+import {
+  Star,
+  StarFill,
+  Calendar3,
+  GeoAlt,
+  ArrowClockwise,
+  ChatLeftText,
+  Share,
+  Heart,
+  HeartFill,
+  CheckCircle,
+  ShieldCheck,
+} from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
 import { ReviewService } from "../services/reviewService"
-import { UserService } from "../services/userService"
 
 // Interfaz actualizada para coincidir con la estructura de datos de la API
 interface Producto {
@@ -28,14 +52,16 @@ interface Producto {
     id: number
     name: string
     email: string
-    imageUrl?: string
-    rating?: number
-    verified?: boolean
+    passwordHash?: string
     location?: string
-    joinDate?: string
+    credits?: number
     reputation?: number
-    completedTransactions?: number
+    createdAt?: string
+    socialId?: string | null
+    imageUrl?: string | null
   }
+  itemCondition?: string | null
+  location?: string
 }
 
 // Interfaz para las reviews
@@ -64,9 +90,7 @@ export const PaginaProducto = () => {
   const [reviews, setReviews] = useState<Review[]>([])
   const [userRating, setUserRating] = useState<number>(5)
   const [userComment, setUserComment] = useState<string>("")
-  const [userDetails, setUserDetails] = useState<Producto["user"] | null>(null)
   const itemService = useRef(new ItemService()).current
-  const userService = useRef(new UserService()).current
 
   useEffect(() => {
     if (!id) {
@@ -78,8 +102,9 @@ export const PaginaProducto = () => {
     const fetchProducto = async () => {
       try {
         setLoading(true)
-        // Obtener el producto por su ID
-        const response = await itemService.getByItemId(idNumber)
+
+        // Usar el método mejorado para obtener el item con relaciones
+        const response = await itemService.getItemById(idNumber)
 
         if (!response || !response.data) {
           throw new Error("Producto no encontrado")
@@ -87,41 +112,23 @@ export const PaginaProducto = () => {
 
         console.log("Datos del producto:", response.data) // Para depuración
 
-        // Guardar los datos del producto tal como vienen de la API
+        // Guardar los datos del producto
         setProducto(response.data)
 
-        // Obtener más detalles del usuario
-        if (response.data.user?.id) {
-          try {
-            const userResponse = await userService.getUserById(response.data.user.id)
-            if (userResponse && userResponse.data) {
-              setUserDetails(userResponse.data)
-            }
-          } catch (error) {
-            console.error("Error al cargar detalles del usuario:", error)
-          }
-        }
-
-        // Buscar productos relacionados (por categoría similar)
-        try {
-          const allProductsResponse = await itemService.getAll()
-          console.log("Todos los productos:", allProductsResponse)
-
-          // Filtrar productos de la misma categoría, excluyendo el producto actual
-          const relacionados = allProductsResponse
-            .filter((p: Producto) => p.category?.id === response.data.category?.id && p.id !== response.data.id)
-            .slice(0, 4) // Limitar a 4 productos relacionados
-
+        // Buscar productos relacionados usando el nuevo método optimizado
+        if (response.data.category?.id) {
+          const relacionados = await itemService.getRelatedProducts(idNumber, response.data.category.id)
           setProductosRelacionados(relacionados)
-        } catch (error) {
-          console.error("Error al cargar productos relacionados:", error)
-          // Si falla, dejamos el array vacío
         }
 
         // Cargar reseñas desde el servicio
         const reviewService = new ReviewService()
-        const reviewsData = await reviewService.getReviewsByItem(response.data.id)
-        setReviews(reviewsData)
+        try {
+          const reviewsData = await reviewService.getReviewsByItem(response.data.id)
+          setReviews(reviewsData)
+        } catch (error) {
+          console.error("Error al cargar reseñas:", error)
+        }
       } catch (error) {
         console.error("Error al cargar el producto:", error)
         setError(true)
@@ -231,11 +238,8 @@ export const PaginaProducto = () => {
     )
   }
 
-  // Combinar datos del usuario del producto con los detalles adicionales obtenidos
-  const user = {
-    ...producto.user,
-    ...userDetails,
-  }
+  // Obtener el usuario del producto
+  const user = producto.user
 
   return (
     <Container className="py-5">
@@ -300,10 +304,10 @@ export const PaginaProducto = () => {
           <h1 className="fw-bold mb-3">{producto.title}</h1>
 
           <div className="d-flex align-items-center mb-4">
-            {user?.location && (
+            {producto.location && (
               <div className="me-4 d-flex align-items-center">
                 <GeoAlt className="text-muted me-1" />
-                <span className="text-muted">{user.location}</span>
+                <span className="text-muted">{producto.location}</span>
               </div>
             )}
             {producto.createdAt && (
@@ -323,7 +327,7 @@ export const PaginaProducto = () => {
             </div>
           )}
 
-          {/* Información del vendedor - Versión mejorada */}
+          {/* Información del vendedor - Versión mejorada y robusta */}
           {user && (
             <Card className="border-0 shadow-sm rounded-4 mb-4">
               <Card.Body>
@@ -339,7 +343,8 @@ export const PaginaProducto = () => {
                       height="80"
                       style={{ objectFit: "cover" }}
                     />
-                    {user.verified && (
+                    {/* Badge de verificación (podría ser basado en la reputación) */}
+                    {user.reputation && user.reputation > 4.5 && (
                       <Badge
                         bg="success"
                         className="position-absolute bottom-0 end-0 rounded-circle p-1"
@@ -372,24 +377,16 @@ export const PaginaProducto = () => {
                     </div>
 
                     <div className="d-flex flex-wrap gap-3 mt-2">
-                      {user.joinDate && (
+                      {user.createdAt && (
                         <div className="d-flex align-items-center text-muted small">
                           <Calendar3 className="me-1" />
-                          <span>Miembro desde {new Date(user.joinDate).toLocaleDateString()}</span>
+                          <span>Miembro desde {new Date(user.createdAt).toLocaleDateString()}</span>
                         </div>
                       )}
-                      {user.completedTransactions !== undefined && (
-                        <div className="d-flex align-items-center text-muted small">
-                          <Award className="me-1" />
-                          <span>{user.completedTransactions} transacciones</span>
-                        </div>
-                      )}
+                      {/* Podríamos añadir más información del usuario aquí */}
                     </div>
                   </div>
                 </div>
-
-                
-
 
                 {/* Garantías */}
                 <div className="mt-3 pt-3 border-top">
@@ -442,10 +439,16 @@ export const PaginaProducto = () => {
                           <span className="fw-bold">{producto.status}</span>
                         </ListGroup.Item>
                       )}
-                      {user?.location && (
+                      {producto.location && (
                         <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
                           <span className="text-muted">Ubicación</span>
-                          <span className="fw-bold">{user.location}</span>
+                          <span className="fw-bold">{producto.location}</span>
+                        </ListGroup.Item>
+                      )}
+                      {producto.itemCondition && (
+                        <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
+                          <span className="text-muted">Condición</span>
+                          <span className="fw-bold">{producto.itemCondition.replace("_", " ")}</span>
                         </ListGroup.Item>
                       )}
                     </ListGroup>
