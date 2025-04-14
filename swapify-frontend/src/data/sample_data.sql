@@ -1,3 +1,5 @@
+<--! ¡DESACTUALIZADO! -->
+
 -- Registros de ejemplo para la tabla users
 INSERT INTO users (name, email, password_hash, location, credits, reputation) VALUES
 ('Juan Pérez', 'juan.perez@example.com', '$2a$10$xJwL5v5zZzU9QbZfQbY1UeJwVJZJZJZJZJZJZJZJZJZJZJZJZJZJZJZ', 'Madrid', 150, 4.8),

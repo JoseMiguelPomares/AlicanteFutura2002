@@ -4,8 +4,8 @@ import type React from "react"
 
 import { useParams, Link } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
-import { Container, Row, Col, Button, Badge, Breadcrumb, Tabs, Tab, Card, Form, ListGroup, Alert, ProgressBar, } from "react-bootstrap"
-import { Star, StarFill, Calendar3, GeoAlt, ArrowClockwise, ChatLeftText, Share, Heart, HeartFill, CheckCircle, Award, Clock, ShieldCheck, Envelope, Telephone, } from "react-bootstrap-icons"
+import { Container, Row, Col, Button, Badge, Breadcrumb, Tabs, Tab, Card, Form, ListGroup, Alert, } from "react-bootstrap"
+import { Star, StarFill, Calendar3, GeoAlt, ArrowClockwise, ChatLeftText, Share, Heart, HeartFill, CheckCircle, Award, ShieldCheck, } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
 import { ReviewService } from "../services/reviewService"
@@ -18,14 +18,13 @@ interface Producto {
   description: string
   price: number
   imageUrl: string
-  category_id: number
   category: {
     id: number
     name: string
   }
   status: string
   createdAt: string
-  user?: {
+  user: {
     id: number
     name: string
     email: string
@@ -36,9 +35,6 @@ interface Producto {
     joinDate?: string
     reputation?: number
     completedTransactions?: number
-    responseRate?: number
-    responseTime?: string
-    phone?: string
   }
 }
 
@@ -392,57 +388,8 @@ export const PaginaProducto = () => {
                   </div>
                 </div>
 
-                {/* Estadísticas del vendedor */}
-                <div className="row g-3">
-                  {user.responseRate !== undefined && (
-                    <div className="col-md-6">
-                      <div className="bg-light rounded p-3">
-                        <div className="d-flex justify-content-between mb-2">
-                          <span className="text-muted small">Tasa de respuesta</span>
-                          <span className="fw-bold small">{user.responseRate}%</span>
-                        </div>
-                        <ProgressBar
-                          variant={user.responseRate > 80 ? "success" : user.responseRate > 50 ? "warning" : "danger"}
-                          now={user.responseRate}
-                          style={{ height: "6px" }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                
 
-                  {user.responseTime && (
-                    <div className="col-md-6">
-                      <div className="bg-light rounded p-3">
-                        <div className="d-flex align-items-center">
-                          <Clock className="text-success me-2" />
-                          <div>
-                            <span className="d-block small">Tiempo de respuesta</span>
-                            <span className="fw-bold">{user.responseTime}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Información de contacto */}
-                <div className="mt-3 pt-3 border-top">
-                  <h6 className="fw-bold mb-3">Información de contacto</h6>
-                  <div className="d-flex flex-column gap-2">
-                    {user.email && (
-                      <div className="d-flex align-items-center">
-                        <Envelope className="text-success me-2" />
-                        <span>{user.email}</span>
-                      </div>
-                    )}
-                    {user.phone && (
-                      <div className="d-flex align-items-center">
-                        <Telephone className="text-success me-2" />
-                        <span>{user.phone}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
 
                 {/* Garantías */}
                 <div className="mt-3 pt-3 border-top">
