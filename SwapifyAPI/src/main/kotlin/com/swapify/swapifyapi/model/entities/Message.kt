@@ -30,7 +30,6 @@ open class Message {
     @Column(name = "content", nullable = false, length = Integer.MAX_VALUE)
     open var content: String? = null
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at")
+    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     open var createdAt: Instant? = null
 }

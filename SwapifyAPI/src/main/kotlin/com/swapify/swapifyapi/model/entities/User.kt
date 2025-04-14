@@ -35,8 +35,7 @@ open class User {
     @Column(name = "reputation")
     open var reputation: Double? = null
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at")
+    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     open var createdAt: Instant? = null
 
     // Nuevo campo para almacenar el ID de Google

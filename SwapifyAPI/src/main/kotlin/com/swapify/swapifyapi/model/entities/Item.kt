@@ -40,18 +40,15 @@ open class Item {
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     open var price: BigDecimal? = null
 
-    @ColumnDefault("NULL")
     @Column(name = "item_condition", length = 50)
     open var itemCondition: String? = null
 
     @Column(name = "location")
     open var location: String? = null
 
-    @ColumnDefault("Available")
     @Column(name = "status", length = 50)
-    open var status: String? = null
+    open var status: String? = "Available"
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at")
+    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     open var createdAt: Instant? = null
 }

@@ -33,7 +33,6 @@ open class Review {
     @Column(name = "comment", length = Integer.MAX_VALUE)
     open var comment: String? = null
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at")
+    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     open var createdAt: Instant? = null
 }

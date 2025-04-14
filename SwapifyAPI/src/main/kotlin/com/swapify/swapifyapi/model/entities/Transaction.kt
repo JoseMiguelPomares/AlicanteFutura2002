@@ -33,12 +33,10 @@ open class Transaction {
     @JoinColumn(name = "owner_id")
     open var owner: User? = null
 
-    @ColumnDefault("Pending")
-    @Column(name = "status", length = 50)
+    @Column(name = "status", length = 50, columnDefinition = "varchar(50) default 'Pending'")
     open var status: String? = null
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at")
+    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     open var createdAt: Instant? = null
 
     @Column(name = "completed_at")
