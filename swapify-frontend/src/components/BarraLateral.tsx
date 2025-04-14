@@ -3,8 +3,40 @@
 import type React from "react"
 import { Offcanvas, Button, Badge } from "react-bootstrap"
 import { Link } from "react-router-dom"
-import { ChevronRight, Tag, Laptop, House, Book, Handbag, Tools, Mortarboard, Truck } from "react-bootstrap-icons"
+import {
+  ChevronRight,
+  Tag,
+  Laptop,
+  House,
+  Book,
+  Handbag,
+  Tools,
+  Mortarboard,
+  Truck,
+  Controller,
+  Basket,
+  MusicNoteBeamed,
+  Flower1,
+  CarFrontFill,
+  Bicycle,
+} from "react-bootstrap-icons"
 import { motion } from "framer-motion"
+
+// Lista de categorías disponibles (debe coincidir con las de PaginaVender)
+const CATEGORIAS = [
+  { id: 1, name: "juguetes", icon: <Controller className="text-danger" /> },
+  { id: 2, name: "ropa", icon: <Handbag className="text-primary" /> },
+  { id: 3, name: "calzado", icon: <Basket className="text-warning" /> },
+  { id: 4, name: "tecnología", icon: <Laptop className="text-info" /> },
+  { id: 5, name: "hogar", icon: <House className="text-success" /> },
+  { id: 6, name: "electrodomésticos", icon: <Tools className="text-secondary" /> },
+  { id: 7, name: "vehículos", icon: <CarFrontFill className="text-danger" /> },
+  { id: 8, name: "jardinería", icon: <Flower1 className="text-success" /> },
+  { id: 9, name: "deporte", icon: <Bicycle className="text-primary" /> },
+  { id: 10, name: "música", icon: <MusicNoteBeamed className="text-warning" /> },
+  { id: 11, name: "libros", icon: <Book className="text-info" /> },
+  { id: 12, name: "otros", icon: <Tag className="text-muted" /> },
+]
 
 type Categoria = {
   nombre: string
@@ -24,29 +56,18 @@ type BarraLateralProps = {
 }
 
 export const BarraLateral: React.FC<BarraLateralProps> = ({ mostrar, alCerrar }) => {
+  // Convertir las categorías al formato que espera el componente
+  const categoriasProductos: Categoria[] = CATEGORIAS.map((cat) => ({
+    nombre: cat.name.charAt(0).toUpperCase() + cat.name.slice(1),
+    icono: cat.icon,
+    badge: cat.id === 4 ? "Popular" : undefined, // Marcar "tecnología" como popular
+  }))
+
+  // Definir las secciones
   const secciones: Seccion[] = [
     {
       titulo: "Productos",
-      categorias: [
-        {
-          nombre: "Electrónica",
-          icono: <Laptop className="text-primary" />,
-          badge: "Popular",
-        },
-        {
-          nombre: "Hogar",
-          icono: <House className="text-success" />,
-        },
-        {
-          nombre: "Libros",
-          icono: <Book className="text-info" />,
-        },
-        {
-          nombre: "Moda",
-          icono: <Handbag className="text-danger" />,
-          subcategorias: [{ nombre: "Ropa" }, { nombre: "Calzado" }, { nombre: "Accesorios" }],
-        },
-      ],
+      categorias: categoriasProductos,
     },
     {
       titulo: "Servicios",
@@ -107,7 +128,6 @@ export const BarraLateral: React.FC<BarraLateralProps> = ({ mostrar, alCerrar })
       </Offcanvas.Header>
 
       <Offcanvas.Body className="p-0">
-
         {/* Categorías */}
         <div className="px-3 mt-3">
           {secciones.map((seccion, i) => (
@@ -139,4 +159,3 @@ export const BarraLateral: React.FC<BarraLateralProps> = ({ mostrar, alCerrar })
     </Offcanvas>
   )
 }
-
