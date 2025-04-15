@@ -27,7 +27,6 @@ open class Favorite {
     @JoinColumn(name = "item_id")
     open var item: Item? = null
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at")
+    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     open var createdAt: Instant? = null
 }
