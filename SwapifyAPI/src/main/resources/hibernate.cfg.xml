@@ -4,19 +4,16 @@
     "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
   <session-factory>
-    <property name="connection.url">jdbc:postgresql://localhost:5432/Swapify</property>
-    <property name="connection.driver_class">org.postgresql.Driver</property>
-    <property name="connection.username">postgres</property>
-    <property name="connection.password">postgres</property>
     <mapping class="com.swapify.swapifyapi.model.entities.Chat"/>
     <mapping class="com.swapify.swapifyapi.model.entities.Item"/>
     <mapping class="com.swapify.swapifyapi.model.entities.Message"/>
     <mapping class="com.swapify.swapifyapi.model.entities.Review"/>
     <mapping class="com.swapify.swapifyapi.model.entities.Transaction"/>
     <mapping class="com.swapify.swapifyapi.model.entities.User"/>
+    <mapping class="com.swapify.swapifyapi.model.entities.Favorite"/>
     <mapping class="com.swapify.swapifyapi.model.entities.Category"/>
 
     <!-- DB schema will be updated if needed -->
-    <property name="hibernate.hbm2ddl.auto">update</property>
+    <!-- <property name="hibernate.hbm2ddl.auto">update</property> -->
   </session-factory>
 </hibernate-configuration>

@@ -142,6 +142,7 @@ export const BarraNavegacion = () => {
                   to={isAuthenticated ? "/vender" : "/login?redirect=/vender"}
                   variant="light"
                   className="rounded-pill px-4"
+                  onClick={() => setShowMenu(false)}
                 >
                   Vender
                 </Button>
