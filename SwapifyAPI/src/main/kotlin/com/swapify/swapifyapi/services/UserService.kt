@@ -145,4 +145,17 @@ class UserService {
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null)
         }
     }
+
+    //Función para cambiar contraseña de usuario
+    fun changePassword(id: Int, newPassword: String): ResponseEntity<User> {
+        val userOptional: Optional<User> = userDAO.findById(id)
+        return if (userOptional.isPresent) {
+            val user = userOptional.get()
+            user.passwordHash = PasswordUtils.hashSHA256(newPassword)
+            userDAO.save(user)
+            ResponseEntity.ok(user)
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
 }
