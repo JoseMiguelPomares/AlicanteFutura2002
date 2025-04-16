@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/categories")
-@CrossOrigin("*")
+@CrossOrigin("origins = [\"http://localhost:5173/\"]")
 class CategoryController {
 
     @Autowired
