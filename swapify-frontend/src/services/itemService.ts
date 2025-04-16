@@ -105,6 +105,6 @@ export class ItemService {
   }
 
   getRecentItems() {
-    return axios.get(this.baseUrl + "getRecentlyAdded")
+      return axios.get(this.baseUrl + "getRecentlyAdded")
   }
 }
