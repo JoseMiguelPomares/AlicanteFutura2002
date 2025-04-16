@@ -11,5 +11,12 @@ interface IUserDAO: CrudRepository<User, Int> {
     fun findByEmail(email: String): Optional<User>
     fun findByName(name: String): Optional<User>
 
-
+    @Query("""
+    SELECT u 
+    FROM User u 
+    WHERE u.id = (SELECT i.user.id 
+                    FROM Item i 
+                    WHERE i.id = :itemId)
+    """)
+    fun findUserByItemId(itemId: Int): Optional<User>
 }

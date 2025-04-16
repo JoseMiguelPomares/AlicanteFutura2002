@@ -64,4 +64,10 @@ class UserController {
     fun changePassword(@PathVariable id: Int, @RequestBody password: String): ResponseEntity<User> {
         return userService.changePassword(id, password)
     }
+
+    //Función para buscar un usuario por item id
+    @GetMapping("/getUserByItemId/{itemId}")
+    fun getUserByItemId(@PathVariable itemId: Int): ResponseEntity<User> {
+        return userService.getUserByItemId(itemId)
+    }
 }
