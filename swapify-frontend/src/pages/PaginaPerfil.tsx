@@ -40,16 +40,15 @@ interface Item {
 // Añadir esta interfaz para las reviews
 interface Review {
   id: number
-  reviewer_id: number
-  reviewed_id: number
-  rating: number
-  comment: string
-  created_at: string
-  reviewer?: {
+  reviewer: {
     id: number
     name: string
     imageUrl?: string
   }
+  reviewed_id: number
+  rating: number
+  comment: string
+  created_at: string
 }
 
 export const PaginaPerfil = () => {
@@ -77,6 +76,8 @@ export const PaginaPerfil = () => {
   const reviewService = new ReviewService()
   // Comprobar si es mi propia página de usuario o es la de un tercero
   const isOwnProfile = isAuthenticated && user?.id === Number(id)
+  // Añadir estado para controlar si el usuario puede dejar una reseña
+  const [canReview, setCanReview] = useState<boolean>(true)
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -127,6 +128,18 @@ export const PaginaPerfil = () => {
 
     fetchReviews()
   }, [id])
+
+  // Añadir este effect para verificar si el usuario puede dejar una reseña
+  useEffect(() => {
+    const checkCanReview = async () => {
+      if (isAuthenticated && user && id && user.id !== Number(id)) {
+        const hasReviewed = await reviewService.hasUserReviewed(user.id, Number(id))
+        setCanReview(!hasReviewed)
+      }
+    }
+    
+    checkCanReview()
+  }, [isAuthenticated, user, id])
 
   // Añadir estas funciones para manejar las reviews
   const handleReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -424,7 +437,7 @@ export const PaginaPerfil = () => {
             <Tab eventKey="valoraciones" title="Valoraciones">
               <Card className="border-0 shadow-sm rounded-4">
                 <Card.Body className="p-4">
-                  {isAuthenticated && user?.id !== Number(id) && (
+                  {isAuthenticated && user?.id !== Number(id) && canReview ? (
                     <div className="mb-4">
                       <h5 className="fw-bold mb-3">Deja tu valoración</h5>
                       <Form onSubmit={handleSubmitReview}>
@@ -449,7 +462,11 @@ export const PaginaPerfil = () => {
                         </Button>
                       </Form>
                     </div>
-                  )}
+                  ) : isAuthenticated && user?.id !== Number(id) && !canReview ? (
+                    <div className="mb-4 p-3 bg-light rounded">
+                      <p className="mb-0 text-center">Ya has valorado a este usuario anteriormente.</p>
+                    </div>
+                  ) : null}
 
                   <h5 className="fw-bold mb-3">Valoraciones recibidas</h5>
 
@@ -460,17 +477,17 @@ export const PaginaPerfil = () => {
                           <div className="d-flex gap-3">
                             <div className="flex-shrink-0">
                               <img
-                                src={review.reviewer?.imageUrl || "/placeholder.svg?height=50&width=50"}
+                                src={review.reviewer.imageUrl || "/placeholder.svg?height=50&width=50"}
                                 className="rounded-circle"
                                 width="50"
                                 height="50"
-                                alt={review.reviewer?.name || "Usuario"}
+                                alt={review.reviewer.name}
                               />
                             </div>
                             <div>
                               <div className="d-flex align-items-center gap-2 mb-2">
-                                <Link to={`/perfil/${review.reviewer_id}`} className="fw-bold text-decoration-none">
-                                  {review.reviewer?.name || "Usuario"}
+                                <Link to={`/perfil/${review.reviewer.id}`} className="fw-bold text-decoration-none">
+                                  {review.reviewer.name}
                                 </Link>
                                 <div className="ms-2">{renderStars(review.rating)}</div>
                                 <span className="text-muted ms-2 small">

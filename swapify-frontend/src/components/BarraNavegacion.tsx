@@ -142,6 +142,7 @@ export const BarraNavegacion = () => {
                   to={isAuthenticated ? "/vender" : "/login?redirect=/vender"}
                   variant="light"
                   className="rounded-pill px-4"
+                  onClick={() => setShowMenu(false)}
                 >
                   Vender
                 </Button>
@@ -156,15 +157,6 @@ export const BarraNavegacion = () => {
 
               {/* Sección de perfil y créditos */}
               <div className="d-flex justify-content-between align-items-center mt-2">
-                <Nav.Link
-                  as={Link}
-                  to="/perfil"
-                  className="text-dark d-flex align-items-center gap-2"
-                  onClick={() => setShowMenu(false)}
-                >
-                  <Person size={22} />
-                  <span>Mi Perfil</span>
-                </Nav.Link>
                 <Button variant="success" className="d-flex align-items-center gap-2 rounded-pill">
                   <Cart size={18} />
                   <span className="fw-bold">150 Créditos</span>
@@ -251,7 +243,7 @@ export const BarraNavegacion = () => {
               </Nav.Link>
             </div>
 
-            {/* Botón de acceso/registro (visible solo en pantallas grandes) */}
+            {/* Botón de acceso/registro (visible solo en PANTALLAS GRANDES) */}
             {isAuthenticated && (
               <Button
                 as={Link as any}

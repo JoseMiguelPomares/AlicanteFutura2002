@@ -398,7 +398,7 @@ export const PaginaInicio = () => {
   )
 }
 
-// Componente de tarjeta de producto mejorado
+
 const ProductCard = ({ producto }: { producto: Producto }) => {
   // Función para determinar el icono según la categoría
   const getCategoryIcon = (categoryName: string) => {
@@ -459,17 +459,20 @@ const ProductCard = ({ producto }: { producto: Producto }) => {
   // Determinar si es un producto o servicio
   const isService = ["reparaciones", "clases", "transporte"].includes(categoryName.toLowerCase())
 
+  // Imagen por defecto en caso de que no haya imagen de producto
+  const defaultImage = "https://images.unsplash.com/photo-1699645522859-512f53d4a4bf?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8ZmFsbG98ZW58MHx8MHx8fDI%3D"
+
   return (
     <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
       <Link to={`/productos/${producto.id}`} className="text-decoration-none">
         <Card className="h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-          <div className="position-relative">
+          <div className="position-relative" style={{ height: "200px" }}>
             <Card.Img
               variant="top"
-              src={producto.imageUrl}
+              src={producto.imageUrl || defaultImage}
               alt={producto.title}
-              className="img-fluid"
-              style={{ height: "200px", objectFit: "cover" }}
+              className="img-fluid h-100"
+              style={{ objectFit: "cover" }}
             />
             <Badge
               bg={getCategoryColor(categoryName)}
