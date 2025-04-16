@@ -61,6 +61,10 @@ export const PaginaInicio = () => {
         console.log("Productos cargados:", data)
         setProductos(data)
 
+        // Cargar productos recientes
+        const recentProducts = await itemService.getRecentItems()
+        console.log("Productos recientes:", recentProducts)
+
         // Cargar categorías desde el servicio
         const categoryService = new CategoryService()
         try {
@@ -80,7 +84,7 @@ export const PaginaInicio = () => {
         // Filtrar productos para diferentes secciones
         setProductosFiltrados({
           destacados: data.slice(0, 4),
-          recientes: data.slice(4, 8),
+          recientes: recentProducts.data.slice(0, 4), // Usar los productos recientes de la API
           populares: data.slice(8, 12),
         })
 
