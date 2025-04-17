@@ -7,6 +7,7 @@ import { Container, Card, Button, Form, Row, Col, Alert } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import { ArrowLeft, EnvelopeFill, LockFill, EyeFill, EyeSlashFill } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
+import ReCAPTCHA from 'react-google-recaptcha';
 // En la parte superior, importa el hook useAuth
 import { useAuth } from "../contexts/AuthContext"
 // Justo después de la importación del useAuth, importamos los íconos para los proveedores sociales
@@ -22,6 +23,7 @@ export const PaginaLogin = () => {
   const [socialAuthLoading, setSocialAuthLoading] = useState<boolean>(false)
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [validated, setValidated] = useState<boolean>(false)
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   // Añade esta línea cerca del inicio de la función PaginaLogin
   const { login, loginWithGoogle, error: authError } = useAuth()
 
@@ -92,68 +94,25 @@ export const PaginaLogin = () => {
                   </Alert>
                 )}
 
-                <Form noValidate validated={validated} onSubmit={handleEmailLogin}>
-                  <Form.Group className="mb-3" controlId="formEmail">
-                    <Form.Label>Correo electrónico</Form.Label>
-                    <div className="input-group">
-                      <span className="input-group-text bg-light">
-                        <EnvelopeFill className="text-muted" />
-                      </span>
-                      <Form.Control
-                        type="email"
-                        placeholder="ejemplo@correo.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        Por favor ingresa un correo electrónico válido.
-                      </Form.Control.Feedback>
-                    </div>
+                <Form onSubmit={handleEmailLogin} noValidate validated={validated}>
+                  <Form.Group controlId="formBasicEmail">
+                    <Form.Label>Email</Form.Label>
+                    <Form.Control type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    <Form.Control.Feedback type="invalid">Please provide a valid email.</Form.Control.Feedback>
                   </Form.Group>
-
-                  <Form.Group className="mb-4" controlId="formPassword">
-                    <Form.Label>Contraseña</Form.Label>
-                    <div className="input-group">
-                      <span className="input-group-text bg-light">
-                        <LockFill className="text-muted" />
-                      </span>
-                      <Form.Control
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Contraseña"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={6}
-                      />
-                      <Button variant="light" onClick={() => setShowPassword(!showPassword)} className="border">
-                        {showPassword ? <EyeSlashFill /> : <EyeFill />}
-                      </Button>
-                      <Form.Control.Feedback type="invalid">
-                        La contraseña debe tener al menos 6 caracteres.
-                      </Form.Control.Feedback>
-                    </div>
-                    <div className="d-flex justify-content-end mt-2">
-                      <Link to="/recuperar-password" className="text-decoration-none text-success small">
-                        ¿Olvidaste tu contraseña?
-                      </Link>
-                    </div>
+                  <Form.Group controlId="formBasicPassword">
+                    <Form.Label>Password</Form.Label>
+                    <Form.Control type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <Form.Control.Feedback type="invalid">Please provide a password.</Form.Control.Feedback>
                   </Form.Group>
-
-                  <div className="d-grid">
-                    <Button variant="success" type="submit" size="lg" className="rounded-pill" disabled={loading}>
-                      {loading ? (
-                        <>
-                          <span
-                            className="spinner-border spinner-border-sm me-2"
-                            role="status"
-                            aria-hidden="true"
-                          ></span>
-                          Iniciando sesión...
-                        </>
-                      ) : (
-                        "Iniciar Sesión"
-                      )}
+                  <ReCAPTCHA
+                    sitekey="6Lf0uhsrAAAAAKDLPOCYU7-o8IYLQghrLo_N4Swx"
+                    onChange={(token: string) => setRecaptchaToken(token)}
+                    className="mt-3"
+                  />
+                  <div className="d-flex justify-content-center mt-3">
+                    <Button variant="primary" type="submit" disabled={loading || !recaptchaToken}>
+                      Login
                     </Button>
                   </div>
                 </Form>

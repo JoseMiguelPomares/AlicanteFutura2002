@@ -3,26 +3,17 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Container, Card, Button, Form, Row, Col, Alert } from "react-bootstrap"
+import { Container, Card, Button, Form, Row, Col, Alert, ProgressBar } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
-import {
-  ArrowLeft,
-  EnvelopeFill,
-  LockFill,
-  PersonFill,
-  EyeFill,
-  EyeSlashFill,
-  CheckCircleFill,
-  Google,
-} from "react-bootstrap-icons"
+import { ArrowLeft, EnvelopeFill, LockFill, PersonFill, EyeFill, EyeSlashFill, Google } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 import { UserService } from "../services/userService"
-import { useAuth } from "../contexts/AuthContext" // Importar el hook useAuth
+import { useAuth } from "../contexts/AuthContext"
+import ReCAPTCHA from "react-google-recaptcha" // Importar el componente oficial
 
-// Actualizar la función PaginaRegistro para añadir autenticación social
 export const PaginaRegistro = () => {
   const navigate = useNavigate()
-  const { login, loginWithGoogle, error: authError } = useAuth() // Usar el hook useAuth
+  const { login, loginWithGoogle, error: authError } = useAuth()
   const userService = new UserService()
   const [formData, setFormData] = useState({
     name: "",
@@ -34,8 +25,11 @@ export const PaginaRegistro = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [socialAuthLoading, setSocialAuthLoading] = useState<boolean>(false)
   const [showPassword, setShowPassword] = useState<boolean>(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
   const [validated, setValidated] = useState<boolean>(false)
   const [step, setStep] = useState<number>(1)
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null)
+  const [recaptchaLoaded, setRecaptchaLoaded] = useState(false)
 
   useEffect(() => {
     if (authError) {
@@ -43,15 +37,30 @@ export const PaginaRegistro = () => {
     }
   }, [authError])
 
-  // Agregar estas funciones para manejar la autenticación social
+  // Añadir un efecto para cargar el script de reCAPTCHA manualmente
+  useEffect(() => {
+    // Solo cargar el script si estamos en el paso 2
+    if (step === 2 && !document.querySelector('script[src*="recaptcha"]')) {
+      const script = document.createElement("script")
+      script.src = "https://www.google.com/recaptcha/api.js"
+      script.async = true
+      script.defer = true
+      script.onload = () => {
+        console.log("Script de reCAPTCHA cargado")
+        setRecaptchaLoaded(true)
+      }
+      document.body.appendChild(script)
+    }
+  }, [step])
+
   const handleGoogleLogin = async () => {
+    setSocialAuthLoading(true)
+    setError(null)
     try {
-      setSocialAuthLoading(true)
-      setError(null)
       await loginWithGoogle()
       navigate("/")
-    } catch (error) {
-      // El error ya se establece en el contexto de autenticación
+    } catch (error: any) {
+      setError(error.message || "Error al iniciar sesión con Google")
     } finally {
       setSocialAuthLoading(false)
     }
@@ -60,6 +69,9 @@ export const PaginaRegistro = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+
+    // Resetear errores cuando el usuario cambia los datos
+    if (error) setError(null)
   }
 
   const handleNextStep = (e: React.FormEvent<HTMLFormElement>) => {
@@ -76,18 +88,26 @@ export const PaginaRegistro = () => {
     setStep(2)
   }
 
+  const handleRecaptchaChange = (token: string | null) => {
+    console.log("Captcha value:", token)
+    setRecaptchaToken(token)
+  }
+
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = e.currentTarget
 
-    if (form.checkValidity() === false) {
+    if (form.checkValidity() === false || formData.password !== formData.confirmPassword) {
       e.stopPropagation()
       setValidated(true)
+      if (formData.password !== formData.confirmPassword) {
+        setError("Las contraseñas no coinciden")
+      }
       return
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden")
+    if (!recaptchaToken) {
+      setError("Por favor, completa el captcha")
       return
     }
 
@@ -96,45 +116,41 @@ export const PaginaRegistro = () => {
     setError(null)
 
     try {
-      // Ahora pasamos también el nombre al método register
       await userService.register({
         email: formData.email,
         password: formData.password,
         name: formData.name,
+        recaptchaToken: recaptchaToken, // Enviar el token al servidor
       })
 
-      // Iniciar sesión automáticamente después del registro
       await login(formData.email, formData.password)
-
-      // Redirigir al usuario a la página principal
       navigate("/")
     } catch (error: any) {
-      // Mejorar el manejo de errores para mostrar mensajes más específicos
-      if (error.response && error.response.data && error.response.data.message) {
-        setError(error.response.data.message)
-      } else if (error.message) {
-        setError(error.message)
+      // Manejo de errores más específico
+      if (error.code === "auth/email-already-in-use") {
+        setError("Este correo electrónico ya está registrado")
+      } else if (error.code === "auth/invalid-email") {
+        setError("El formato del correo electrónico no es válido")
+      } else if (error.code === "auth/weak-password") {
+        setError("La contraseña es demasiado débil")
       } else {
-        setError("Error en el registro. Por favor, inténtalo de nuevo.")
+        setError(error.message || "Error en el registro. Por favor, inténtalo de nuevo.")
       }
     } finally {
       setLoading(false)
     }
   }
 
-  // Validación de contraseña
-  const passwordStrength = (): { strength: string; color: string } => {
+  const passwordStrength = (): { strength: string; color: string; percentage: number } => {
     const { password } = formData
-    if (!password) return { strength: "Débil", color: "danger" }
+    if (!password) return { strength: "Débil", color: "danger", percentage: 0 }
 
-    if (password.length < 6) return { strength: "Débil", color: "danger" }
-    if (password.length < 8) return { strength: "Media", color: "warning" }
-    if (password.length >= 8) return { strength: "Fuerte", color: "success" }
-
-    return { strength: "Media", color: "warning" }
+    if (password.length < 6) return { strength: "Débil", color: "danger", percentage: 33 }
+    if (password.length < 8) return { strength: "Media", color: "warning", percentage: 66 }
+    return { strength: "Fuerte", color: "success", percentage: 100 }
   }
 
-  const { strength, color } = passwordStrength()
+  const { strength, color, percentage } = passwordStrength()
 
   return (
     <Container className="py-5">
@@ -163,171 +179,160 @@ export const PaginaRegistro = () => {
                 )}
 
                 {step === 1 ? (
+                  // Formulario Paso 1
                   <Form noValidate validated={validated} onSubmit={handleNextStep}>
-                    <Form.Group className="mb-3" controlId="formName">
+                    <Form.Group className="mb-3">
                       <Form.Label>Nombre completo</Form.Label>
                       <div className="input-group">
                         <span className="input-group-text bg-light">
-                          <PersonFill className="text-muted" />
+                          <PersonFill />
                         </span>
                         <Form.Control
                           type="text"
-                          placeholder="Tu nombre"
                           name="name"
                           value={formData.name}
                           onChange={handleChange}
+                          placeholder="Ingresa tu nombre"
                           required
+                          minLength={3}
                         />
-                        <Form.Control.Feedback type="invalid">Por favor ingresa tu nombre.</Form.Control.Feedback>
+                        <Form.Control.Feedback type="invalid">
+                          Por favor ingresa tu nombre completo
+                        </Form.Control.Feedback>
                       </div>
                     </Form.Group>
 
-                    <Form.Group className="mb-4" controlId="formEmail">
+                    <Form.Group className="mb-3">
                       <Form.Label>Correo electrónico</Form.Label>
                       <div className="input-group">
                         <span className="input-group-text bg-light">
-                          <EnvelopeFill className="text-muted" />
+                          <EnvelopeFill />
                         </span>
                         <Form.Control
                           type="email"
-                          placeholder="ejemplo@correo.com"
                           name="email"
                           value={formData.email}
                           onChange={handleChange}
+                          placeholder="ejemplo@correo.com"
                           required
                         />
                         <Form.Control.Feedback type="invalid">
-                          Por favor ingresa un correo electrónico válido.
+                          Por favor ingresa un correo electrónico válido
                         </Form.Control.Feedback>
                       </div>
                     </Form.Group>
 
-                    {step === 1 && (
-                      <div className="my-4">
-                        <div className="text-center mb-3">
-                          <span className="text-muted">O regístrate con</span>
-                        </div>
-                        <div className="d-grid gap-2">
-                          <Button
-                            variant="outline-danger"
-                            className="d-flex align-items-center justify-content-center gap-2"
-                            onClick={handleGoogleLogin}
-                            disabled={socialAuthLoading}
-                          >
-                            <Google size={20} />
-                            <span>Continuar con Google</span>
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="d-grid">
-                      <Button variant="success" type="submit" size="lg" className="rounded-pill">
+                    <div className="d-grid mt-4">
+                      <Button variant="primary" type="submit">
                         Continuar
                       </Button>
                     </div>
+
+                    <div className="text-center my-4">
+                      <span className="text-muted">O regístrate con</span>
+                    </div>
+
+                    <div className="d-grid">
+                      <Button
+                        variant="outline-secondary"
+                        onClick={handleGoogleLogin}
+                        disabled={socialAuthLoading}
+                        className="d-flex align-items-center justify-content-center gap-2"
+                      >
+                        <Google /> Continuar con Google
+                      </Button>
+                    </div>
+
+                    <div className="text-center mt-4">
+                      <span className="text-muted">¿Ya tienes cuenta? </span>
+                      <Link to="/login" className="text-decoration-none">
+                        Iniciar sesión
+                      </Link>
+                    </div>
                   </Form>
                 ) : (
+                  // Formulario Paso 2
                   <Form noValidate validated={validated} onSubmit={handleRegister}>
-                    <Form.Group className="mb-3" controlId="formPassword">
+                    <Form.Group className="mb-3">
                       <Form.Label>Contraseña</Form.Label>
                       <div className="input-group">
                         <span className="input-group-text bg-light">
-                          <LockFill className="text-muted" />
+                          <LockFill />
                         </span>
                         <Form.Control
                           type={showPassword ? "text" : "password"}
-                          placeholder="Contraseña"
                           name="password"
                           value={formData.password}
                           onChange={handleChange}
+                          placeholder="Crea tu contraseña"
                           required
                           minLength={6}
                         />
-                        <Button variant="light" onClick={() => setShowPassword(!showPassword)} className="border">
+                        <Button variant="outline-secondary" onClick={() => setShowPassword(!showPassword)}>
                           {showPassword ? <EyeSlashFill /> : <EyeFill />}
                         </Button>
                         <Form.Control.Feedback type="invalid">
-                          La contraseña debe tener al menos 6 caracteres.
+                          La contraseña debe tener al menos 6 caracteres
                         </Form.Control.Feedback>
                       </div>
-                      <div className="mt-2 d-flex align-items-center">
-                        <div className={`progress flex-grow-1 me-2`} style={{ height: "6px" }}>
-                          <div
-                            className={`progress-bar bg-${color}`}
-                            style={{
-                              width: `${formData.password.length > 0 ? (formData.password.length > 8 ? 100 : formData.password.length * 12.5) : 0}%`,
-                            }}
-                          ></div>
-                        </div>
-                        <span className={`text-${color} small`}>{strength}</span>
+                      <div className="mt-2">
+                        <small className={`text-${color}`}>Seguridad: {strength}</small>
+                        <ProgressBar variant={color} now={percentage} className="mt-1" style={{ height: "5px" }} />
                       </div>
                     </Form.Group>
 
-                    <Form.Group className="mb-4" controlId="formConfirmPassword">
+                    <Form.Group className="mb-4">
                       <Form.Label>Confirmar contraseña</Form.Label>
                       <div className="input-group">
                         <span className="input-group-text bg-light">
-                          <LockFill className="text-muted" />
+                          <LockFill />
                         </span>
                         <Form.Control
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Confirmar contraseña"
+                          type={showConfirmPassword ? "text" : "password"}
                           name="confirmPassword"
                           value={formData.confirmPassword}
                           onChange={handleChange}
+                          placeholder="Repite tu contraseña"
                           required
+                          isInvalid={formData.password !== formData.confirmPassword && formData.confirmPassword !== ""}
                         />
-                        {formData.password && formData.password === formData.confirmPassword && (
-                          <span className="input-group-text bg-light text-success">
-                            <CheckCircleFill />
-                          </span>
-                        )}
+                        <Button
+                          variant="outline-secondary"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                          {showConfirmPassword ? <EyeSlashFill /> : <EyeFill />}
+                        </Button>
+                        <Form.Control.Feedback type="invalid">Las contraseñas no coinciden</Form.Control.Feedback>
                       </div>
                     </Form.Group>
 
+                    <div className="my-3">
+                      {/* Mostrar un mensaje de carga mientras el reCAPTCHA se carga */}
+                      
+
+                      {/* Usar el componente ReCAPTCHA directamente */}
+                      <div className="d-flex justify-content-center">
+                        <ReCAPTCHA
+                          sitekey="6Lf0uhsrAAAAAKDLPOCYU7-o8IYLQghrLo_N4Swx"
+                          onChange={handleRecaptchaChange}
+                          onLoad={() => setRecaptchaLoaded(true)}
+                        />
+                      </div>
+
+                      {!recaptchaToken && validated && (
+                        <div className="text-danger small mt-1 text-center">Por favor, completa el captcha</div>
+                      )}
+                    </div>
+
                     <div className="d-grid">
-                      <Button variant="success" type="submit" size="lg" className="rounded-pill" disabled={loading}>
-                        {loading ? (
-                          <>
-                            <span
-                              className="spinner-border spinner-border-sm me-2"
-                              role="status"
-                              aria-hidden="true"
-                            ></span>
-                            Creando cuenta...
-                          </>
-                        ) : (
-                          "Crear Cuenta"
-                        )}
+                      <Button variant="primary" type="submit" disabled={loading || !recaptchaToken}>
+                        {loading ? "Creando cuenta..." : "Crear Cuenta"}
                       </Button>
                     </div>
                   </Form>
                 )}
-                <div className="text-center mt-4">
-                  <p className="mb-0">
-                    ¿Ya tienes cuenta?{" "}
-                    <Link to="/login" className="text-success fw-bold">
-                      Inicia Sesión
-                    </Link>
-                  </p>
-                </div>
               </Card.Body>
             </Card>
-
-            <div className="text-center mt-4">
-              <p className="text-muted small">
-                Al registrarte, aceptas nuestros{" "}
-                <Link to="/terminos" className="text-decoration-none">
-                  Términos y Condiciones
-                </Link>{" "}
-                y{" "}
-                <Link to="/privacidad" className="text-decoration-none">
-                  Política de Privacidad
-                </Link>
-                .
-              </p>
-            </div>
           </motion.div>
         </Col>
       </Row>
