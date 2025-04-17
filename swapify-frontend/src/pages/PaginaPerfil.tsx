@@ -428,7 +428,11 @@ export const PaginaPerfil = () => {
                   {userProfile.description ? (
                     <p className="mb-0">{userProfile.description}</p>
                   ) : (
-                    <p className="text-muted text-center mb-0">Este usuario aún no ha añadido una descripción.</p>
+                    <p className="text-muted text-center mb-0">
+                      {isOwnProfile 
+                        ? "Todavía no has añadido una descripción."
+                        : "Este usuario aún no ha añadido una descripción."}
+                    </p>
                   )}
                 </Card.Body>
               </Card>
@@ -501,7 +505,11 @@ export const PaginaPerfil = () => {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-muted text-center">Este usuario aún no tiene valoraciones.</p>
+                    <p className="text-muted text-center">
+                      {isOwnProfile 
+                        ? "Todavía no has recibido valoraciones."
+                        : "Este usuario aún no tiene valoraciones."}
+                    </p>
                   )}
                 </Card.Body>
               </Card>
