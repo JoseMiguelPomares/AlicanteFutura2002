@@ -11,6 +11,7 @@ import { PaginaVender } from "./pages/PaginaVender"
 import { ScrollToTop } from "./components/ScrollToTop"
 import { PaginaBusqueda } from "./pages/PaginaBusqueda"
 import { AuthProvider } from "./contexts/AuthContext"
+import { PaginaPorCategoria } from "./pages/PaginaPorCategoria"
 
 // Componente principal de la aplicación
 export const App: React.FC = () => {
