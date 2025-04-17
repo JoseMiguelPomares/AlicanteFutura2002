@@ -14,6 +14,7 @@ import { ScrollToTop } from "./components/ScrollToTop"
 import { PaginaBusqueda } from "./pages/PaginaBusqueda"
 import PaginaContacto from "./pages/PaginaContacto"
 import { AuthProvider } from "./contexts/AuthContext"
+import { PaginaPorCategoria } from "./pages/PaginaPorCategoria"
 
 import { useState, useEffect } from "react"
 import { Button, Form } from "react-bootstrap"
