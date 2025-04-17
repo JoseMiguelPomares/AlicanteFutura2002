@@ -150,7 +150,13 @@ export const Footer = () => {
                   <Link to="/privacidad">Política de privacidad</Link>
                 </li>
                 <li>
-                  <Link to="/cookies">Cookies</Link>
+                  <a
+                    href="http://localhost:5173/docs/cookies_policy_es_ES-20241120.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Cookies
+                  </a>
                 </li>
               </ul>
             </Col>

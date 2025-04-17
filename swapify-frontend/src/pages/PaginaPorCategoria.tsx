@@ -282,7 +282,7 @@ export const PaginaPorCategoria = () => {
                 {categorias.slice(0, 8).map((cat) => (
                   <Button
                     key={cat.id}
-                    as={Link}
+                    as={Link as any}
                     to={`/categoria/${cat.name.toLowerCase()}`}
                     variant={
                       cat.name.toLowerCase() === categoria?.toLowerCase()
@@ -296,7 +296,7 @@ export const PaginaPorCategoria = () => {
                   </Button>
                 ))}
                 {categorias.length > 8 && (
-                  <Button as={Link} to="/categorias" variant="link" className="text-center">
+                  <Button as={Link as any} to="/categorias" variant="link" className="text-center">
                     Ver todas las categorías
                   </Button>
                 )}
@@ -374,7 +374,7 @@ export const PaginaPorCategoria = () => {
               </div>
               <h3>No se encontraron productos</h3>
               <p className="text-muted">No hay productos disponibles en esta categoría actualmente.</p>
-              <Button as={Link} to="/" variant="success" className="mt-3">
+              <Button as={Link as any} to="/" variant="success" className="mt-3">
                 Volver al inicio
               </Button>
             </div>

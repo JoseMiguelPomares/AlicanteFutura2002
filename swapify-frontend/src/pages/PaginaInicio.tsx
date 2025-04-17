@@ -101,10 +101,6 @@ export const PaginaInicio = () => {
     fetchData()
   }, [])
 
-  const filtrarPorCategoria = (categoria: string) => {
-    setCategoriaActiva(categoria)
-  }
-
   const productosMostrados =
     categoriaActiva === "Todos" ? productos : productos.filter((p) => p.category?.name === categoriaActiva)
 
