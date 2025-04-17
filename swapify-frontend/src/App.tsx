@@ -11,6 +11,11 @@ import { PaginaVender } from "./pages/PaginaVender"
 import { ScrollToTop } from "./components/ScrollToTop"
 import { PaginaBusqueda } from "./pages/PaginaBusqueda"
 import { AuthProvider } from "./contexts/AuthContext"
+<<<<<<< Updated upstream
+=======
+import { useState, useEffect } from "react"
+import { Button, Form } from "react-bootstrap"
+>>>>>>> Stashed changes
 import { PaginaPorCategoria } from "./pages/PaginaPorCategoria"
 
 // Componente principal de la aplicación
