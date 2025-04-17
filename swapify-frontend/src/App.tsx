@@ -15,6 +15,9 @@ import { AuthProvider } from "./contexts/AuthContext"
 =======
 import { useState, useEffect } from "react"
 import { Button, Form } from "react-bootstrap"
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 import { PaginaPorCategoria } from "./pages/PaginaPorCategoria"
 
