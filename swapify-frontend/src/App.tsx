@@ -16,6 +16,7 @@ import PaginaContacto from "./pages/PaginaContacto"
 import { AuthProvider } from "./contexts/AuthContext"
 import { useState, useEffect } from "react"
 import { Button, Form } from "react-bootstrap"
+import { PaginaPorCategoria } from "./pages/PaginaPorCategoria"
 
 // Componente principal de la aplicación
 export const App: React.FC = () => {
