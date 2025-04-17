@@ -22,6 +22,7 @@ import {
   Mortarboard,
   Truck,
 } from "react-bootstrap-icons"
+import { useNavigate } from "react-router-dom" // <-- Agrega esta línea
 
 // Actualizar la interfaz Producto para reflejar la estructura de la base de datos
 interface Producto {
@@ -50,6 +51,7 @@ export const PaginaInicio = () => {
   const [error, setError] = useState<string | null>(null)
   const [cargando, setCargando] = useState<boolean>(true)
   const itemService = useRef(new ItemService()).current
+  const navigate = useNavigate() // <-- Agrega esta línea
 
   useEffect(() => {
     const fetchData = async () => {
@@ -342,7 +344,14 @@ export const PaginaInicio = () => {
                 key={index}
                 variant={categoriaActiva === categoria ? "success" : "outline-success"}
                 className="rounded-pill px-4 py-2"
-                onClick={() => filtrarPorCategoria(categoria)}
+                // Cambia el onClick para navegar a la página de categoría
+                onClick={() => {
+                  if (categoria === "Todos") {
+                    setCategoriaActiva("Todos")
+                  } else {
+                    navigate(`/categoria/${encodeURIComponent(categoria)}`)
+                  }
+                }}
               >
                 {categoria}
               </Button>
