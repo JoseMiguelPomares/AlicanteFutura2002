@@ -35,6 +35,7 @@ export const App: React.FC = () => {
               <Route path="/productos/:id" element={<PaginaProducto />} />
               <Route path="/busqueda" element={<PaginaBusqueda />} />
               <Route path="/contacto" element={<PaginaContacto />} />
+              <Route path="/categoria/:categoria" element={<PaginaPorCategoria />} />
             </Routes>
           </main>
           <Footer />

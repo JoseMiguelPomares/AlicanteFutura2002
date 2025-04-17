@@ -3,6 +3,7 @@ package com.swapify.swapifyapi.services
 import com.swapify.swapifyapi.model.dao.ICategoryDAO
 import com.swapify.swapifyapi.model.dao.IItemDAO
 import com.swapify.swapifyapi.model.dto.ItemDTO
+import com.swapify.swapifyapi.model.dto.CategoryDTO
 import com.swapify.swapifyapi.model.dto.ModifyItemDTO
 import com.swapify.swapifyapi.model.dto.NewItemDTO
 import com.swapify.swapifyapi.model.entities.Category
@@ -50,12 +51,17 @@ class ItemService {
         return if (items.iterator().hasNext()){
             items.map {
                 ItemDTO(
+                    it.id!!,
                     it.user!!.name!!,
                     it.title!!,
                     it.description!!,
-                    it.category!!.name,
+                    CategoryDTO(
+                        it.category!!.id!!,
+                        it.category!!.name!!
+                    ),
                     it.imageUrl,
-                    it.status!!
+                    it.status!!,
+                    it.createdAt
                 )
             }
         }else{
@@ -69,12 +75,17 @@ class ItemService {
         return if (items.isNotEmpty()){
             items.map {
                 ItemDTO(
+                    it.id!!,
                     it.user!!.name!!,
                     it.title!!,
                     it.description!!,
-                    it.category!!.name,
+                    CategoryDTO(
+                        it.category!!.id!!,
+                        it.category!!.name!!
+                    ),
                     it.imageUrl,
-                    it.status!!
+                    it.status!!,
+                    it.createdAt
                 )
             }
         } else {
@@ -88,12 +99,17 @@ class ItemService {
         return if (items.isNotEmpty()){
             items.map {
                 ItemDTO(
+                    it.id!!,
                     it.user!!.name!!,
                     it.title!!,
                     it.description!!,
-                    it.category!!.name,
+                    CategoryDTO(
+                        it.category!!.id!!,
+                        it.category!!.name!!
+                    ),
                     it.imageUrl,
-                    it.status!!
+                    it.status!!,
+                    it.createdAt
                 )
             }
         } else {
@@ -107,12 +123,17 @@ class ItemService {
         return if (items.isNotEmpty()){
             items.map {
                 ItemDTO(
+                    it.id!!,
                     it.user!!.name.toString(),
                     it.title.toString(),
                     it.description.toString(),
-                    it.category!!.name,
+                    CategoryDTO(
+                        it.category!!.id!!,
+                        it.category!!.name!!
+                    ),
                     it.imageUrl,
-                    it.status.toString()
+                    it.status.toString(),
+                    it.createdAt  // Added createdAt field
                 )
             }
         } else {
@@ -231,12 +252,17 @@ class ItemService {
         return if (items.isNotEmpty()) {
             items.map {
                 ItemDTO(
+                    it.id!!,
                     it.user!!.name!!,
                     it.title!!,
                     it.description!!,
-                    it.category!!.name,
+                    CategoryDTO(
+                        it.category!!.id!!,
+                        it.category!!.name!!
+                    ),
                     it.imageUrl,
-                    it.status!!
+                    it.status!!,
+                    it.createdAt
                 )
             }
         } else {

@@ -1,38 +1,58 @@
-//! REVISAR
-
-import type { Review } from "../pages/PaginaProducto"
 import axios from "axios"
 
 export class ReviewService {
   baseUrl = "http://localhost:8080/swapify/reviews/"
 
   // Obtener reviews por usuario (el que recibe la review)
-  async getReviewsByUserId(userId: number): Promise<Review[]> {
+  async getReviewsByUserId(userId: number) {
     try {
-      return await axios
-        .get(`${this.baseUrl}user/${userId}`)
-        .then((res) => res.data)
-        .catch((error) => {
-          console.error("Error al obtener reseñas del usuario:", error.response?.data)
-          return []
-        })
+      const res = await axios.get(`${this.baseUrl}userReviews/${userId}`)
+      
+      // Transform backend DTO to frontend Review format
+      return res.data.map((item: any) => ({
+        id: item.id,
+        reviewer: {
+          id: item.reviewerId,
+          name: item.reviewerName,
+          imageUrl: item.reviewerImageUrl
+        },
+        reviewed_id: item.reviewedId,
+        rating: item.rating,
+        comment: item.comment,
+        created_at: item.createdAt
+      }))
     } catch (error) {
-      console.error("Error inesperado:", error)
+      console.error("Error al obtener reseñas del usuario:", error)
       return []
     }
   }
 
-  async getReviewsByItem(itemId: number): Promise<Review[]> {
+  // Verificar si un usuario ya ha valorado a otro
+  async hasUserReviewed(reviewerId: number, reviewedId: number): Promise<boolean> {
+    const reviews = await this.getReviewsByUserId(reviewedId)
+    return reviews.some((review: { reviewer: { id: number } }) => review.reviewer.id === reviewerId)
+  }
+
+  // Obtener reviews por item
+  async getReviewsByItem(itemId: number) {
     try {
-      return await axios
-        .get(this.baseUrl + `itemId=${itemId}`)
-        .then((res) => res.data)
-        .catch((error) => {
-          console.error("Error al obtener reseñas:", error.response?.data)
-          return []
-        })
+      const res = await axios.get(`${this.baseUrl}item/${itemId}`)
+      
+      // Transform backend DTO to frontend Review format
+      return res.data.map((item: any) => ({
+        id: item.id,
+        reviewer: {
+          id: item.reviewerId,
+          name: item.reviewerName,
+          imageUrl: item.reviewerImageUrl
+        },
+        reviewed_id: item.reviewedId,
+        rating: item.rating,
+        comment: item.comment,
+        created_at: item.createdAt
+      }))
     } catch (error) {
-      console.error("Error inesperado:", error)
+      console.error("Error al obtener reseñas:", error)
       return []
     }
   }
@@ -43,36 +63,45 @@ export class ReviewService {
     reviewed_id: number
     rating: number
     comment: string
-  }): Promise<Review> {
+  }) {
     try {
-      return await axios
-        .post(`${this.baseUrl}create`, reviewData)
-        .then((res) => res.data)
-        .catch((error) => {
-          console.error("Error en la respuesta:", error.response?.data)
-          throw new Error(error.response?.data?.message || "Error creating review")
-        })
+      // Transform frontend data to backend format
+      const backendData = {
+        reviewer: { id: reviewData.reviewer_id },
+        reviewed: { id: reviewData.reviewed_id },
+        rating: reviewData.rating,
+        comment: reviewData.comment
+      }
+      
+      const res = await axios.post(`${this.baseUrl}create`, backendData)
+      const item = res.data
+      
+      // Transform response back to frontend format
+      return {
+        id: item.id,
+        reviewer: {
+          id: item.reviewer?.id,
+          name: item.reviewer?.name,
+          imageUrl: item.reviewer?.imageUrl
+        },
+        reviewed_id: item.reviewed?.id,
+        rating: item.rating,
+        comment: item.comment,
+        created_at: item.createdAt
+      }
     } catch (error) {
-      console.error("Error inesperado:", error)
+      console.error("Error al crear la reseña:", error)
       throw error
     }
   }
 
   // Obtener estadísticas de reviews para un usuario
-  async getUserReviewStats(userId: number): Promise<{
-    averageRating: number
-    totalReviews: number
-  }> {
+  async getUserReviewStats(userId: number) {
     try {
-      return await axios
-        .get(`${this.baseUrl}stats/${userId}`)
-        .then((res) => res.data)
-        .catch((error) => {
-          console.error("Error al obtener estadísticas:", error.response?.data)
-          return { averageRating: 0, totalReviews: 0 }
-        })
+      const res = await axios.get(`${this.baseUrl}stats/${userId}`)
+      return res.data
     } catch (error) {
-      console.error("Error inesperado:", error)
+      console.error("Error al obtener estadísticas:", error)
       return { averageRating: 0, totalReviews: 0 }
     }
   }

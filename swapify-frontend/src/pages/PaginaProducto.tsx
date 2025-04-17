@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useParams, Link } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
 import {
@@ -14,7 +12,6 @@ import {
   Tabs,
   Tab,
   Card,
-  Form,
   ListGroup,
   Alert,
 } from "react-bootstrap"
@@ -33,7 +30,6 @@ import {
 } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
-import { ReviewService } from "../services/reviewService"
 
 // Interfaz actualizada para coincidir con la estructura de datos de la API
 interface Producto {
@@ -64,21 +60,6 @@ interface Producto {
   location?: string
 }
 
-// Interfaz para las reviews
-export interface Review {
-  id: number
-  reviewer_id: number
-  reviewed_id: number
-  rating: number
-  comment: string
-  created_at: string
-  user?: {
-    id: number
-    name: string
-    imageUrl?: string
-  }
-}
-
 export const PaginaProducto = () => {
   const { id } = useParams<{ id: string }>()
   const idNumber = Number(id)
@@ -87,9 +68,6 @@ export const PaginaProducto = () => {
   const [loading, setLoading] = useState(true)
   const [isFavorite, setIsFavorite] = useState(false)
   const [productosRelacionados, setProductosRelacionados] = useState<Producto[]>([])
-  const [reviews, setReviews] = useState<Review[]>([])
-  const [userRating, setUserRating] = useState<number>(5)
-  const [userComment, setUserComment] = useState<string>("")
   const itemService = useRef(new ItemService()).current
 
   useEffect(() => {
@@ -121,14 +99,6 @@ export const PaginaProducto = () => {
           setProductosRelacionados(relacionados)
         }
 
-        // Cargar reseñas desde el servicio
-        const reviewService = new ReviewService()
-        try {
-          const reviewsData = await reviewService.getReviewsByItem(response.data.id)
-          setReviews(reviewsData)
-        } catch (error) {
-          console.error("Error al cargar reseñas:", error)
-        }
       } catch (error) {
         console.error("Error al cargar el producto:", error)
         setError(true)
@@ -148,35 +118,6 @@ export const PaginaProducto = () => {
     // Aquí se implementaría la lógica para guardar el favorito en la base de datos
   }
 
-  const handleSubmitReview = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // Aquí se implementaría la lógica para enviar la review a la API
-    try {
-      // Ejemplo de cómo sería la implementación:
-      // const response = await fetch('/api/reviews', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     item_id: producto?.id,
-      //     rating: userRating,
-      //     comment: userComment
-      //   })
-      // });
-
-      // if (response.ok) {
-      //   const newReview = await response.json();
-      //   setReviews([newReview, ...reviews]);
-      // }
-
-      alert("Funcionalidad de valoraciones en desarrollo. ¡Gracias por tu interés!")
-      setUserComment("")
-      setUserRating(5)
-    } catch (error) {
-      console.error("Error al enviar la valoración:", error)
-      alert("No se pudo enviar la valoración. Inténtalo de nuevo más tarde.")
-    }
-  }
 
   // Renderizar estrellas para una valoración
   const renderStars = (rating: number) => {
@@ -193,22 +134,6 @@ export const PaginaProducto = () => {
     )
   }
 
-  // Renderizar estrellas interactivas para el formulario
-  const renderRatingSelector = () => {
-    return (
-      <div className="d-flex mb-3">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <span key={star} onClick={() => setUserRating(star)} style={{ cursor: "pointer" }}>
-            {star <= userRating ? (
-              <StarFill className="text-warning fs-4 me-1" />
-            ) : (
-              <Star className="text-warning fs-4 me-1" />
-            )}
-          </span>
-        ))}
-      </div>
-    )
-  }
 
   if (loading) {
     return (
@@ -481,73 +406,6 @@ export const PaginaProducto = () => {
                     Te recomendamos contactar directamente con el vendedor para conocer sus condiciones de intercambio.
                   </p>
                 </Alert>
-              </Card.Body>
-            </Card>
-          </Tab>
-          <Tab eventKey="reviews" title="Reviews">
-            <Card className="border-0 shadow-sm rounded-4">
-              <Card.Body>
-                <h4 className="h5 fw-bold mb-4">Reviews del producto</h4>
-
-                {/* Formulario para añadir una valoración */}
-                <Card className="mb-4 bg-light border-0">
-                  <Card.Body>
-                    <h5 className="h6 fw-bold mb-3">Deja tu valoración</h5>
-                    <Form onSubmit={handleSubmitReview}>
-                      {renderRatingSelector()}
-                      <Form.Group className="mb-3">
-                        <Form.Control
-                          as="textarea"
-                          rows={3}
-                          placeholder="Comparte tu experiencia con este producto..."
-                          value={userComment}
-                          onChange={(e) => setUserComment(e.target.value)}
-                          required
-                        />
-                      </Form.Group>
-                      <Button variant="success" type="submit" className="rounded-pill">
-                        Enviar valoración
-                      </Button>
-                    </Form>
-                  </Card.Body>
-                </Card>
-
-                {/* Lista de valoraciones */}
-                {reviews.length > 0 ? (
-                  <div>
-                    {reviews.map((review) => (
-                      <ListGroup.Item key={review.id} className="px-0 py-3 border-bottom">
-                        <div className="d-flex gap-3">
-                          <div className="flex-shrink-0">
-                            <img
-                              src={review.user?.imageUrl || "/placeholder.svg"}
-                              className="rounded-circle"
-                              width="60"
-                              height="60"
-                              alt={review.user?.name || "Usuario"}
-                            />
-                          </div>
-                          <div>
-                            <div className="d-flex align-items-center gap-2 mb-2">
-                              <strong>{review.user?.name || "Usuario Anónimo"}</strong>
-                              {renderStars(review.rating)}
-                              <span className="text-muted ms-2">
-                                {new Date(review.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <p className="mb-0">{review.comment}</p>
-                          </div>
-                        </div>
-                      </ListGroup.Item>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-muted mb-0">
-                      Este producto aún no tiene valoraciones. ¡Sé el primero en opinar!
-                    </p>
-                  </div>
-                )}
               </Card.Body>
             </Card>
           </Tab>

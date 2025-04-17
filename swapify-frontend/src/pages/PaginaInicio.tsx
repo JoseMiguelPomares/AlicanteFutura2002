@@ -22,6 +22,7 @@ import {
   Mortarboard,
   Truck,
 } from "react-bootstrap-icons"
+import { useNavigate } from "react-router-dom" // <-- Agrega esta línea
 
 // Actualizar la interfaz Producto para reflejar la estructura de la base de datos
 interface Producto {
@@ -50,6 +51,7 @@ export const PaginaInicio = () => {
   const [error, setError] = useState<string | null>(null)
   const [cargando, setCargando] = useState<boolean>(true)
   const itemService = useRef(new ItemService()).current
+  const navigate = useNavigate() // <-- Agrega esta línea
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,6 +62,10 @@ export const PaginaInicio = () => {
         const data = await itemService.getAll()
         console.log("Productos cargados:", data)
         setProductos(data)
+
+        // Cargar productos recientes
+        const recentProducts = await itemService.getRecentItems()
+        console.log("Productos recientes:", recentProducts)
 
         // Cargar categorías desde el servicio
         const categoryService = new CategoryService()
@@ -80,7 +86,7 @@ export const PaginaInicio = () => {
         // Filtrar productos para diferentes secciones
         setProductosFiltrados({
           destacados: data.slice(0, 4),
-          recientes: data.slice(4, 8),
+          recientes: recentProducts.data.slice(0, 4), // Usar los productos recientes de la API
           populares: data.slice(8, 12),
         })
 
@@ -338,7 +344,14 @@ export const PaginaInicio = () => {
                 key={index}
                 variant={categoriaActiva === categoria ? "success" : "outline-success"}
                 className="rounded-pill px-4 py-2"
-                onClick={() => filtrarPorCategoria(categoria)}
+                // Cambia el onClick para navegar a la página de categoría
+                onClick={() => {
+                  if (categoria === "Todos") {
+                    setCategoriaActiva("Todos")
+                  } else {
+                    navigate(`/categoria/${encodeURIComponent(categoria)}`)
+                  }
+                }}
               >
                 {categoria}
               </Button>
@@ -398,7 +411,7 @@ export const PaginaInicio = () => {
   )
 }
 
-// Componente de tarjeta de producto mejorado
+
 const ProductCard = ({ producto }: { producto: Producto }) => {
   // Función para determinar el icono según la categoría
   const getCategoryIcon = (categoryName: string) => {
@@ -459,17 +472,20 @@ const ProductCard = ({ producto }: { producto: Producto }) => {
   // Determinar si es un producto o servicio
   const isService = ["reparaciones", "clases", "transporte"].includes(categoryName.toLowerCase())
 
+  // Imagen por defecto en caso de que no haya imagen de producto
+  const defaultImage = "https://images.unsplash.com/photo-1699645522859-512f53d4a4bf?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8ZmFsbG98ZW58MHx8MHx8fDI%3D"
+
   return (
     <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
       <Link to={`/productos/${producto.id}`} className="text-decoration-none">
         <Card className="h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-          <div className="position-relative">
+          <div className="position-relative" style={{ height: "200px" }}>
             <Card.Img
               variant="top"
-              src={producto.imageUrl}
+              src={producto.imageUrl || defaultImage}
               alt={producto.title}
-              className="img-fluid"
-              style={{ height: "200px", objectFit: "cover" }}
+              className="img-fluid h-100"
+              style={{ objectFit: "cover" }}
             />
             <Badge
               bg={getCategoryColor(categoryName)}

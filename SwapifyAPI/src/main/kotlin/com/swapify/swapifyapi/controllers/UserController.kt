@@ -53,9 +53,21 @@ class UserController {
         return userService.loginUser(identification, password)
     }
 
-    // Función para autenticación Google, en caso de que el usuario ya exista, se actualiza su información, sino se crea un nuevo usuario
+    // Función para autenticación Google, en caso de que el usuario ya exista, se actualiza su información, si no se crea un nuevo usuario
     @PostMapping("/social-auth")
     fun socialAuth(@RequestBody socialAuthUserDTO: SocialAuthUserDTO): ResponseEntity<User> {
         return userService.handleSocialAuth(socialAuthUserDTO)
+    }
+
+    //Función para cambiar contraseña de un usuario
+    @PutMapping("/changePassword/{id}")
+    fun changePassword(@PathVariable id: Int, @RequestBody password: String): ResponseEntity<User> {
+        return userService.changePassword(id, password)
+    }
+
+    //Función para buscar un usuario por item id
+    @GetMapping("/getUserByItemId/{itemId}")
+    fun getUserByItemId(@PathVariable itemId: Int): ResponseEntity<User> {
+        return userService.getUserByItemId(itemId)
     }
 }

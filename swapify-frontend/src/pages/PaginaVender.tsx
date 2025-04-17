@@ -143,11 +143,11 @@ export const PaginaVender = () => {
         title: formData.title,
         description: formData.description,
         categoryId: Number.parseInt(formData.category_id),
-        itemCondition: formData.condition, // Cambiado de item_condition a itemCondition
+        itemCondition: formData.condition,
         status: "Available",
         price: Number.parseFloat(formData.price),
         imageUrl: formData.imageUrl || "https://source.unsplash.com/random/800x600/?product", // Cambiado de image_url a imageUrl
-        userId: user?.id, // Cambiado de user_id a userId
+        userId: user?.id,
         location: formData.location,
       }
 
@@ -175,18 +175,6 @@ export const PaginaVender = () => {
     } finally {
       setLoading(false)
     }
-  }
-
-  // Si el usuario no está autenticado, mostrar mensaje
-  if (!isAuthenticated) {
-    return (
-      <Container className="py-5 text-center">
-        <Alert variant="warning">
-          <Alert.Heading>Necesitas iniciar sesión</Alert.Heading>
-          <p>Para publicar un producto, debes iniciar sesión primero.</p>
-        </Alert>
-      </Container>
-    )
   }
 
   return (
