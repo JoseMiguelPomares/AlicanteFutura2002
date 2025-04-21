@@ -38,6 +38,11 @@ export const PaginaLogin = () => {
     e.preventDefault()
     const form = e.currentTarget
 
+    if (!recaptchaToken) {
+      setError("Por favor, completa el captcha.");
+      return;
+    }
+
     if (form.checkValidity() === false) {
       e.stopPropagation()
       setValidated(true)
@@ -72,6 +77,11 @@ export const PaginaLogin = () => {
     }
   }
 
+  const handleRecaptchaChange = (token: string | null) => {
+    console.log("Captcha value:", token);
+    setRecaptchaToken(token);
+  };
+
   return (
     <Container className="py-5">
       <Row className="justify-content-center">
@@ -97,19 +107,44 @@ export const PaginaLogin = () => {
                 <Form onSubmit={handleEmailLogin} noValidate validated={validated}>
                   <Form.Group controlId="formBasicEmail">
                     <Form.Label>Email</Form.Label>
-                    <Form.Control type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                    <Form.Control.Feedback type="invalid">Please provide a valid email.</Form.Control.Feedback>
+                    <div className="input-group">
+                      <span className="input-group-text bg-light">
+                        <EnvelopeFill />
+                      </span>
+                      <Form.Control type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                      <Form.Control.Feedback type="invalid">Please provide a valid email.</Form.Control.Feedback>
+                    </div>
                   </Form.Group>
                   <Form.Group controlId="formBasicPassword">
                     <Form.Label>Password</Form.Label>
-                    <Form.Control type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                    <Form.Control.Feedback type="invalid">Please provide a password.</Form.Control.Feedback>
+                    <div className="input-group">
+                      <span className="input-group-text bg-light">
+                        <LockFill />
+                      </span>
+                      <Form.Control
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                      <Button
+                        variant="outline-secondary"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                      >
+                        {showPassword ? <EyeSlashFill /> : <EyeFill />}
+                      </Button>
+                    <Form.Control.Feedback type="invalid">
+                      Please provide a password.
+                    </Form.Control.Feedback>
+                    </div>
                   </Form.Group>
                   <ReCAPTCHA
                     sitekey="6Lf0uhsrAAAAAKDLPOCYU7-o8IYLQghrLo_N4Swx"
-                    onChange={(token: string) => setRecaptchaToken(token)}
+                    onChange={handleRecaptchaChange}
                     className="mt-3"
                   />
+
                   <div className="d-flex justify-content-center mt-3">
                     <Button variant="primary" type="submit" disabled={loading || !recaptchaToken}>
                       Login
