@@ -29,7 +29,6 @@ export const PaginaRegistro = () => {
   const [validated, setValidated] = useState<boolean>(false)
   const [step, setStep] = useState<number>(1)
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null)
-  const [recaptchaLoaded, setRecaptchaLoaded] = useState(false)
   // Añadir estados para controlar si los campos de contraseña han sido tocados
   const [passwordTouched, setPasswordTouched] = useState<boolean>(false)
   const [confirmPasswordTouched, setConfirmPasswordTouched] = useState<boolean>(false)
@@ -49,10 +48,6 @@ export const PaginaRegistro = () => {
       script.src = "https://www.google.com/recaptcha/api.js"
       script.async = true
       script.defer = true
-      script.onload = () => {
-        console.log("Script de reCAPTCHA cargado")
-        setRecaptchaLoaded(true)
-      }
       document.body.appendChild(script)
     }
   }, [step])
@@ -119,8 +114,8 @@ export const PaginaRegistro = () => {
       e.stopPropagation()
       // Asegurarse de que el campo de confirmar contraseña se marque como tocado si hay error de coincidencia
       if (formData.password !== formData.confirmPassword) {
-          setConfirmPasswordTouched(true)
-          setError("Las contraseñas no coinciden") // Establecer error específico si no coinciden
+        setConfirmPasswordTouched(true)
+        setError("Las contraseñas no coinciden") // Establecer error específico si no coinciden
       }
       return
     }
@@ -324,21 +319,17 @@ export const PaginaRegistro = () => {
                         </Button>
                         {/* Mostrar el feedback solo si ha sido tocado y no coincide */}
                         {confirmPasswordTouched && formData.password !== formData.confirmPassword && (
-                           <Form.Control.Feedback type="invalid">Las contraseñas no coinciden</Form.Control.Feedback>
+                          <Form.Control.Feedback type="invalid">Las contraseñas no coinciden</Form.Control.Feedback>
                         )}
                       </div>
                     </Form.Group>
 
                     <div className="my-3">
-                      {/* Mostrar un mensaje de carga mientras el reCAPTCHA se carga */}
-                      
-
                       {/* Usar el componente ReCAPTCHA directamente */}
                       <div className="d-flex justify-content-center">
                         <ReCAPTCHA
                           sitekey="6Lf0uhsrAAAAAKDLPOCYU7-o8IYLQghrLo_N4Swx"
                           onChange={handleRecaptchaChange}
-                          onLoad={() => setRecaptchaLoaded(true)}
                         />
                       </div>
 
