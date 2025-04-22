@@ -29,7 +29,10 @@ export const PaginaRegistro = () => {
   const [validated, setValidated] = useState<boolean>(false)
   const [step, setStep] = useState<number>(1)
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null)
-  const [recaptchaLoaded, setRecaptchaLoaded] = useState(false)
+  // Añadir estados para controlar si los campos de contraseña han sido tocados
+  const [passwordTouched, setPasswordTouched] = useState<boolean>(false)
+  const [confirmPasswordTouched, setConfirmPasswordTouched] = useState<boolean>(false)
+
 
   useEffect(() => {
     if (authError) {
@@ -45,10 +48,6 @@ export const PaginaRegistro = () => {
       script.src = "https://www.google.com/recaptcha/api.js"
       script.async = true
       script.defer = true
-      script.onload = () => {
-        console.log("Script de reCAPTCHA cargado")
-        setRecaptchaLoaded(true)
-      }
       document.body.appendChild(script)
     }
   }, [step])
@@ -70,6 +69,15 @@ export const PaginaRegistro = () => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
 
+    // Marcar los campos como tocados cuando cambian
+    if (name === "password") {
+      setPasswordTouched(true)
+    }
+    if (name === "confirmPassword") {
+      setConfirmPasswordTouched(true)
+    }
+
+
     // Resetear errores cuando el usuario cambia los datos
     if (error) setError(null)
   }
@@ -78,14 +86,16 @@ export const PaginaRegistro = () => {
     e.preventDefault()
     const form = e.currentTarget
 
+    setValidated(true) // Marcar como validado para mostrar errores del paso 1 si los hay
+
     if (form.checkValidity() === false) {
       e.stopPropagation()
-      setValidated(true)
       return
     }
 
-    setValidated(true)
+    // Si la validación del paso 1 es exitosa, pasar al paso 2 y reiniciar 'validated'
     setStep(2)
+    setValidated(false) // Reiniciar para la validación del paso 2
   }
 
   const handleRecaptchaChange = (token: string | null) => {
@@ -97,17 +107,16 @@ export const PaginaRegistro = () => {
     e.preventDefault()
     const form = e.currentTarget
 
+    setValidated(true) // Marcar como validado para mostrar errores del paso 2
+
+    // Comprobar validez del formulario y coincidencia de contraseñas
     if (form.checkValidity() === false || formData.password !== formData.confirmPassword) {
       e.stopPropagation()
-      setValidated(true)
+      // Asegurarse de que el campo de confirmar contraseña se marque como tocado si hay error de coincidencia
       if (formData.password !== formData.confirmPassword) {
-        setError("Las contraseñas no coinciden")
+        setConfirmPasswordTouched(true)
+        setError("Las contraseñas no coinciden") // Establecer error específico si no coinciden
       }
-      return
-    }
-
-    if (!recaptchaToken) {
-      setError("Por favor, completa el captcha")
       return
     }
 
@@ -267,6 +276,8 @@ export const PaginaRegistro = () => {
                           placeholder="Crea tu contraseña"
                           required
                           minLength={6}
+                          // Marcar como inválido solo si ha sido tocado y no cumple la longitud mínima
+                          isInvalid={passwordTouched && formData.password.length < 6}
                         />
                         <Button variant="outline-secondary" onClick={() => setShowPassword(!showPassword)}>
                           {showPassword ? <EyeSlashFill /> : <EyeFill />}
@@ -275,10 +286,13 @@ export const PaginaRegistro = () => {
                           La contraseña debe tener al menos 6 caracteres
                         </Form.Control.Feedback>
                       </div>
-                      <div className="mt-2">
-                        <small className={`text-${color}`}>Seguridad: {strength}</small>
-                        <ProgressBar variant={color} now={percentage} className="mt-1" style={{ height: "5px" }} />
-                      </div>
+                      {/* Mostrar fortaleza solo si se ha empezado a escribir */}
+                      {passwordTouched && formData.password && (
+                        <div className="mt-2">
+                          <small className={`text-${color}`}>Seguridad: {strength}</small>
+                          <ProgressBar variant={color} now={percentage} className="mt-1" style={{ height: "5px" }} />
+                        </div>
+                      )}
                     </Form.Group>
 
                     <Form.Group className="mb-4">
@@ -294,7 +308,8 @@ export const PaginaRegistro = () => {
                           onChange={handleChange}
                           placeholder="Repite tu contraseña"
                           required
-                          isInvalid={formData.password !== formData.confirmPassword && formData.confirmPassword !== ""}
+                          // Marcar como inválido solo si ha sido tocado y no coincide con la contraseña
+                          isInvalid={confirmPasswordTouched && formData.password !== formData.confirmPassword}
                         />
                         <Button
                           variant="outline-secondary"
@@ -302,20 +317,19 @@ export const PaginaRegistro = () => {
                         >
                           {showConfirmPassword ? <EyeSlashFill /> : <EyeFill />}
                         </Button>
-                        <Form.Control.Feedback type="invalid">Las contraseñas no coinciden</Form.Control.Feedback>
+                        {/* Mostrar el feedback solo si ha sido tocado y no coincide */}
+                        {confirmPasswordTouched && formData.password !== formData.confirmPassword && (
+                          <Form.Control.Feedback type="invalid">Las contraseñas no coinciden</Form.Control.Feedback>
+                        )}
                       </div>
                     </Form.Group>
 
                     <div className="my-3">
-                      {/* Mostrar un mensaje de carga mientras el reCAPTCHA se carga */}
-                      
-
                       {/* Usar el componente ReCAPTCHA directamente */}
                       <div className="d-flex justify-content-center">
                         <ReCAPTCHA
                           sitekey="6Lf0uhsrAAAAAKDLPOCYU7-o8IYLQghrLo_N4Swx"
                           onChange={handleRecaptchaChange}
-                          onLoad={() => setRecaptchaLoaded(true)}
                         />
                       </div>
 
