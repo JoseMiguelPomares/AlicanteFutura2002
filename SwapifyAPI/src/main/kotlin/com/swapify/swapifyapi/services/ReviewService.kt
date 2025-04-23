@@ -53,4 +53,35 @@ class ReviewService {
             "totalReviews" to totalReviews
         )
     }
+
+    //Obtener las reviews de un itemId
+    /*
+    fun getReviewsByItemId(itemId: Long): List<ReviewDTO> {
+        return reviewDAO.findByItemId(itemId).map { review ->
+            convertToDTO(review)
+        }
+    }*/
+
+    //Modificar una review
+    fun updateReview(review: Review): Review {
+        val existingReview = reviewDAO.findById(review.id!!)
+        if (existingReview.isPresent) {
+            val updatedReview = existingReview.get()
+            updatedReview.rating = review.rating
+            updatedReview.comment = review.comment
+            return reviewDAO.save(updatedReview)
+        }else{
+            throw Exception("Review not found")
+        }
+    }
+
+    //Eliminar una review
+    fun deleteReview(reviewId: Int) {
+        val existingReview = reviewDAO.findById(reviewId)
+        if (existingReview.isPresent) {
+            reviewDAO.delete(existingReview.get())
+        } else {
+            throw Exception("Review not found")
+        }
+    }
 }

@@ -34,4 +34,17 @@ class ReviewController {
         val stats = reviewService.getUserReviewStats(userId)
         return ResponseEntity.ok(stats)
     }
+
+    //Modificar una review
+    @PutMapping("/modify/")
+    fun modifyReview(@RequestBody review: Review): Review {
+        return reviewService.updateReview(review)
+    }
+
+    //Eliminar una review
+    @DeleteMapping("/delete/{id}")
+    fun deleteReview(@PathVariable id: Int): ResponseEntity<Void> {
+        reviewService.deleteReview(id)
+        return ResponseEntity.noContent().build()
+    }
 }
