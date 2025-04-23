@@ -229,16 +229,17 @@ export const BarraNavegacion = () => {
             <Button
               variant="link"
               onClick={() => setShowSidebar(!showSidebar)}
-              className="text-dark fw-bold p-2 text-decoration-none d-flex align-items-center"
+              className="text-dark fw-bold p-1 text-decoration-none d-flex align-items-center"
               aria-label="Abrir categorías"
+              style={{ fontSize: '1.4rem' }} // Increased font size for Categorías
             >
-              <List size={20} className="me-2" />
-              Categorías
+              <List size={35} className="me-2" />
+              Todas las categorías
             </Button>
 
             {/* Resto de los enlaces */}
             <div className="d-none d-md-flex gap-5">
-              <Nav.Link as={Link} to="/contacto" className="text-dark fw-bold">
+              <Nav.Link as={Link} to="/contacto" className="text-dark fw-bold" style={{ fontSize: '1.4rem' }}> {/* Increased font size for Contacto */}
                 Contacto
               </Nav.Link>
             </div>
