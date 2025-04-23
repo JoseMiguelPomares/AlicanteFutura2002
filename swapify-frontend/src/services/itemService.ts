@@ -100,8 +100,8 @@ export class ItemService {
     return axios.delete(this.baseUrl + `deleteItem/${itemId}`)
   }
 
-  modifyItem(itemId: number) {
-    return axios.put(this.baseUrl + "modifyItem", itemId)
+  modifyItem(itemId: number, itemData: any) {
+    return axios.put(this.baseUrl + `modifyItem/${itemId}`, itemData)
   }
 
   getRecentItems() {
