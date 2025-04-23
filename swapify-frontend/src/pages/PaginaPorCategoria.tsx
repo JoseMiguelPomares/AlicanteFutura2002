@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import { Container, Row, Col, Card, Badge, Button, Form, Alert } from "react-bootstrap"
-import { motion } from "framer-motion"
 import {
   Search,
   Tag,
@@ -18,11 +17,10 @@ import {
   Flower1,
   CarFrontFill,
   Bicycle,
-  GeoAlt,
-  Calendar3,
 } from "react-bootstrap-icons"
 import { ItemService } from "../services/itemService"
 import { CategoryService } from "../services/categoryService"
+import { ProductCard } from "../components/ProductCard"
 
 interface Producto {
   id: number
@@ -322,47 +320,7 @@ export const PaginaPorCategoria = () => {
               <Row xs={1} sm={2} md={3} className="g-4">
                 {filteredProductos.map((producto) => (
                   <Col key={producto.id}>
-                    <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-                      <Link to={`/productos/${producto.id}`} className="text-decoration-none">
-                        <Card className="h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-                          <div style={{ height: "180px", overflow: "hidden" }}>
-                            <Card.Img
-                              variant="top"
-                              src={producto.imageUrl || "/placeholder.svg?height=180&width=300"}
-                              alt={producto.title}
-                              className="img-fluid h-100"
-                              style={{ objectFit: "cover" }}
-                            />
-                          </div>
-                          <Card.Body className="p-3">
-                            <Card.Title className="fw-bold text-dark mb-1" style={{ fontSize: "1rem" }}>
-                              {producto.title}
-                            </Card.Title>
-                            <Card.Text className="text-muted small mb-2" style={{ height: "40px", overflow: "hidden" }}>
-                              {producto.description}
-                            </Card.Text>
-                            <div className="d-flex justify-content-between align-items-center">
-                              <span className="fw-bold text-success">{producto.price} Créditos</span>
-                              <Button variant="outline-success" size="sm" className="rounded-pill">
-                                Ver
-                              </Button>
-                            </div>
-                            {(producto.location || producto.user?.location) && (
-                              <div className="mt-2 small text-muted">
-                                <GeoAlt size={12} className="me-1" />
-                                {producto.location || producto.user?.location}
-                              </div>
-                            )}
-                            {producto.createdAt && (
-                              <div className="mt-1 small text-muted">
-                                <Calendar3 size={12} className="me-1" />
-                                {new Date(producto.createdAt).toLocaleDateString()}
-                              </div>
-                            )}
-                          </Card.Body>
-                        </Card>
-                      </Link>
-                    </motion.div>
+                    <ProductCard producto={producto} />
                   </Col>
                 ))}
               </Row>

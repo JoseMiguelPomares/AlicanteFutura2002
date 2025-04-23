@@ -10,6 +10,7 @@ import { ItemService } from "../services/itemService"
 import { UserService } from "../services/userService"
 import { useAuth } from "../contexts/AuthContext"
 import { ReviewService } from "../services/reviewService"
+import { ProductCard } from "../components/ProductCard"
 
 interface User {
   id: number
@@ -358,43 +359,7 @@ export const PaginaPerfil = () => {
                 <Row xs={1} md={2} className="g-4">
                   {userItems.map((item) => (
                     <Col key={item.id}>
-                      <Card className="h-100 border-0 shadow-sm rounded-4 overflow-hidden">
-                        <div style={{ height: "180px", overflow: "hidden" }}>
-                          <Card.Img
-                            variant="top"
-                            src={item.imageUrl || "/placeholder.svg"}
-                            alt={item.title}
-                            style={{ objectFit: "cover", height: "100%", width: "100%" }}
-                          />
-                        </div>
-                        <Card.Body>
-                          <div className="d-flex justify-content-between align-items-start mb-2">
-                            {item.category && (
-                              <Badge bg="primary" className="rounded-pill">
-                                {item.category.name}
-                              </Badge>
-                            )}
-                            <Badge bg={item.status === "Available" ? "success" : "secondary"} className="rounded-pill">
-                              {item.status === "Available" ? "Disponible" : item.status}
-                            </Badge>
-                          </div>
-                          <Card.Title className="fw-bold">{item.title}</Card.Title>
-                          <Card.Text className="text-muted small mb-3" style={{ height: "40px", overflow: "hidden" }}>
-                            {item.description}
-                          </Card.Text>
-                          <div className="d-flex justify-content-between align-items-center">
-                            <span className="fw-bold text-success">{item.price} Créditos</span>
-                            <Button
-                              variant="outline-success"
-                              size="sm"
-                              className="rounded-pill"
-                              href={`/productos/${item.id}`}
-                            >
-                              Ver detalles
-                            </Button>
-                          </div>
-                        </Card.Body>
-                      </Card>
+                      <ProductCard producto={item} />
                     </Col>
                   ))}
                 </Row>
