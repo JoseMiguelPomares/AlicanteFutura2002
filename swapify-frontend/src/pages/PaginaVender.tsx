@@ -8,6 +8,7 @@ import { CheckCircle, Image as ImageIcon, CurrencyDollar, GeoAlt, InfoCircle } f
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
 import { useAuth } from "../contexts/AuthContext"
+import { ImageService } from "../services/imageService"
 
 // Lista de categorías disponibles
 const CATEGORIAS = [
@@ -38,6 +39,7 @@ export const PaginaVender = () => {
   const navigate = useNavigate()
   const { user, isAuthenticated } = useAuth()
   const itemService = new ItemService()
+  const imageService = new ImageService() // Añadir el servicio de imágenes
 
   // Estados para el formulario
   const [formData, setFormData] = useState({
@@ -72,34 +74,42 @@ export const PaginaVender = () => {
     setFormData({ ...formData, [name]: value })
   }
 
-  // Simular la carga de una imagen
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Subir imagen a Cloudinary a través de la API
+  // Subir imagen usando el nuevo servicio
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-
-    // Simular progreso de carga
+  
+    // Iniciar progreso
     setUploadProgress(0)
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          return 100
-        }
-        return prev + 10
+    setLoading(true)
+  
+    try {
+      // Crear URL para previsualización local
+      const reader = new FileReader()
+      reader.onload = () => {
+        setImagePreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+  
+      // Usar el servicio para subir la imagen
+      const imageUrl = await imageService.uploadImage(file, (progress) => {
+        setUploadProgress(progress)
       })
-    }, 200)
-
-    // Crear URL para previsualización
-    const reader = new FileReader()
-    reader.onload = () => {
-      setImagePreview(reader.result as string)
-      // Simular URL de imagen subida (en producción, esto vendría del backend)
+      
+      // Actualizar el formulario con la URL de la imagen
       setFormData((prev) => ({
         ...prev,
-        imageUrl: "https://source.unsplash.com/random/800x600/?product",
+        imageUrl: imageUrl,
       }))
+      
+    } catch (error) {
+      console.error('Error al subir la imagen:', error)
+      setError('No se pudo subir la imagen. Por favor, inténtalo de nuevo.')
+      setUploadProgress(0)
+    } finally {
+      setLoading(false)
     }
-    reader.readAsDataURL(file)
   }
 
   // Avanzar al siguiente paso
@@ -146,7 +156,7 @@ export const PaginaVender = () => {
         itemCondition: formData.condition,
         status: "Available",
         price: Number.parseFloat(formData.price),
-        imageUrl: formData.imageUrl || "https://source.unsplash.com/random/800x600/?product", // Cambiado de image_url a imageUrl
+        imageUrl: formData.imageUrl, // Ahora usamos la URL real de Cloudinary
         userId: user?.id,
         location: formData.location,
       }
@@ -161,7 +171,7 @@ export const PaginaVender = () => {
 
       // Redireccionar después de 2 segundos
       setTimeout(() => {
-        navigate(`/perfil/${user?.id}`) // Redirigir al perfil del usuario en lugar de a un producto específico
+        navigate(`/perfil/${user?.id}`)
       }, 2000)
     } catch (error: any) {
       console.error("Error al publicar el producto:", error)
@@ -320,7 +330,7 @@ export const PaginaVender = () => {
                         Por favor, sube una imagen de tu producto.
                       </Form.Control.Feedback>
                       <Form.Text className="text-muted">
-                        Sube una imagen clara y representativa de tu producto. Formatos: JPG, PNG (máx. 5MB).
+                        Sube una imagen clara y representativa de tu producto. Formatos: JPG, PNG (máx. 10MB).
                       </Form.Text>
                     </Form.Group>
 
