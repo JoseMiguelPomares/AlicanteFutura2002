@@ -107,10 +107,19 @@ export const BarraNavegacion = () => {
                       as={Link as any}
                       to={`/perfil/${user?.id}`}
                       variant="success"
-                      className="w-100 py-2 rounded-pill"
+                      className="w-100 py-2 rounded-pill d-flex align-items-center justify-content-center"
                       onClick={() => setShowMenu(false)}
                     >
-                      <Person className="me-2" size={18} />
+                      {user?.imageUrl ? (
+                        <img
+                          src={user.imageUrl || "/placeholder.svg"}
+                          alt={user.name}
+                          className="rounded-circle me-2"
+                          style={{ width: "18px", height: "18px", objectFit: "cover" }}
+                        />
+                      ) : (
+                        <Person className="me-2" size={18} />
+                      )}
                       Mi Perfil
                     </Button>
                     <Button
@@ -118,7 +127,7 @@ export const BarraNavegacion = () => {
                       className="w-100 py-2 rounded-pill"
                       onClick={() => {
                         logout()
-                        navigate('/');  // Redirect to home page after logout
+                        navigate("/") // Redirect to home page after logout
                         setShowMenu(false)
                       }}
                     >
@@ -186,8 +195,17 @@ export const BarraNavegacion = () => {
               </Nav.Link>
               {isAuthenticated ? (
                 <>
-                  <Nav.Link as={Link} to={`/perfil/${user?.id}`} className="text-white">
-                    <Person size={22} />
+                  <Nav.Link as={Link} to={`/perfil/${user?.id}`} className="text-white d-flex align-items-center">
+                    {user?.imageUrl ? (
+                      <img
+                        src={user.imageUrl || "/placeholder.svg"}
+                        alt={user.name}
+                        className="rounded-circle"
+                        style={{ width: "24px", height: "24px", objectFit: "cover" }}
+                      />
+                    ) : (
+                      <Person size={22} />
+                    )}
                   </Nav.Link>
                   <Button variant="outline-light" className="d-flex align-items-center gap-2 rounded-pill">
                     <Cart size={18} />
@@ -198,8 +216,8 @@ export const BarraNavegacion = () => {
                     size="sm"
                     className="rounded-pill"
                     onClick={() => {
-                      logout();
-                      navigate('/');  // Redirect to home page after logout
+                      logout()
+                      navigate("/") // Redirect to home page after logout
                     }}
                   >
                     Salir
@@ -231,7 +249,7 @@ export const BarraNavegacion = () => {
               onClick={() => setShowSidebar(!showSidebar)}
               className="text-dark fw-bold p-1 text-decoration-none d-flex align-items-center"
               aria-label="Abrir categorías"
-              style={{ fontSize: '1.4rem' }} // Increased font size for Categorías
+              style={{ fontSize: "1.4rem" }} // Increased font size for Categorías
             >
               <List size={35} className="me-2" />
               Todas las categorías
@@ -239,7 +257,9 @@ export const BarraNavegacion = () => {
 
             {/* Resto de los enlaces */}
             <div className="d-none d-md-flex gap-5">
-              <Nav.Link as={Link} to="/contacto" className="text-dark fw-bold" style={{ fontSize: '1.4rem' }}> {/* Increased font size for Contacto */}
+              <Nav.Link as={Link} to="/contacto" className="text-dark fw-bold" style={{ fontSize: "1.4rem" }}>
+                {" "}
+                {/* Increased font size for Contacto */}
                 Contacto
               </Nav.Link>
             </div>
@@ -253,7 +273,16 @@ export const BarraNavegacion = () => {
                 size="sm"
                 className="d-none d-md-flex align-items-center gap-2 rounded-pill px-3"
               >
-                <Person size={16} />
+                {user?.imageUrl ? (
+                  <img
+                    src={user.imageUrl || "/placeholder.svg"}
+                    alt={user.name}
+                    className="rounded-circle"
+                    style={{ width: "16px", height: "16px", objectFit: "cover" }}
+                  />
+                ) : (
+                  <Person size={16} />
+                )}
                 Mi Perfil
               </Button>
             )}
@@ -266,4 +295,3 @@ export const BarraNavegacion = () => {
     </>
   )
 }
-

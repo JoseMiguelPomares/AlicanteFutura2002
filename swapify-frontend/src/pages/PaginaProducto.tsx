@@ -33,6 +33,7 @@ import {
   PlusCircle,
   Trash,
   ArrowsFullscreen,
+  Pencil,
 } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
@@ -128,16 +129,16 @@ export const PaginaProducto = () => {
   useEffect(() => {
     if (producto) {
       // Inicializar con la imagen principal o múltiples imágenes separadas por '|'
-      let images = [];
+      let images = []
       if (producto.imageUrl) {
         // Dividir la cadena de URLs por el separador '|'
-        images = producto.imageUrl.split('|');
+        images = producto.imageUrl.split("|")
       } else {
-        images = ["/placeholder.svg?height=600&width=800"];
+        images = ["/placeholder.svg?height=600&width=800"]
       }
-      setProductImages(images);
+      setProductImages(images)
     }
-  }, [producto]);
+  }, [producto])
 
   // Función para abrir el lightbox
   const openLightbox = (index = 0) => {
@@ -148,52 +149,52 @@ export const PaginaProducto = () => {
   // Función para añadir una imagen (implementación real)
   const handleAddImage = () => {
     // Crear un input de tipo file invisible
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*'; // Solo aceptar imágenes
-    fileInput.multiple = false; // Una imagen a la vez
-  
+    const fileInput = document.createElement("input")
+    fileInput.type = "file"
+    fileInput.accept = "image/*" // Solo aceptar imágenes
+    fileInput.multiple = false // Una imagen a la vez
+
     // Cuando el usuario seleccione un archivo
     fileInput.onchange = async (e) => {
-      const target = e.target as HTMLInputElement;
-      const files = target.files;
-  
-      if (!files || files.length === 0) return;
-  
+      const target = e.target as HTMLInputElement
+      const files = target.files
+
+      if (!files || files.length === 0) return
+
       try {
-        setLoading(true);
-        const file = files[0];
-  
+        setLoading(true)
+        const file = files[0]
+
         // Crear una URL temporal para la vista previa
-        const previewUrl = URL.createObjectURL(file);
-        const newImages = [...productImages, previewUrl];
-        setProductImages(newImages);
-  
+        const previewUrl = URL.createObjectURL(file)
+        const newImages = [...productImages, previewUrl]
+        setProductImages(newImages)
+
         // Subir la imagen usando el servicio de imágenes
-        const imageService = new ImageService();
+        const imageService = new ImageService()
         const uploadedUrl = await imageService.uploadImage(file, (progress) => {
-          console.log(`Progreso de carga: ${progress}%`);
-        });
-  
+          console.log(`Progreso de carga: ${progress}%`)
+        })
+
         // Reemplazar la URL temporal con la URL real pero manteniendo todas las imágenes
         // Encontrar el índice de la URL temporal (la última añadida)
-        const tempIndex = productImages.length;
+        const tempIndex = productImages.length
         // Crear un nuevo array con todas las imágenes, reemplazando la temporal por la real
-        const finalImages = [...productImages];
-        finalImages[tempIndex] = uploadedUrl;
-        setProductImages(finalImages);
-  
+        const finalImages = [...productImages]
+        finalImages[tempIndex] = uploadedUrl
+        setProductImages(finalImages)
+
         // Actualizar el producto en la base de datos con la nueva imagen
         if (producto && producto.id) {
           // Asegurarse de que estamos usando las URLs finales correctas
-          const allImageUrls = finalImages.join('|');
-          
+          const allImageUrls = finalImages.join("|")
+
           // Antes de la llamada a modifyItem
           console.log("Enviando actualización de imágenes:", {
             productId: producto.id,
-            imageUrl: allImageUrls
-          });
-          
+            imageUrl: allImageUrls,
+          })
+
           // Crear un objeto completo con todos los campos requeridos
           const itemData = {
             title: producto.title,
@@ -202,54 +203,54 @@ export const PaginaProducto = () => {
             imageUrl: allImageUrls,
             price: producto.price,
             itemCondition: producto.itemCondition || "bueno", // Valor por defecto si no existe
-            location: producto.location || ""
-          };
-          
-          await itemService.modifyItem(producto.id, itemData);
-  
+            location: producto.location || "",
+          }
+
+          await itemService.modifyItem(producto.id, itemData)
+
           // Actualizar el producto local con la nueva URL de imagen
-          setProducto(prev => {
-            if (!prev) return null;
-            return { ...prev, imageUrl: allImageUrls };
-          });
+          setProducto((prev) => {
+            if (!prev) return null
+            return { ...prev, imageUrl: allImageUrls }
+          })
         }
       } catch (error) {
-        console.error('Error al subir la imagen:', error);
+        console.error("Error al subir la imagen:", error)
         // Eliminar la última imagen añadida si hay error
-        setProductImages(prevImages => prevImages.slice(0, -1));
-        alert('No se pudo subir la imagen. Por favor, inténtalo de nuevo.');
+        setProductImages((prevImages) => prevImages.slice(0, -1))
+        alert("No se pudo subir la imagen. Por favor, inténtalo de nuevo.")
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-  
+    }
+
     // Simular clic en el input para abrir el selector de archivos
-    fileInput.click();
+    fileInput.click()
   }
 
   // Función para eliminar una imagen
   const handleDeleteImage = async (index: number) => {
     try {
-      setLoading(true);
-      
+      setLoading(true)
+
       // Crear una copia del array de imágenes y eliminar la imagen seleccionada
-      const newImages = [...productImages];
-      newImages.splice(index, 1);
-      
+      const newImages = [...productImages]
+      newImages.splice(index, 1)
+
       // Actualizar el estado local con las imágenes restantes o una imagen de placeholder
-      const finalImages = newImages.length > 0 ? newImages : ["/placeholder.svg?height=600&width=800"];
-      setProductImages(finalImages);
-      
+      const finalImages = newImages.length > 0 ? newImages : ["/placeholder.svg?height=600&width=800"]
+      setProductImages(finalImages)
+
       // Solo actualizar en el backend si el producto existe
       if (producto && producto.id) {
         // Convertir el array de imágenes a una cadena separada por '|'
-        const allImageUrls = finalImages.join('|');
-        
+        const allImageUrls = finalImages.join("|")
+
         console.log("Enviando actualización después de eliminar imagen:", {
           productId: producto.id,
-          imageUrl: allImageUrls
-        });
-        
+          imageUrl: allImageUrls,
+        })
+
         // Crear un objeto completo con todos los campos requeridos
         const itemData = {
           title: producto.title,
@@ -258,28 +259,28 @@ export const PaginaProducto = () => {
           imageUrl: allImageUrls,
           price: producto.price,
           itemCondition: producto.itemCondition || "bueno",
-          location: producto.location || ""
-        };
-        
+          location: producto.location || "",
+        }
+
         // Enviar la actualización al backend
-        await itemService.modifyItem(producto.id, itemData);
-        
+        await itemService.modifyItem(producto.id, itemData)
+
         // Actualizar el producto local con la nueva URL de imagen
-        setProducto(prev => {
-          if (!prev) return null;
-          return { ...prev, imageUrl: allImageUrls };
-        });
+        setProducto((prev) => {
+          if (!prev) return null
+          return { ...prev, imageUrl: allImageUrls }
+        })
       }
     } catch (error) {
-      console.error('Error al eliminar la imagen:', error);
-      alert('No se pudo eliminar la imagen. Por favor, inténtalo de nuevo.');
-      
+      console.error("Error al eliminar la imagen:", error)
+      alert("No se pudo eliminar la imagen. Por favor, inténtalo de nuevo.")
+
       // Restaurar las imágenes originales en caso de error
       if (producto && producto.imageUrl) {
-        setProductImages(producto.imageUrl.split('|'));
+        setProductImages(producto.imageUrl.split("|"))
       }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
@@ -575,19 +576,39 @@ export const PaginaProducto = () => {
 
           {/* Botones de acción */}
           <div className="d-grid gap-2">
-            <Button variant="success" size="lg" className="rounded-pill">
-              <ChatLeftText className="me-2" />
-              Contactar con el vendedor
-            </Button>
-            <div className="d-flex gap-2">
-              <Button variant="outline-success" className="w-100 rounded-pill">
-                <ArrowClockwise className="me-2" />
-                Proponer intercambio
-              </Button>
-              <Button variant="outline-secondary" className="rounded-pill px-3">
-                <Share />
-              </Button>
-            </div>
+            {!isOwner ? (
+              <>
+                <Button variant="success" size="lg" className="rounded-pill">
+                  <ChatLeftText className="me-2" />
+                  Contactar con el vendedor
+                </Button>
+                <div className="d-flex gap-2">
+                  <Button variant="outline-success" className="w-100 rounded-pill">
+                    <ArrowClockwise className="me-2" />
+                    Proponer intercambio
+                  </Button>
+                  <Button variant="outline-secondary" className="rounded-pill px-3">
+                    <Share />
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <Button variant="primary" size="lg" className="rounded-pill">
+                  <Pencil className="me-2" />
+                  Editar producto
+                </Button>
+                <div className="d-flex gap-2">
+                  <Button variant="outline-danger" className="w-100 rounded-pill">
+                    <Trash className="me-2" />
+                    Eliminar producto
+                  </Button>
+                  <Button variant="outline-secondary" className="rounded-pill px-3">
+                    <Share />
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </Col>
       </Row>
