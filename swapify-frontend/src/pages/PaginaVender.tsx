@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Container, Row, Col, Form, Button, Card, Alert, ProgressBar, Badge } from "react-bootstrap"
+import { Container, Row, Col, Form, Button, Card, Alert, ProgressBar, Badge, Accordion, Spinner } from "react-bootstrap"
 import { useNavigate } from "react-router-dom"
 import {
   XCircle,
@@ -15,8 +15,10 @@ import {
 } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
-import { useAuth } from "../contexts/AuthContext"
 import { ImageService } from "../services/imageService"
+import { ImageAnalysisService } from '../services/imageAnalysisService';
+import { ImageAnalysisResults } from '../components/ImageAnalysisResults';
+import { useAuth } from "../contexts/AuthContext"
 
 // Lista de categorías disponibles
 const CATEGORIAS = [
@@ -73,6 +75,15 @@ export const PaginaVender = () => {
   const [validated, setValidated] = useState(false)
   const [step, setStep] = useState(1)
 
+  // Estado para almacenar los resultados de análisis de imágenes
+  const [analysisResults, setAnalysisResults] = useState<Array<{
+    previewUrl: string;
+    analysis: any;
+    matchResult: any;
+  }>>([]);
+
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
   // Comprobar si el usuario está autenticado
   useEffect(() => {
     if (!isAuthenticated) {
@@ -108,7 +119,74 @@ export const PaginaVender = () => {
     )
 
     setImagePreviewUrls([...imagePreviewUrls, ...newPreviewUrls])
+
+    // Analizar las nuevas imágenes
+    analyzeImages(newPreviewUrls);
   }
+
+  // Función para analizar imágenes
+  const analyzeImages = async (urls: string[]) => {
+    setIsAnalyzing(true);
+
+    const results = await Promise.all(
+      urls.map(async (url) => {
+        const img = new Image();
+        img.src = url;
+
+        await new Promise((resolve) => {
+          img.onload = resolve;
+        });
+
+        const analysis = await ImageAnalysisService.analyzeImage(img);
+        const matchResult = await ImageAnalysisService.verifyMatch(
+          img,
+          formData.title,
+          formData.description
+        );
+
+        return {
+          previewUrl: url,
+          analysis,
+          matchResult
+        };
+      })
+    );
+
+    setAnalysisResults([...analysisResults, ...results]);
+    setIsAnalyzing(false);
+  };
+
+  // Función para recalcular coincidencias cuando cambia el título/descripción
+  useEffect(() => {
+    if (formData.title || formData.description) {
+      const updateMatches = async () => {
+        const updatedResults = await Promise.all(
+          analysisResults.map(async (result) => {
+            const img = new Image();
+            img.src = result.previewUrl;
+            await new Promise((resolve) => {
+              img.onload = resolve;
+            });
+
+            const matchResult = await ImageAnalysisService.verifyMatch(
+              img,
+              formData.title,
+              formData.description
+            );
+
+            return {
+              ...result,
+              matchResult
+            };
+          })
+        );
+
+        setAnalysisResults(updatedResults);
+      };
+
+      updateMatches();
+    }
+  }, [formData.title, formData.description]);
 
   // Añadir una función para eliminar una imagen
   const removeImage = (index: number) => {
@@ -153,6 +231,20 @@ export const PaginaVender = () => {
   // Enviar el formulario
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
+    // Verificar coincidencias bajas
+    const lowMatches = analysisResults.filter(
+      result => result.matchResult.matchPercentage < 50
+    );
+
+    if (lowMatches.length > 0) {
+      const confirmSubmit = window.confirm(
+        `Algunas imágenes tienen baja coincidencia con tu descripción (${lowMatches.length} de ${analysisResults.length}). ¿Deseas continuar?`
+      );
+
+      if (!confirmSubmit) return;
+    }
+
     const form = e.currentTarget
 
     if (form.checkValidity() === false) {
@@ -292,6 +384,29 @@ export const PaginaVender = () => {
                       </Form.Text>
                     </Form.Group>
 
+                    {/* Descripción */}
+                    <Form.Group className="mb-4" controlId="formDescription">
+                      <Form.Label className="fw-medium">
+                        Descripción <span className="text-danger">*</span>
+                      </Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={4}
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        placeholder="Describe tu producto, menciona características, estado, razón de venta..."
+                        required
+                        maxLength={1000}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        Por favor, añade una descripción para tu producto.
+                      </Form.Control.Feedback>
+                      <Form.Text className="text-muted">
+                        Una buena descripción aumenta las posibilidades de intercambio (máx. 1000 caracteres).
+                      </Form.Text>
+                    </Form.Group>
+
                     {/* Categoría */}
                     <Form.Group className="mb-4" controlId="formCategory">
                       <Form.Label className="fw-medium">
@@ -415,6 +530,62 @@ export const PaginaVender = () => {
                       </Form.Text>
                     </Form.Group>
 
+                    {isAnalyzing && (
+                      <div className="text-center my-3">
+                        <Spinner animation="border" role="status">
+                          <span className="visually-hidden">Analizando imágenes...</span>
+                        </Spinner>
+                        <p>Analizando imágenes...</p>
+                      </div>
+                    )}
+
+                    {analysisResults.length > 0 && (
+                      <div className="mt-4">
+                        <h4>Análisis de Imágenes</h4>
+                        <div className="row">
+                          {analysisResults.map((result, index) => (
+                            <div key={index} className="col-md-4 mb-3">
+                              <Card>
+                                <Card.Img variant="top" src={result.previewUrl} />
+                                <Card.Body>
+                                  <Card.Title>
+                                    Coincidencia: {result.matchResult.matchPercentage.toFixed(0)}%
+                                  </Card.Title>
+                                  {result.matchResult.matchPercentage < 60 && (
+                                    <Alert variant="warning" className="p-2">
+                                      <small>
+                                        <strong>Posible discrepancia:</strong> Considera añadir {result.matchResult.suggestions.slice(0, 3).join(', ')} a tu descripción
+                                      </small>
+                                    </Alert>
+                                  )}
+                                  <div className="mt-2">
+                                    <Accordion>
+                                      <Accordion.Item eventKey={`details-${index}`}>
+                                        <Accordion.Header>Ver detalles</Accordion.Header>
+                                        <Accordion.Body>
+                                          <p><strong>Etiquetas detectadas:</strong></p>
+                                          <div className="d-flex flex-wrap gap-1">
+                                            {result.matchResult.allTags.map((tag: string, i: number) => (
+                                              <Badge
+                                                key={i}
+                                                bg={result.matchResult.matchingTags.includes(tag) ? 'success' : 'secondary'}
+                                              >
+                                                {tag}
+                                              </Badge>
+                                            ))}
+                                          </div>
+                                        </Accordion.Body>
+                                      </Accordion.Item>
+                                    </Accordion>
+                                  </div>
+                                </Card.Body>
+                              </Card>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Botón para continuar */}
                     <div className="d-grid mt-4">
                       <Button variant="success" type="submit" size="lg" className="rounded-pill">
@@ -422,6 +593,10 @@ export const PaginaVender = () => {
                       </Button>
                     </div>
                   </Form>
+                  <ImageAnalysisResults
+                    results={analysisResults}
+                    isAnalyzing={isAnalyzing}
+                  />
                 </Card.Body>
               </Card>
             )}
@@ -433,29 +608,6 @@ export const PaginaVender = () => {
                   <h2 className="h4 fw-bold mb-4">Detalles del producto</h2>
 
                   <Form noValidate validated={validated} onSubmit={handleSubmit}>
-                    {/* Descripción */}
-                    <Form.Group className="mb-4" controlId="formDescription">
-                      <Form.Label className="fw-medium">
-                        Descripción <span className="text-danger">*</span>
-                      </Form.Label>
-                      <Form.Control
-                        as="textarea"
-                        rows={4}
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        placeholder="Describe tu producto, menciona características, estado, razón de venta..."
-                        required
-                        maxLength={1000}
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        Por favor, añade una descripción para tu producto.
-                      </Form.Control.Feedback>
-                      <Form.Text className="text-muted">
-                        Una buena descripción aumenta las posibilidades de intercambio (máx. 1000 caracteres).
-                      </Form.Text>
-                    </Form.Group>
-
                     {/* Estado del producto */}
                     <Form.Group className="mb-4" controlId="formCondition">
                       <Form.Label className="fw-medium">
