@@ -1,11 +1,12 @@
 "use client"
 
 import { Link } from "react-router-dom"
-import { Container, Row, Col, Card, Button, Badge } from "react-bootstrap"
+import { Container, Row, Col, Button } from "react-bootstrap"
 import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
 import { CategoryService } from "../services/categoryService"
+import { ProductCard } from "../components/ProductCard"
 import {
   ArrowRight,
   Star,
@@ -13,14 +14,6 @@ import {
   Gift,
   Award,
   ArrowDownCircle,
-  Tag,
-  Laptop,
-  House,
-  Book,
-  Handbag,
-  Tools,
-  Mortarboard,
-  Truck,
 } from "react-bootstrap-icons"
 import { useNavigate } from "react-router-dom" // <-- Agrega esta línea
 
@@ -37,6 +30,14 @@ interface Producto {
   imageUrl: string
   status: string
   createdAt: string
+  price: number
+  user?: {
+    id: number
+    name: string
+    location?: string
+  }
+  location?: string
+  itemCondition?: string
 }
 
 export const PaginaInicio = () => {
@@ -406,136 +407,3 @@ export const PaginaInicio = () => {
     </>
   )
 }
-
-
-const ProductCard = ({ producto }: { producto: Producto }) => {
-  // Función para determinar el icono según la categoría
-  const getCategoryIcon = (categoryName: string) => {
-    switch (categoryName.toLowerCase()) {
-      case "electrónica":
-      case "tecnología":
-        return <Laptop className="me-1" />
-      case "hogar":
-        return <House className="me-1" />
-      case "libros":
-        return <Book className="me-1" />
-      case "moda":
-      case "ropa":
-      case "calzado":
-        return <Handbag className="me-1" />
-      case "reparaciones":
-        return <Tools className="me-1" />
-      case "clases":
-        return <Mortarboard className="me-1" />
-      case "transporte":
-      case "vehículos":
-        return <Truck className="me-1" />
-      default:
-        return <Tag className="me-1" />
-    }
-  }
-
-  // Función para determinar el color del badge según la categoría
-  const getCategoryColor = (categoryName: string) => {
-    switch (categoryName.toLowerCase()) {
-      case "electrónica":
-      case "tecnología":
-        return "primary"
-      case "hogar":
-        return "success"
-      case "libros":
-        return "info"
-      case "moda":
-      case "ropa":
-      case "calzado":
-        return "danger"
-      case "reparaciones":
-        return "warning"
-      case "clases":
-        return "primary"
-      case "transporte":
-        return "success"
-      case "vehículos":
-        return "success"
-      default:
-        return "secondary"
-    }
-  }
-
-  // Obtener el nombre de la categoría de forma segura
-  const categoryName = producto.category?.name || "otros"
-
-  // Determinar si es un producto o servicio
-  const isService = ["reparaciones", "clases", "transporte"].includes(categoryName.toLowerCase())
-
-  // Imagen por defecto en caso de que no haya imagen de producto
-  const defaultImage = "https://images.unsplash.com/photo-1699645522859-512f53d4a4bf?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8ZmFsbG98ZW58MHx8MHx8fDI%3D"
-
-  return (
-    <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-      <Link to={`/productos/${producto.id}`} className="text-decoration-none">
-        <Card className="h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-          <div className="position-relative" style={{ height: "200px" }}>
-            <Card.Img
-              variant="top"
-              src={producto.imageUrl || defaultImage}
-              alt={producto.title}
-              className="img-fluid h-100"
-              style={{ objectFit: "cover" }}
-            />
-            <Badge
-              bg={getCategoryColor(categoryName)}
-              className="position-absolute top-0 end-0 m-2 px-2 py-1 rounded-pill"
-            >
-              {getCategoryIcon(categoryName)}
-              {categoryName}
-            </Badge>
-
-            {isService && (
-              <div
-                className="position-absolute bottom-0 start-0 w-100 p-2 text-white"
-                style={{
-                  background: "linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%)",
-                }}
-              >
-                <span className="badge bg-warning text-dark rounded-pill">Servicio</span>
-              </div>
-            )}
-          </div>
-          <Card.Body className="d-flex flex-column p-3">
-            <Card.Title
-              className="fw-bold text-dark mb-1"
-              style={{
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {producto.title}
-            </Card.Title>
-            <Card.Text
-              className="text-muted small mb-3"
-              style={{
-                overflow: "hidden",
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                lineHeight: "1.3rem",
-                height: "2.6rem",
-              }}
-            >
-              {producto.description}
-            </Card.Text>
-            <div className="mt-auto d-flex justify-content-between align-items-center">
-              <small className="text-muted">{new Date(producto.createdAt).toLocaleDateString()}</small>
-              <Button variant="outline-success" size="sm" className="rounded-pill px-3">
-                Ver más
-              </Button>
-            </div>
-          </Card.Body>
-        </Card>
-      </Link>
-    </motion.div>
-  )
-}
-

@@ -10,6 +10,7 @@ import { ItemService } from "../services/itemService"
 import { UserService } from "../services/userService"
 import { useAuth } from "../contexts/AuthContext"
 import { ReviewService } from "../services/reviewService"
+import { ProductCard } from "../components/ProductCard"
 
 interface User {
   id: number
@@ -137,7 +138,7 @@ export const PaginaPerfil = () => {
         setCanReview(!hasReviewed)
       }
     }
-    
+
     checkCanReview()
   }, [isAuthenticated, user, id])
 
@@ -272,6 +273,9 @@ export const PaginaPerfil = () => {
         {/* Información del perfil */}
         <Col lg={4} className="mb-4">
           <Card className="border-0 shadow-sm rounded-4">
+            {isOwnProfile && (
+              <div className="bg-success text-white py-2 px-3 rounded-top text-center fw-bold">Mi Perfil</div>
+            )}
             <Card.Body className="text-center p-4">
               <div className="position-relative mb-4">
                 <Image
@@ -291,7 +295,6 @@ export const PaginaPerfil = () => {
                 )}
               </div>
 
-              {/* En la sección donde se muestra el nombre del usuario, añadir la reputación */}
               <h3 className="fw-bold mb-1">{userProfile.name}</h3>
               <div className="d-flex justify-content-center align-items-center mb-2">
                 <Badge bg="info" className="rounded-pill px-3 py-2">
@@ -315,7 +318,12 @@ export const PaginaPerfil = () => {
                     Contactar
                   </Button>
                 ) : (
-                  <Button variant="outline-primary" className="rounded-pill px-4 me-2" as={Link as any} to="/editar-perfil">
+                  <Button
+                    variant="outline-primary"
+                    className="rounded-pill px-4 me-2"
+                    as={Link as any}
+                    to="/editar-perfil"
+                  >
                     <Pencil className="me-2" />
                     Editar Perfil
                   </Button>
@@ -358,43 +366,7 @@ export const PaginaPerfil = () => {
                 <Row xs={1} md={2} className="g-4">
                   {userItems.map((item) => (
                     <Col key={item.id}>
-                      <Card className="h-100 border-0 shadow-sm rounded-4 overflow-hidden">
-                        <div style={{ height: "180px", overflow: "hidden" }}>
-                          <Card.Img
-                            variant="top"
-                            src={item.imageUrl || "/placeholder.svg"}
-                            alt={item.title}
-                            style={{ objectFit: "cover", height: "100%", width: "100%" }}
-                          />
-                        </div>
-                        <Card.Body>
-                          <div className="d-flex justify-content-between align-items-start mb-2">
-                            {item.category && (
-                              <Badge bg="primary" className="rounded-pill">
-                                {item.category.name}
-                              </Badge>
-                            )}
-                            <Badge bg={item.status === "Available" ? "success" : "secondary"} className="rounded-pill">
-                              {item.status === "Available" ? "Disponible" : item.status}
-                            </Badge>
-                          </div>
-                          <Card.Title className="fw-bold">{item.title}</Card.Title>
-                          <Card.Text className="text-muted small mb-3" style={{ height: "40px", overflow: "hidden" }}>
-                            {item.description}
-                          </Card.Text>
-                          <div className="d-flex justify-content-between align-items-center">
-                            <span className="fw-bold text-success">{item.price} Créditos</span>
-                            <Button
-                              variant="outline-success"
-                              size="sm"
-                              className="rounded-pill"
-                              href={`/productos/${item.id}`}
-                            >
-                              Ver detalles
-                            </Button>
-                          </div>
-                        </Card.Body>
-                      </Card>
+                      <ProductCard producto={item} />
                     </Col>
                   ))}
                 </Row>
@@ -404,12 +376,7 @@ export const PaginaPerfil = () => {
                     {isOwnProfile ? (
                       <>
                         <p className="text-muted mb-3">Todavía no has publicado ningún producto o servicio.</p>
-                        <Button
-                          as={Link as any}
-                          to="/vender"
-                          variant="success"
-                          className="rounded-pill px-4"
-                        >
+                        <Button as={Link as any} to="/vender" variant="success" className="rounded-pill px-4">
                           <Plus className="me-2" />
                           Publicar un producto o servicio
                         </Button>
@@ -429,7 +396,7 @@ export const PaginaPerfil = () => {
                     <p className="mb-0">{userProfile.description}</p>
                   ) : (
                     <p className="text-muted text-center mb-0">
-                      {isOwnProfile 
+                      {isOwnProfile
                         ? "Todavía no has añadido una descripción."
                         : "Este usuario aún no ha añadido una descripción."}
                     </p>
@@ -506,7 +473,7 @@ export const PaginaPerfil = () => {
                     </div>
                   ) : (
                     <p className="text-muted text-center">
-                      {isOwnProfile 
+                      {isOwnProfile
                         ? "Todavía no has recibido valoraciones."
                         : "Este usuario aún no tiene valoraciones."}
                     </p>
@@ -520,4 +487,3 @@ export const PaginaPerfil = () => {
     </Container>
   )
 }
-
