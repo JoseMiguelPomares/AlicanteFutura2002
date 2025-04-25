@@ -5,6 +5,7 @@ import type React from "react"
 import { Container, Row, Col, Form, Button, Card } from "react-bootstrap"
 import { motion } from "framer-motion"
 import { GeoAlt as MapPin, Envelope, Telephone, ShieldFill as Shield, CreditCard as CreditCard, CheckCircleFill as CheckCircle } from "react-bootstrap-icons"
+import MapaWeb from "../components/MapaWeb"
 
 export const PaginaContacto = () => {
   const handleSubmit = (e: React.FormEvent) => {
@@ -104,15 +105,8 @@ export const PaginaContacto = () => {
       <Container className="my-5">
         <h2 className="mb-4">Encuéntranos</h2>
         <Card className="border-0 shadow-sm rounded-4 overflow-hidden">
-          <div className="bg-light" style={{ height: "400px" }}>
-            {/* Aquí iría el componente de mapa real */}
-            <div className="d-flex justify-content-center align-items-center h-100 text-muted">
-              <div className="text-center">
-                <MapPin size={40} className="mb-3" />
-                <h5>Calle Principal 123, Madrid, España</h5>
-                <p>Mapa interactivo</p>
-              </div>
-            </div>
+          <div style={{ height: "400px", position: "relative" }}>
+            <MapaWeb />
           </div>
         </Card>
       </Container>
