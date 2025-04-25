@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Container, Card, Button, Form, Row, Col, Alert, ProgressBar } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
-import { ArrowLeft, EnvelopeFill, LockFill, PersonFill, EyeFill, EyeSlashFill, Google } from "react-bootstrap-icons"
+import { ArrowLeft, EnvelopeFill, LockFill, PersonFill, EyeFill, EyeSlashFill, Google, Facebook } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 import { UserService } from "../services/userService"
 import { useAuth } from "../contexts/AuthContext"
@@ -13,7 +13,7 @@ import ReCAPTCHA from "react-google-recaptcha" // Importar el componente oficial
 
 export const PaginaRegistro = () => {
   const navigate = useNavigate()
-  const { login, loginWithGoogle, error: authError } = useAuth()
+  const { login, loginWithGoogle, loginWithFacebook, error: authError } = useAuth()
   const userService = new UserService()
   const [formData, setFormData] = useState({
     name: "",
@@ -60,6 +60,20 @@ export const PaginaRegistro = () => {
       navigate("/")
     } catch (error: any) {
       setError(error.message || "Error al iniciar sesión con Google")
+    } finally {
+      setSocialAuthLoading(false)
+    }
+  }
+
+  // Añadir función para manejar el login con Facebook
+  const handleFacebookLogin = async () => {
+    setSocialAuthLoading(true)
+    setError(null)
+    try {
+      await loginWithFacebook()
+      navigate("/")
+    } catch (error: any) {
+      setError(error.message || "Error al iniciar sesión con Facebook")
     } finally {
       setSocialAuthLoading(false)
     }
@@ -241,14 +255,24 @@ export const PaginaRegistro = () => {
                       <span className="text-muted">O regístrate con</span>
                     </div>
 
-                    <div className="d-grid">
+                    <div className="d-grid gap-2">
                       <Button
-                        variant="outline-secondary"
+                        variant="outline-danger"
                         onClick={handleGoogleLogin}
                         disabled={socialAuthLoading}
                         className="d-flex align-items-center justify-content-center gap-2"
                       >
                         <Google /> Continuar con Google
+                      </Button>
+                      
+                      {/* Botón de Facebook */}
+                      <Button
+                        variant="outline-primary"
+                        onClick={handleFacebookLogin}
+                        disabled={socialAuthLoading}
+                        className="d-flex align-items-center justify-content-center gap-2"
+                      >
+                        <Facebook /> Continuar con Facebook
                       </Button>
                     </div>
 
