@@ -9,9 +9,10 @@ import {
   signInWithPopup,
   signOut,
   GoogleAuthProvider,
+  FacebookAuthProvider,
   type User as FirebaseUser,
 } from "firebase/auth"
-import { auth, googleProvider } from "../services/firebase"
+import { auth, facebookProvider, googleProvider } from "../services/firebase"
 
 interface User {
   id: number
@@ -26,6 +27,7 @@ interface AuthContextType {
   error: string | null
   login: (email: string, password: string) => Promise<void>
   loginWithGoogle: () => Promise<void>
+  loginWithFacebook: () => Promise<void>
   logout: () => void
   isAuthenticated: boolean
 }
@@ -125,6 +127,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
+  const loginWithFacebook = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const result = await signInWithPopup(auth, facebookProvider)
+      // Acceder al token que enviaremos al backend
+      const credential = FacebookAuthProvider.credentialFromResult(result)
+      const token = credential?.accessToken
+      // El usuario de Firebase
+      const firebaseUser = result.user
+
+      await processUserAfterSocialAuth(firebaseUser, token)
+    } catch (err: any) {
+      setError("Error al iniciar sesión con Facebook. Por favor intenta nuevamente.")
+      console.error("Facebook auth error:", err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const logout = () => {
     // Cerrar sesión en Firebase
     signOut(auth).catch((error) => {
@@ -152,6 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         error,
         login,
         loginWithGoogle,
+        loginWithFacebook,
         logout,
         isAuthenticated: !!user,
       }}

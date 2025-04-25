@@ -11,7 +11,7 @@ import ReCAPTCHA from 'react-google-recaptcha';
 // En la parte superior, importa el hook useAuth
 import { useAuth } from "../contexts/AuthContext"
 // Justo después de la importación del useAuth, importamos los íconos para los proveedores sociales
-import { Google } from "react-bootstrap-icons"
+import { Google, Facebook } from "react-bootstrap-icons"
 
 // Reemplazar la función PaginaLogin por esta versión actualizada
 export const PaginaLogin = () => {
@@ -25,7 +25,7 @@ export const PaginaLogin = () => {
   const [validated, setValidated] = useState<boolean>(false)
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   // Añade esta línea cerca del inicio de la función PaginaLogin
-  const { login, loginWithGoogle, error: authError } = useAuth()
+  const { login, loginWithGoogle, loginWithFacebook, error: authError } = useAuth()
 
   useEffect(() => {
     if (authError) {
@@ -63,12 +63,26 @@ export const PaginaLogin = () => {
     }
   }
 
-  // Agregar estas funciones para manejar la autenticación social
+  // Agregar estas funciones para manejar el login con Google
   const handleGoogleLogin = async () => {
     try {
       setSocialAuthLoading(true)
       setError(null)
       await loginWithGoogle()
+      navigate("/")
+    } catch (error) {
+      // El error ya se establece en el contexto de autenticación
+    } finally {
+      setSocialAuthLoading(false)
+    }
+  }
+
+  // Agregar esta función para manejar el login con Facebook
+  const handleFacebookLogin = async () => {
+    try {
+      setSocialAuthLoading(true)
+      setError(null)
+      await loginWithFacebook()
       navigate("/")
     } catch (error) {
       // El error ya se establece en el contexto de autenticación
@@ -165,6 +179,17 @@ export const PaginaLogin = () => {
                     >
                       <Google size={20} />
                       <span>Continuar con Google</span>
+                    </Button>
+                    
+                    {/* Botón de Facebook */}
+                    <Button
+                      variant="outline-primary"
+                      className="d-flex align-items-center justify-content-center gap-2"
+                      onClick={handleFacebookLogin}
+                      disabled={socialAuthLoading}
+                    >
+                      <Facebook size={20} />
+                      <span>Continuar con Facebook</span>
                     </Button>
                   </div>
                 </div>
