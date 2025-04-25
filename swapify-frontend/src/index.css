@@ -232,3 +232,14 @@ body {
   }
 }
 
+.btn-fixed {
+  width: 70px; /* Ajusta según tu diseño */
+}
+.btn-fixed:focus,
+.btn-fixed:active {
+  background-color: transparent !important;
+  box-shadow: none; /* Evita el efecto resaltado */
+  color: #007bff !important; /* Color azul de Bootstrap */
+}
+
+

@@ -51,9 +51,23 @@ export const PaginaInicio = () => {
   const [categoriaActiva, setCategoriaActiva] = useState<string>("Todos")
   const [error, setError] = useState<string | null>(null)
   const [cargando, setCargando] = useState<boolean>(true)
+  const [esPantallaPequena, setEsPantallaPequena] = useState<boolean>(window.innerWidth < 768)
+  const [mostrarTodasCategorias, setMostrarTodasCategorias] = useState<boolean>(false)
   const itemService = useRef(new ItemService()).current
-  const navigate = useNavigate() // <-- Agrega esta línea
+  const navigate = useNavigate()
 
+  // Detectar cambios en el tamaño de la ventana
+  useEffect(() => {
+    const handleResize = () => {
+      setEsPantallaPequena(window.innerWidth < 768)
+    }
+    
+    window.addEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -331,28 +345,35 @@ export const PaginaInicio = () => {
         <Container>
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2 className="fw-bold">Explora por Categoría</h2>
-            <Link to="/categorias" className="text-decoration-none text-success fw-bold">
-              Ver todas <ArrowRight />
-            </Link>
           </div>
           <div className="d-flex flex-wrap gap-2 mb-4">
-            {categorias.map((categoria, index) => (
-              <Button
-                key={index}
-                variant={categoriaActiva === categoria ? "success" : "outline-success"}
-                className="rounded-pill px-4 py-2"
-                // Cambia el onClick para navegar a la página de categoría
-                onClick={() => {
-                  if (categoria === "Todos") {
-                    setCategoriaActiva("Todos")
-                  } else {
-                    navigate(`/categoria/${encodeURIComponent(categoria)}`)
-                  }
-                }}
+            {categorias
+              .slice(0, esPantallaPequena && !mostrarTodasCategorias ? 4 : categorias.length)
+              .map((categoria, index) => (
+                <Button
+                  key={index}
+                  variant={categoriaActiva === categoria ? "success" : "outline-success"}
+                  className="rounded-pill px-4 py-2"
+                  onClick={() => {
+                    if (categoria === "Todos") {
+                      setCategoriaActiva("Todos")
+                    } else {
+                      navigate(`/categoria/${encodeURIComponent(categoria)}`)
+                    }
+                  }}
+                >
+                  {categoria}
+                </Button>
+              ))}
+            {esPantallaPequena && categorias.length > 4 && (
+              <Button 
+                variant="outline-primary" 
+                className="rounded-pill btn-sm btn-fixed"
+                onClick={() => setMostrarTodasCategorias(!mostrarTodasCategorias)}
               >
-                {categoria}
+                {mostrarTodasCategorias ? "Ver menos" : "Ver más..."}
               </Button>
-            ))}
+            )}
           </div>
         </Container>
       </div>
