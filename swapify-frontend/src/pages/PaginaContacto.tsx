@@ -6,6 +6,7 @@ import { Container, Row, Col, Form, Button, Card } from "react-bootstrap"
 import { motion } from "framer-motion"
 import { GeoAlt as MapPin, Envelope, Telephone, ShieldFill as Shield, CreditCard as CreditCard, CheckCircleFill as CheckCircle } from "react-bootstrap-icons"
 import MapaWeb from "../components/MapaWeb"
+import Mapa from "../components/Mapa"
 
 export const PaginaContacto = () => {
   const handleSubmit = (e: React.FormEvent) => {

@@ -13,6 +13,7 @@
     "@react-firebase/auth": "^0.2.10",
     "@react-google-maps/api": "^2.20.6",
     "@types/react-bootstrap": "^0.32.37",
+    "@vis.gl/react-google-maps": "^1.5.2",
     "axios": "^1.8.4",
     "bootstrap": "^5.3.3",
     "firebase": "^11.6.0",
