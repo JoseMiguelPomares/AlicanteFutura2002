@@ -62,6 +62,41 @@ body {
   }
 }
 
+.nav-link-hover {
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.nav-link-hover:hover {
+  color: #20b03d !important;
+}
+
+.nav-link-hover::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -5px;
+  left: 0;
+  background-color: #20b03d;
+  transition: width 0.3s ease;
+}
+
+.nav-link-hover:hover::after {
+  width: 100%;
+}
+
+.nav-button {
+  transition: transform 0.2s ease;
+  border-radius: 8px;
+  padding: 8px 12px !important;
+}
+
+.nav-button:hover {
+  transform: translateY(-2px);
+  background-color: rgba(32, 176, 61, 0.1);
+}
+
 /* sidebar.css */
 .sidebar {
   width: 250px;
@@ -90,7 +125,8 @@ body {
 }
 
 .secondary-bar {
-  background-color: #f8f9fa;
+  background: linear-gradient(to right, #f8f9fa, #e9f7ef);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   border-top: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
   padding: 10px 0;
@@ -232,14 +268,11 @@ body {
   }
 }
 
-.btn-fixed {
-  width: 70px; /* Ajusta según tu diseño */
-}
-.btn-fixed:focus,
-.btn-fixed:active {
-  background-color: transparent !important;
-  box-shadow: none; /* Evita el efecto resaltado */
-  color: #007bff !important; /* Color azul de Bootstrap */
+/* Animación para los iconos en hover */
+.nav-link-hover svg {
+  transition: transform 0.3s ease;
 }
 
-
+.nav-link-hover:hover svg {
+  transform: scale(1.2);
+}
