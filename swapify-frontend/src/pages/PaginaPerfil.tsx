@@ -1,11 +1,10 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import { Container, Row, Col, Card, Button, Badge, Tabs, Tab, ListGroup, Image, Form, Alert } from "react-bootstrap"
-import { CheckCircle, GeoAlt, Calendar3, StarFill, Star, Plus, Chat, Pencil } from "react-bootstrap-icons"
+import { CheckCircle, GeoAlt, Calendar3, StarFill, Star, Plus, Chat, Pencil, XCircle } from "react-bootstrap-icons"
 import { ItemService } from "../services/itemService"
 import { UserService } from "../services/userService"
 import { useAuth } from "../contexts/AuthContext"
@@ -21,7 +20,7 @@ interface User {
   location?: string
   joinDate?: string
   description?: string
-  reputation?: number // Añadimos el campo reputation
+  reputation?: number
 }
 
 interface Item {
@@ -38,7 +37,6 @@ interface Item {
   createdAt: string
 }
 
-// Añadir esta interfaz para las reviews
 interface Review {
   id: number
   reviewer: {
@@ -60,40 +58,39 @@ export const PaginaPerfil = () => {
   const [error, setError] = useState(false)
   const itemService = new ItemService()
   const userService = new UserService()
+  const reviewService = new ReviewService()
 
-  // Dentro de la función PaginaPerfil, añadir estos estados
+  // Estados para reviews
   const [reviews, setReviews] = useState<Review[]>([])
   const [newReview, setNewReview] = useState({
     rating: 5,
     comment: "",
   })
+  const [editReviewData, setEditReviewData] = useState({
+    rating: 5,
+    comment: ""
+  })
+  const [editingReviewId, setEditingReviewId] = useState<number | null>(null)
   const [reviewStats, setReviewStats] = useState({
     averageRating: 0,
     totalReviews: 0,
   })
   const [submittingReview, setSubmittingReview] = useState(false)
   const [reviewError, setReviewError] = useState<string | null>(null)
+  
   const { user, isAuthenticated } = useAuth()
-  const reviewService = new ReviewService()
-  // Comprobar si es mi propia página de usuario o es la de un tercero
   const isOwnProfile = isAuthenticated && user?.id === Number(id)
-  // Añadir estado para controlar si el usuario puede dejar una reseña
   const [canReview, setCanReview] = useState<boolean>(true)
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true)
-
-        // Obtener datos del usuario desde la API
         const response = await userService.getUserById(Number(id))
-        const userData = response.data
-        setUser(userData)
+        setUser(response.data)
 
-        // Obtener los productos del usuario
         try {
           const itemsResponse = await itemService.getByUserId(Number(id))
-          // La API ya devuelve solo los items del usuario, no es necesario filtrar
           setUserItems(itemsResponse)
         } catch (error) {
           console.error("Error al cargar productos del usuario:", error)
@@ -109,16 +106,12 @@ export const PaginaPerfil = () => {
     fetchUserData()
   }, [id])
 
-  // Añadir este useEffect para cargar las reviews
   useEffect(() => {
     const fetchReviews = async () => {
       if (id) {
         try {
-          // Obtener las reviews del usuario
           const reviewsData = await reviewService.getReviewsByUserId(Number(id))
           setReviews(reviewsData)
-
-          // Obtener estadísticas de reviews
           const stats = await reviewService.getUserReviewStats(Number(id))
           setReviewStats(stats)
         } catch (error) {
@@ -130,7 +123,6 @@ export const PaginaPerfil = () => {
     fetchReviews()
   }, [id])
 
-  // Añadir este effect para verificar si el usuario puede dejar una reseña
   useEffect(() => {
     const checkCanReview = async () => {
       if (isAuthenticated && user && id && user.id !== Number(id)) {
@@ -140,9 +132,9 @@ export const PaginaPerfil = () => {
     }
 
     checkCanReview()
-  }, [isAuthenticated, user, id])
+  }, [isAuthenticated, user, id, reviews])
 
-  // Añadir estas funciones para manejar las reviews
+  // Funciones para manejar reviews
   const handleReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNewReview({ ...newReview, comment: e.target.value })
   }
@@ -177,7 +169,6 @@ export const PaginaPerfil = () => {
 
       const createdReview = await reviewService.createReview(reviewData)
 
-      // Añadir la nueva review al estado
       setReviews([
         {
           ...createdReview,
@@ -190,7 +181,6 @@ export const PaginaPerfil = () => {
         ...reviews,
       ])
 
-      // Actualizar estadísticas
       const newTotalReviews = reviewStats.totalReviews + 1
       const newAverageRating =
         (reviewStats.averageRating * reviewStats.totalReviews + newReview.rating) / newTotalReviews
@@ -200,11 +190,11 @@ export const PaginaPerfil = () => {
         averageRating: newAverageRating,
       })
 
-      // Limpiar el formulario
       setNewReview({
         rating: 5,
         comment: "",
       })
+      setCanReview(false)
     } catch (error) {
       setReviewError("Error al enviar la valoración. Inténtalo de nuevo.")
       console.error("Error al enviar review:", error)
@@ -213,7 +203,76 @@ export const PaginaPerfil = () => {
     }
   }
 
-  // Función para renderizar estrellas
+  // Funciones para editar reviews
+  const handleEditReview = (review: Review) => {
+    setEditingReviewId(review.id)
+    setEditReviewData({
+      rating: review.rating,
+      comment: review.comment
+    })
+  }
+
+  const handleEditReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditReviewData({ ...editReviewData, comment: e.target.value })
+  }
+
+  const handleEditRatingChange = (rating: number) => {
+    setEditReviewData({ ...editReviewData, rating })
+  }
+
+  const handleCancelEdit = () => {
+    setEditingReviewId(null)
+  }
+
+  const handleUpdateReview = async (reviewId: number) => {
+    try {
+      setSubmittingReview(true)
+      
+      const updatedReview = await reviewService.updateReview(reviewId, editReviewData)
+      
+      setReviews(reviews.map(review => 
+        review.id === reviewId ? {
+          ...review,
+          rating: updatedReview.rating,
+          comment: updatedReview.comment
+        } : review
+      ))
+      
+      const updatedStats = await reviewService.getUserReviewStats(Number(id))
+      setReviewStats(updatedStats)
+      
+      setEditingReviewId(null)
+    } catch (error) {
+      setReviewError("Error al actualizar la valoración. Inténtalo de nuevo.")
+      console.error("Error al actualizar review:", error)
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
+
+  // Función para eliminar reviews
+  const handleDeleteReview = async (reviewId: number) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar esta valoración?")) {
+      try {
+        setSubmittingReview(true)
+        await reviewService.deleteReview(reviewId)
+        
+        setReviews(reviews.filter(review => review.id !== reviewId))
+        
+        const updatedStats = await reviewService.getUserReviewStats(Number(id))
+        setReviewStats(updatedStats)
+        
+        setCanReview(true)
+      } catch (error) {
+        setReviewError("Error al eliminar la valoración. Inténtalo de nuevo.")
+        console.error("Error al eliminar review:", error)
+      } finally {
+        setSubmittingReview(false)
+      }
+    }
+  }
+
+  // Funciones de renderizado
   const renderStars = (rating: number) => {
     return (
       <div className="d-flex">
@@ -228,13 +287,12 @@ export const PaginaPerfil = () => {
     )
   }
 
-  // Función para renderizar selector de estrellas
-  const renderRatingSelector = () => {
+  const renderRatingSelector = (rating: number, onChange: (rating: number) => void) => {
     return (
       <div className="d-flex mb-3">
         {[1, 2, 3, 4, 5].map((star) => (
-          <span key={star} onClick={() => handleRatingChange(star)} style={{ cursor: "pointer" }}>
-            {star <= newReview.rating ? (
+          <span key={star} onClick={() => onChange(star)} style={{ cursor: "pointer" }}>
+            {star <= rating ? (
               <StarFill className="text-warning fs-4 me-1" />
             ) : (
               <Star className="text-warning fs-4 me-1" />
@@ -270,7 +328,7 @@ export const PaginaPerfil = () => {
   return (
     <Container className="py-5">
       <Row>
-        {/* Información del perfil */}
+        {/* Columna izquierda - Información del perfil */}
         <Col lg={4} className="mb-4">
           <Card className="border-0 shadow-sm rounded-4">
             {isOwnProfile && (
@@ -358,9 +416,10 @@ export const PaginaPerfil = () => {
           </Card>
         </Col>
 
-        {/* Pestañas con contenido */}
+        {/* Columna derecha - Pestañas */}
         <Col lg={8}>
           <Tabs defaultActiveKey="productos" className="mb-4">
+            {/* Pestaña de Productos */}
             <Tab eventKey="productos" title="Productos">
               {userItems.length > 0 ? (
                 <Row xs={1} md={2} className="g-4">
@@ -389,6 +448,7 @@ export const PaginaPerfil = () => {
               )}
             </Tab>
 
+            {/* Pestaña "Sobre mí" */}
             <Tab eventKey="sobre" title="Sobre mí">
               <Card className="border-0 shadow-sm rounded-4">
                 <Card.Body className="p-4">
@@ -405,14 +465,16 @@ export const PaginaPerfil = () => {
               </Card>
             </Tab>
 
+            {/* Pestaña de Valoraciones */}
             <Tab eventKey="valoraciones" title="Valoraciones">
               <Card className="border-0 shadow-sm rounded-4">
                 <Card.Body className="p-4">
-                  {isAuthenticated && user?.id !== Number(id) && canReview ? (
+                  {/* Formulario para nueva review */}
+                  {isAuthenticated && user?.id !== Number(id) && canReview && (
                     <div className="mb-4">
                       <h5 className="fw-bold mb-3">Deja tu valoración</h5>
                       <Form onSubmit={handleSubmitReview}>
-                        {renderRatingSelector()}
+                        {renderRatingSelector(newReview.rating, handleRatingChange)}
                         <Form.Group className="mb-3">
                           <Form.Control
                             as="textarea"
@@ -433,11 +495,14 @@ export const PaginaPerfil = () => {
                         </Button>
                       </Form>
                     </div>
-                  ) : isAuthenticated && user?.id !== Number(id) && !canReview ? (
+                  )}
+
+                  {/* Mensaje si ya ha valorado */}
+                  {isAuthenticated && user?.id !== Number(id) && !canReview && (
                     <div className="mb-4 p-3 bg-light rounded">
                       <p className="mb-0 text-center">Ya has valorado a este usuario anteriormente.</p>
                     </div>
-                  ) : null}
+                  )}
 
                   <h5 className="fw-bold mb-3">Valoraciones recibidas</h5>
 
@@ -445,29 +510,96 @@ export const PaginaPerfil = () => {
                     <div>
                       {reviews.map((review) => (
                         <div key={review.id} className="mb-3 pb-3 border-bottom">
-                          <div className="d-flex gap-3">
-                            <div className="flex-shrink-0">
-                              <img
-                                src={review.reviewer.imageUrl || "/placeholder.svg?height=50&width=50"}
-                                className="rounded-circle"
-                                width="50"
-                                height="50"
-                                alt={review.reviewer.name}
-                              />
-                            </div>
+                          {editingReviewId === review.id ? (
                             <div>
-                              <div className="d-flex align-items-center gap-2 mb-2">
-                                <Link to={`/perfil/${review.reviewer.id}`} className="fw-bold text-decoration-none">
-                                  {review.reviewer.name}
-                                </Link>
-                                <div className="ms-2">{renderStars(review.rating)}</div>
-                                <span className="text-muted ms-2 small">
-                                  {new Date(review.created_at).toLocaleDateString()}
-                                </span>
+                              <div className="d-flex gap-3 mb-3">
+                                <div className="flex-shrink-0">
+                                  <img
+                                    src={review.reviewer.imageUrl || "/placeholder.svg?height=50&width=50"}
+                                    className="rounded-circle"
+                                    width="50"
+                                    height="50"
+                                    alt={review.reviewer.name}
+                                  />
+                                </div>
+                                <div className="flex-grow-1">
+                                  <div className="d-flex justify-content-between align-items-center mb-2">
+                                    <span className="fw-bold">{review.reviewer.name}</span>
+                                    <div className="d-flex gap-2">
+                                      <Button 
+                                        variant="outline-success" 
+                                        size="sm"
+                                        onClick={() => handleUpdateReview(review.id)}
+                                        disabled={submittingReview}
+                                      >
+                                        {submittingReview ? "Guardando..." : "Guardar"}
+                                      </Button>
+                                      <Button 
+                                        variant="outline-secondary" 
+                                        size="sm"
+                                        onClick={handleCancelEdit}
+                                      >
+                                        Cancelar
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  
+                                  {renderRatingSelector(editReviewData.rating, handleEditRatingChange)}
+                                  
+                                  <Form.Control
+                                    as="textarea"
+                                    rows={3}
+                                    value={editReviewData.comment}
+                                    onChange={handleEditReviewChange}
+                                  />
+                                </div>
                               </div>
-                              <p className="mb-0">{review.comment}</p>
                             </div>
-                          </div>
+                          ) : (
+                            <div className="d-flex gap-3">
+                              <div className="flex-shrink-0">
+                                <img
+                                  src={review.reviewer.imageUrl || "/placeholder.svg?height=50&width=50"}
+                                  className="rounded-circle"
+                                  width="50"
+                                  height="50"
+                                  alt={review.reviewer.name}
+                                />
+                              </div>
+                              <div className="flex-grow-1">
+                                <div className="d-flex align-items-center gap-2 mb-2">
+                                  <Link to={`/perfil/${review.reviewer.id}`} className="fw-bold text-decoration-none">
+                                    {review.reviewer.name}
+                                  </Link>
+                                  {renderStars(review.rating)}
+                                  <span className="text-muted ms-2 small">
+                                    {new Date(review.created_at).toLocaleDateString()}
+                                  </span>
+                                  
+                                  {/* Botones de edición/eliminación (solo para mis reviews) */}
+                                  {isAuthenticated && user?.id === review.reviewer.id && (
+                                    <div className="ms-auto d-flex gap-2">
+                                      <Button 
+                                        variant="outline-primary" 
+                                        size="sm"
+                                        onClick={() => handleEditReview(review)}
+                                      >
+                                        <Pencil size={14} />
+                                      </Button>
+                                      <Button 
+                                        variant="outline-danger" 
+                                        size="sm"
+                                        onClick={() => handleDeleteReview(review.id)}
+                                      >
+                                        <XCircle size={14} />
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                                <p className="mb-0">{review.comment}</p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

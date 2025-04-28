@@ -105,5 +105,36 @@ export class ReviewService {
       return { averageRating: 0, totalReviews: 0 }
     }
   }
+
+  async updateReview(reviewId: number, reviewData: {
+    rating: number;
+    comment: string;
+  }) {
+    try {
+      const backendData = {
+        id: reviewId,
+        rating: reviewData.rating,
+        comment: reviewData.comment
+      }
+      
+      const res = await axios.put(`${this.baseUrl}modify/`, backendData)
+      return res.data
+    } catch (error) {
+      console.error("Error al actualizar la reseña:", error)
+      throw error
+    }
+  }
+  
+  async deleteReview(reviewId: number) {
+    try {
+      console.log(`Intentando eliminar review con ID: ${reviewId}`)
+      const response = await axios.delete(`${this.baseUrl}delete/${reviewId}`)
+      console.log('Respuesta del servidor:', response)
+      return response.data
+    } catch (error) {
+      console.error("Error al eliminar la reseña:", error)
+      throw error
+    }
+  }
 }
 
