@@ -1,18 +1,27 @@
 "use client"
 
 import type React from "react"
-
-import { Link, useNavigate } from "react-router-dom"
-import { Container, Navbar, Form, Nav, Button, Offcanvas, InputGroup } from "react-bootstrap"
-import { Cart, Person, List, Search, Bell, BoxArrowInRight } from "react-bootstrap-icons"
 import { useState } from "react"
+import { Navbar, Container, Form, InputGroup, Button, Nav, Offcanvas, Image } from "react-bootstrap"
+import { Link, useNavigate } from "react-router-dom"
+import {
+  Search,
+  Bell,
+  Person,
+  BoxArrowInRight,
+  Cart,
+  List,
+  Laptop,
+  Handbag,
+  House,
+  Bicycle,
+  InfoCircle,
+  Envelope,
+} from "react-bootstrap-icons"
 import { useMediaQuery } from "react-responsive"
-import Image from "react-bootstrap/Image"
 import logo from "../assets/images/logosSwapify/logoNegroLargoFondoTransp.png"
 import logoPequeno from "../assets/images/logosSwapify/logoNegroTransp.png" // Logo para móviles
 import { BarraLateral } from "./BarraLateral"
-
-// Importar el hook useAuth
 import { useAuth } from "../contexts/AuthContext"
 
 export const BarraNavegacion = () => {
@@ -34,12 +43,20 @@ export const BarraNavegacion = () => {
     }
   }
 
+  // Categorías destacadas para la barra secundaria
+  const featuredCategories = [
+    { name: "Tecnología", icon: <Laptop className="me-1" />, path: "/categoria/tecnología" },
+    { name: "Ropa", icon: <Handbag className="me-1" />, path: "/categoria/ropa" },
+    { name: "Hogar", icon: <House className="me-1" />, path: "/categoria/hogar" },
+    { name: "Deporte", icon: <Bicycle className="me-1" />, path: "/categoria/deporte" },
+  ]
+
   return (
     <>
       {/* Barra Navegación PRINCIPAL con diseño mejorado */}
       <Navbar
         expand="lg"
-        className="shadow-sm py-3"
+        className="shadow py-3"
         style={{
           background: "linear-gradient(90deg, #1a3c34 0%, #20b03d 100%)",
         }}
@@ -48,16 +65,15 @@ export const BarraNavegacion = () => {
           {/* Sección superior (logo, búsqueda y toggle en una fila) */}
           <div className="d-flex w-100 align-items-center gap-3">
             {/* Logo dinámico */}
-            <Navbar.Brand as={Link} to="/" className="me-0 me-md-3">
+            <Navbar.Brand as={Link} to="/" className="me-0 me-md-3 d-flex align-items-center">
               <Image
                 src={isMobile ? logoPequeno : logo}
                 alt="Swapify Logo"
                 className="img-fluid"
-                // Invertir colores para que el logo se vea bien en fondo oscuro
                 style={
                   isMobile
                     ? { width: "70px", filter: "brightness(0) invert(1)" }
-                    : { width: "100px", filter: "brightness(0) invert(1)" }
+                    : { width: "120px", filter: "brightness(0) invert(1)" }
                 }
               />
             </Navbar.Brand>
@@ -68,12 +84,12 @@ export const BarraNavegacion = () => {
                 <Form.Control
                   type="search"
                   placeholder="Buscar productos, servicios o categorías..."
-                  className="border-0 py-2"
+                  className="border-0 py-2 shadow-sm"
                   aria-label="Buscar"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <Button variant="light" className="border-0" type="submit">
+                <Button variant="light" className="border-0 shadow-sm" type="submit">
                   <Search size={18} />
                 </Button>
               </InputGroup>
@@ -162,6 +178,12 @@ export const BarraNavegacion = () => {
                 <Nav.Link as={Link} to="/contacto" className="py-2" onClick={() => setShowMenu(false)}>
                   Contacto
                 </Nav.Link>
+                <Nav.Link as={Link} to="/como-funciona" className="py-2" onClick={() => setShowMenu(false)}>
+                  Cómo Funciona
+                </Nav.Link>
+                <Nav.Link as={Link} to="/ayuda" className="py-2" onClick={() => setShowMenu(false)}>
+                  Ayuda
+                </Nav.Link>
               </div>
 
               {/* Sección de perfil y créditos */}
@@ -181,7 +203,7 @@ export const BarraNavegacion = () => {
               as={Link as any}
               to={isAuthenticated ? "/vender" : "/login?redirect=/vender"}
               variant="light"
-              className="w-100 py-2 rounded-pill"
+              className="py-2 rounded-pill px-4 fw-bold"
               onClick={() => setShowMenu(false)}
             >
               Vender
@@ -240,27 +262,42 @@ export const BarraNavegacion = () => {
       </Navbar>
 
       {/* Barra secundaria mejorada */}
-      <div className="py-2 border-bottom" style={{ backgroundColor: "#f8f9fa" }}>
+      <div className="py-2 border-bottom shadow-sm" style={{ backgroundColor: "#f8f9fa" }}>
         <Container>
           <div className="d-flex justify-content-between align-items-center">
             {/* Botón para toggle de la sidebar */}
-            <Button
-              variant="link"
-              onClick={() => setShowSidebar(!showSidebar)}
-              className="text-dark fw-bold p-1 text-decoration-none d-flex align-items-center"
-              aria-label="Abrir categorías"
-              style={{ fontSize: "1.4rem" }} // Increased font size for Categorías
-            >
-              <List size={35} className="me-2" />
-              Todas las categorías
-            </Button>
+            <div className="d-flex align-items-center">
+              <Button
+                variant="link"
+                onClick={() => setShowSidebar(!showSidebar)}
+                className="text-dark fw-bold p-1 text-decoration-none d-flex align-items-center me-4 nav-button"
+                aria-label="Abrir categorías"
+              >
+                <List size={24} className="me-2" />
+                Todas las categorías
+              </Button>
 
-            {/* Resto de los enlaces */}
-            <div className="d-none d-md-flex gap-5">
-              <Nav.Link as={Link} to="/contacto" className="text-dark fw-bold" style={{ fontSize: "1.4rem" }}>
-                {" "}
-                {/* Increased font size for Contacto */}
-                Contacto
+              {/* Categorías destacadas - solo visibles en pantallas medianas y grandes */}
+              <div className="d-none d-md-flex">
+                {featuredCategories.map((category, index) => (
+                  <Link
+                    key={index}
+                    to={category.path}
+                    className="text-dark fw-medium mx-3 text-decoration-none d-flex align-items-center nav-link-hover"
+                  >
+                    {category.icon} {category.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Enlaces adicionales */}
+            <div className="d-none d-md-flex gap-4">
+              <Nav.Link as={Link} to="/como-funciona" className="text-dark fw-medium nav-link-hover">
+                <InfoCircle className="me-1" /> Cómo funciona
+              </Nav.Link>
+              <Nav.Link as={Link} to="/contacto" className="text-dark fw-medium nav-link-hover">
+                <Envelope className="me-1" /> Contacto
               </Nav.Link>
             </div>
 
