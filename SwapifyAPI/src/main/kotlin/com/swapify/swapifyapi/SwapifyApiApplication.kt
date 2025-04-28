@@ -13,9 +13,11 @@ class SwapifyApiApplication {
     fun corsConfigurer(): WebMvcConfigurer {
         return object : WebMvcConfigurer {
             override fun addCorsMappings(registry: CorsRegistry) {
-                // Configura CORS globalmente para todas las rutas
-                registry.addMapping("/**")
+                // Configura CORS globalmente para todas las rutas                registry.addMapping("/**")
                     .allowedOrigins("http://localhost:5173")
+                    // Sin estas líneas no funcionaba el DELETE
+                    .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                    .allowedHeaders("*")
                 }
         }
     }
