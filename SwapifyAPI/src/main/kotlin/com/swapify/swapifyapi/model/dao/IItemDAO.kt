@@ -25,20 +25,26 @@ interface IItemDAO: CrudRepository<Item, Int> {
     )
     fun findAllItems(): List<Item>
 
+    // Busca items filtrando por el nombre de la categoría, no por el objeto category directamente.
+    // Esto es necesario porque `i.category` es una relación (entidad), no una cadena.
+    // Se hace un JOIN explícito con la entidad Category para poder acceder a su campo `name`.
     @Query(
         """
         SELECT i FROM Item i
-        WHERE lower(i.category) = lower(:category)
+        JOIN i.category c
+        WHERE lower(c.name) = lower(:category)
         """
     )
     fun findByCategory(category: String): List<Item>
 
+    // Igual que la anterior, pero además filtra por el id del usuario.
     @Query(
         """
         SELECT i FROM Item i
         LEFT JOIN FETCH i.user
+        JOIN i.category c
         WHERE i.user.id = :userId 
-        AND lower(i.category) = lower(:category)
+        AND lower(c.name) = lower(:category)
         """
     )
     fun findByCategoryAndId(category: String, userId: Long): List<Item>

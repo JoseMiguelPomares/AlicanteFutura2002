@@ -4,6 +4,7 @@ import com.swapify.swapifyapi.model.dao.ICategoryDAO
 import com.swapify.swapifyapi.model.dao.IItemDAO
 import com.swapify.swapifyapi.model.dto.ItemDTO
 import com.swapify.swapifyapi.model.dto.CategoryDTO
+import com.swapify.swapifyapi.model.dto.UserDTO
 import com.swapify.swapifyapi.model.dto.ModifyItemDTO
 import com.swapify.swapifyapi.model.dto.NewItemDTO
 import com.swapify.swapifyapi.model.entities.Category
@@ -52,9 +53,13 @@ class ItemService {
             items.map {
                 ItemDTO(
                     it.id!!,
-                    it.user!!.name!!,
+                    UserDTO(
+                        it.user!!.id!!,
+                        it.user!!.name!!,
+                    ),
                     it.title!!,
                     it.description!!,
+                    it.price!!,
                     CategoryDTO(
                         it.category!!.id!!,
                         it.category!!.name!!
@@ -76,12 +81,16 @@ class ItemService {
             items.map {
                 ItemDTO(
                     it.id!!,
-                    it.user!!.name!!,
+                    UserDTO(
+                        it.user!!.id!!,
+                        it.user!!.name!!,
+                    ),
                     it.title!!,
                     it.description!!,
+                    it.price!!,
                     CategoryDTO(
                         it.category!!.id!!,
-                        it.category!!.name!!
+                        it.category!!.name!!,
                     ),
                     it.imageUrl,
                     it.status!!,
@@ -100,9 +109,13 @@ class ItemService {
             items.map {
                 ItemDTO(
                     it.id!!,
-                    it.user!!.name!!,
+                    UserDTO(
+                        it.user!!.id!!,
+                        it.user!!.name!!,
+                    ),
                     it.title!!,
                     it.description!!,
+                    it.price!!,
                     CategoryDTO(
                         it.category!!.id!!,
                         it.category!!.name!!
@@ -124,9 +137,13 @@ class ItemService {
             items.map {
                 ItemDTO(
                     it.id!!,
-                    it.user!!.name.toString(),
+                    UserDTO(
+                        it.user!!.id!!,
+                        it.user!!.name!!,
+                    ),
                     it.title.toString(),
                     it.description.toString(),
+                    it.price!!,
                     CategoryDTO(
                         it.category!!.id!!,
                         it.category!!.name!!
@@ -253,9 +270,13 @@ class ItemService {
             items.map {
                 ItemDTO(
                     it.id!!,
-                    it.user!!.name!!,
+                    UserDTO(
+                        it.user!!.id!!,
+                        it.user!!.name!!,
+                    ),
                     it.title!!,
                     it.description!!,
+                    it.price!!,
                     CategoryDTO(
                         it.category!!.id!!,
                         it.category!!.name!!
