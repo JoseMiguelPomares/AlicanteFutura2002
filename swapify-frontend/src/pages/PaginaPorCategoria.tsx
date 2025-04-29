@@ -293,11 +293,6 @@ export const PaginaPorCategoria = () => {
                     {getCategoryIcon(cat.name)} {formatCategoryName(cat.name)}
                   </Button>
                 ))}
-                {categorias.length > 8 && (
-                  <Button as={Link as any} to="/categorias" variant="link" className="text-center">
-                    Ver todas las categorías
-                  </Button>
-                )}
               </div>
             </Card.Body>
           </Card>

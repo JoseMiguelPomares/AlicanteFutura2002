@@ -208,6 +208,7 @@ export const PaginaVender = () => {
       console.log("Respuesta del servidor:", response)
 
       setSuccess(true)
+      window.scrollTo(0, 0)
 
       // Redireccionar después de 2 segundos
       setTimeout(() => {

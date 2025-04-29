@@ -120,7 +120,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimatio
   if (showAnimation) {
     return (
       <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-        <Link to={`/productos/${producto.id}`} className="text-decoration-none">
+        <Link to={`/items/${producto.id}`} className="text-decoration-none">
           {cardContent}
         </Link>
       </motion.div>
@@ -129,7 +129,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimatio
 
   // Sin animación
   return (
-    <Link to={`/productos/${producto.id}`} className="text-decoration-none">
+    <Link to={`/items/${producto.id}`} className="text-decoration-none">
       {cardContent}
     </Link>
   )

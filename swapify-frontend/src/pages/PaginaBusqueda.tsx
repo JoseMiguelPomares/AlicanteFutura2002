@@ -547,7 +547,7 @@ export const PaginaBusqueda = () => {
                 {filteredProductos.map((producto) => (
                   <Col key={producto.id}>
                     <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-                      <Link to={`/productos/${producto.id}`} className="text-decoration-none">
+                      <Link to={`/items/${producto.id}`} className="text-decoration-none">
                         <Card className="h-100 shadow-sm border-0 rounded-4 overflow-hidden">
                           <Card.Img
                             variant="top"
