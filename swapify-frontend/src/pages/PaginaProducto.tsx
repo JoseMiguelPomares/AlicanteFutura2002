@@ -39,6 +39,7 @@ import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
 import { ImageService } from "../services/imageService"
 import { useAuth } from "../contexts/AuthContext"
+import { ProductCard } from "../components/ProductCard"
 
 interface Producto {
   id: number
@@ -64,7 +65,7 @@ interface Producto {
     socialId?: string | null
     imageUrl?: string | null
   }
-  itemCondition?: string | null
+  itemCondition?: string | undefined
   location?: string
 }
 
@@ -687,39 +688,9 @@ export const PaginaProducto = () => {
         <div className="mt-5">
           <h3 className="fw-bold mb-4">Productos relacionados</h3>
           <Row xs={1} sm={2} md={3} lg={4} className="g-4">
-            {productosRelacionados.map((prod) => (
-              <Col key={prod.id}>
-                <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-                  <Link to={`/productos/${prod.id}`} className="text-decoration-none">
-                    <Card className="h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-                      <Card.Img
-                        variant="top"
-                        src={prod.imageUrl || "/placeholder.svg?height=180&width=300"}
-                        alt={prod.title}
-                        style={{ height: "180px", objectFit: "cover" }}
-                      />
-                      <Card.Body className="p-3">
-                        {prod.category && (
-                          <Badge bg="primary" className="mb-2 rounded-pill">
-                            {prod.category.name}
-                          </Badge>
-                        )}
-                        <Card.Title className="fw-bold text-dark mb-1" style={{ fontSize: "1rem" }}>
-                          {prod.title}
-                        </Card.Title>
-                        <Card.Text className="text-muted small mb-2" style={{ height: "40px", overflow: "hidden" }}>
-                          {prod.description}
-                        </Card.Text>
-                        <div className="d-flex justify-content-between align-items-center">
-                          <span className="fw-bold text-success">{prod.price} Créditos</span>
-                          <Button variant="outline-success" size="sm" className="rounded-pill">
-                            Ver
-                          </Button>
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Link>
-                </motion.div>
+            {productosRelacionados.map((producto) => (
+              <Col key={producto.id}>
+                <ProductCard producto={producto} />
               </Col>
             ))}
           </Row>
