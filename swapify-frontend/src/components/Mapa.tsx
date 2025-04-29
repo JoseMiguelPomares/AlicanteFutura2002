@@ -1,36 +1,17 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
-import MapView from "react-native-maps";
+import {APIProvider, Map, MapCameraChangedEvent} from '@vis.gl/react-google-maps';
 
+const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 export default function Mapa() {
-    const [origin, setOrigin] = React.useState({
-        latitude: 38.341313,
-        longitude: -0.538899,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421
-    });
-    return(
-        <View style={styles.container}>
-            <MapView 
-                style={styles.map}
-                initialRegion={{
-                    latitude: origin.latitude,
-                    longitude: origin.longitude,
-                    latitudeDelta: origin.latitudeDelta,
-                    longitudeDelta: origin.longitudeDelta
-                }}
-            />
-        </View>
-    );
+  return (
+    <APIProvider apiKey={apiKey}>
+      <Map
+        style={{width: '100%', height: '100%'}}
+        defaultZoom={13}
+        defaultCenter={{ lat: -33.860664, lng: 151.208138 }}
+        onCameraChanged={(ev: MapCameraChangedEvent) =>
+          console.log('camera changed:', ev.detail.center, 'zoom:', ev.detail.zoom)
+        }
+      />
+    </APIProvider>
+  );
 }
-
-// Añade esto al final del archivo
-const styles = StyleSheet.create({
-    container: {
-        flex: 1
-    },
-    map: {
-        width: '100%',
-        height: '100%'
-    }
-});
