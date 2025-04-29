@@ -26,6 +26,7 @@ import {
 import { ItemService } from "../services/itemService"
 import { CategoryService } from "../services/categoryService"
 import { ProductCard } from "../components/ProductCard"
+import { StableInput } from "../components/StableInput"
 
 interface Producto {
   id: number
@@ -96,12 +97,13 @@ export const PaginaBusqueda = () => {
     estado: [],
     publicadoHace: "todos",
   })
-
-  // Estado para mostrar/ocultar filtros en móvil
+    // Estado para mostrar/ocultar filtros en móvil
   const [mostrarFiltros, setMostrarFiltros] = useState(false)
 
   // Estado para el rango de precios disponible
   const [rangoPrecios, setRangoPrecios] = useState<[number, number]>([0, 1000])
+
+  const [activeKeys, setActiveKeys] = useState<string[]>(["0"]);
 
   // Servicios
   const itemService = new ItemService()
@@ -128,22 +130,7 @@ export const PaginaBusqueda = () => {
         const categoriasData = await categoryService.getAll()
         setCategorias(categoriasData)
 
-        // Agrupar categorías por industria, agricultura, etc.
-        // Esto es un ejemplo, deberías adaptar esto según la estructura real de tus categorías
-        const grupos: { [key: string]: { id: number; name: string }[] } = {
-          "Todas las categorías": categoriasData,
-          "Industria y agricultura": categoriasData.filter(
-            (c: { name: string }) => c.name.toLowerCase().includes("industria") || c.name.toLowerCase().includes("agricultura"),
-          ),
-          Tecnología: categoriasData.filter(
-            (c: { name: string }) => c.name.toLowerCase().includes("tecnología") || c.name.toLowerCase().includes("electrónica"),
-          ),
-          Hogar: categoriasData.filter(
-            (c: { name: string }) => c.name.toLowerCase().includes("hogar") || c.name.toLowerCase().includes("muebles"),
-          ),
-        }
-
-        setCategoriasAgrupadas(grupos)
+        setCategoriasAgrupadas({ "Todas las categorías": categoriasData });
 
         setLoading(false)
       } catch (error) {
@@ -263,6 +250,15 @@ export const PaginaBusqueda = () => {
     })
   }
 
+  const handleAccordionToggle = (eventKey: string) => {
+    // Función para determinar el icono según la categoría
+    setActiveKeys((prev) =>
+      prev.includes(eventKey)
+        ? prev.filter((key) => key !== eventKey)
+        : [...prev, eventKey]
+    );
+  };
+
   // Función para determinar el icono según la categoría
   const getCategoryIcon = (categoryName: string) => {
     switch (categoryName.toLowerCase()) {
@@ -289,209 +285,10 @@ export const PaginaBusqueda = () => {
     }
   }
 
-  // Modificar el componente Accordion para permitir múltiples paneles abiertos
-  // y arreglar los problemas con los campos de texto
-
-  // Primero, añadamos un estado para controlar qué acordeones están abiertos
-  const [activeKeys, setActiveKeys] = useState<string[]>(["0"])
-
-  // Función para manejar el cambio de estado de los acordeones
-  const handleAccordionToggle = (eventKey: string) => {
-    setActiveKeys((prev) => (prev.includes(eventKey) ? prev.filter((key) => key !== eventKey) : [...prev, eventKey]))
-  }
-
-  // Componente para los filtros
-  const FiltrosComponent = () => (
-    <Card className="shadow-sm border-0 rounded-4 mb-4 sticky-top" style={{ top: "1rem" }}>
-      <Card.Body>
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h5 className="fw-bold mb-0">Filtros</h5>
-          <Button variant="link" className="p-0 text-muted" onClick={resetFiltros} title="Resetear filtros">
-            <ArrowClockwise size={18} />
-          </Button>
-        </div>
-
-        {/* Reemplazar el componente Accordion en FiltrosComponent con esta versión */}
-        <Accordion
-          activeKey={activeKeys}
-          onSelect={(eventKey) => {
-            if (eventKey) {
-              handleAccordionToggle(eventKey.toString())
-            }
-          }}
-          className="filter-accordion"
-        >
-          {/* Filtro por categorías */}
-          <Accordion.Item eventKey="0">
-            <Accordion.Header>Categorías</Accordion.Header>
-            <Accordion.Body className="py-2">
-              {Object.entries(categoriasAgrupadas).map(([grupo, cats], idx) => (
-                <div key={idx} className="mb-3">
-                  <h6 className="fw-bold mb-2 text-muted">{grupo}</h6>
-                  <ListGroup variant="flush">
-                    {cats.map((categoria) => (
-                      <ListGroup.Item key={categoria.id} className="px-0 py-1 border-0">
-                        <Form.Check
-                          type="checkbox"
-                          id={`categoria-${categoria.id}`}
-                          label={
-                            <span className="d-flex align-items-center">
-                              {getCategoryIcon(categoria.name)}
-                              {categoria.name}
-                            </span>
-                          }
-                          checked={filtros.categorias.includes(categoria.id)}
-                          onChange={(e) => handleCategoriasChange(categoria.id, e.target.checked)}
-                        />
-                      </ListGroup.Item>
-                    ))}
-                  </ListGroup>
-                </div>
-              ))}
-            </Accordion.Body>
-          </Accordion.Item>
-
-          {/* Filtro por ubicación */}
-          <Accordion.Item eventKey="1">
-            <Accordion.Header>¿Dónde?</Accordion.Header>
-            <Accordion.Body>
-              <div className="d-flex align-items-center mb-2">
-                <GeoAlt className="text-muted me-2" />
-                <Form.Control
-                  type="text"
-                  placeholder="Ej: Madrid, España"
-                  value={filtros.ubicacion}
-                  onChange={(e) => {
-                    handleFiltroChange("ubicacion", e.target.value)
-                  }}
-                />
-              </div>
-              {filtros.ubicacion && (
-                <div className="d-flex align-items-center mt-2">
-                  <Badge bg="success" className="d-flex align-items-center">
-                    {filtros.ubicacion}
-                    <Button
-                      variant="link"
-                      className="p-0 ms-2 text-white"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleFiltroChange("ubicacion", "")
-                      }}
-                    >
-                      <XCircle size={14} />
-                    </Button>
-                  </Badge>
-                </div>
-              )}
-            </Accordion.Body>
-          </Accordion.Item>
-
-          {/* Filtro por precio */}
-          <Accordion.Item eventKey="2">
-            <Accordion.Header>¿Cuánto quieres pagar?</Accordion.Header>
-            <Accordion.Body>
-              <div className="mb-3">
-                <Form.Label>Rango de precio (Créditos)</Form.Label>
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <Form.Control
-                    type="number"
-                    min={rangoPrecios[0]}
-                    max={filtros.precioMax}
-                    value={filtros.precioMin}
-                    onChange={(e) => {
-                      e.stopPropagation()
-                      handleFiltroChange("precioMin", Number(e.target.value))
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="me-2"
-                  />
-                  <span className="mx-2">-</span>
-                  <Form.Control
-                    type="number"
-                    min={filtros.precioMin}
-                    max={rangoPrecios[1]}
-                    value={filtros.precioMax}
-                    onChange={(e) => {
-                      e.stopPropagation()
-                      handleFiltroChange("precioMax", Number(e.target.value))
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="ms-2"
-                  />
-                </div>
-                <Form.Range
-                  min={rangoPrecios[0]}
-                  max={rangoPrecios[1]}
-                  value={filtros.precioMax}
-                  onChange={(e) => {
-                    e.stopPropagation()
-                    handleFiltroChange("precioMax", Number(e.target.value))
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </div>
-            </Accordion.Body>
-          </Accordion.Item>
-
-          {/* Filtro por estado del producto */}
-          <Accordion.Item eventKey="3">
-            <Accordion.Header>Estado del producto</Accordion.Header>
-            <Accordion.Body>
-              {ESTADOS_PRODUCTO.map((estado, idx) => (
-                <Form.Check
-                  key={idx}
-                  type="checkbox"
-                  id={`estado-${estado.valor}`}
-                  className="mb-2"
-                  label={
-                    <div>
-                      <div className="fw-medium">{estado.etiqueta}</div>
-                      <small className="text-muted">{estado.descripcion}</small>
-                    </div>
-                  }
-                  checked={filtros.estado.includes(estado.valor)}
-                  onChange={(e) => {
-                    e.stopPropagation()
-                    handleEstadoChange(estado.valor, e.target.checked)
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              ))}
-            </Accordion.Body>
-          </Accordion.Item>
-
-          {/* Filtro por fecha de publicación */}
-          <Accordion.Item eventKey="4">
-            <Accordion.Header>Publicado hace</Accordion.Header>
-            <Accordion.Body>
-              {OPCIONES_TIEMPO.map((opcion, idx) => (
-                <Form.Check
-                  key={idx}
-                  type="radio"
-                  name="publicadoHace"
-                  id={`tiempo-${opcion.valor}`}
-                  className="mb-2"
-                  label={opcion.etiqueta}
-                  checked={filtros.publicadoHace === opcion.valor}
-                  onChange={(e) => {
-                    e.stopPropagation()
-                    handleFiltroChange("publicadoHace", opcion.valor)
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              ))}
-            </Accordion.Body>
-          </Accordion.Item>
-        </Accordion>
-      </Card.Body>
-    </Card>
-  )
-
   return (
     <Container className="py-5">
       <h1 className="mb-4">Resultados de búsqueda: "{query}"</h1>
 
-      {/* Barra de búsqueda */}
       <Form onSubmit={handleSearch} className="mb-4">
         <InputGroup>
           <Form.Control
@@ -506,7 +303,6 @@ export const PaginaBusqueda = () => {
         </InputGroup>
       </Form>
 
-      {/* Botón para mostrar/ocultar filtros en móvil */}
       <div className="d-lg-none mb-3">
         <Button
           variant={mostrarFiltros ? "success" : "outline-success"}
@@ -527,12 +323,159 @@ export const PaginaBusqueda = () => {
       </div>
 
       <Row>
-        {/* Filtros laterales - visible en desktop o cuando se activa en móvil */}
         <Col lg={3} className={`mb-4 ${mostrarFiltros ? "d-block" : "d-none d-lg-block"}`}>
-          <FiltrosComponent />
+          <Card className="shadow-sm border-0 rounded-4 mb-4 sticky-top" style={{ top: "1rem" }}>
+            <Card.Body>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h5 className="fw-bold mb-0">Filtros</h5>
+                <Button variant="link" className="p-0 text-muted" onClick={resetFiltros} title="Resetear filtros">
+                  <ArrowClockwise size={18} />
+                </Button>
+              </div>
+
+              <Accordion activeKey={activeKeys} onSelect={(e) => typeof e === 'string' && handleAccordionToggle(e)}>
+                <Accordion.Item eventKey="0">
+                  <Accordion.Header>Categorías</Accordion.Header>
+                  <Accordion.Body className="py-2">
+                    {Object.entries(categoriasAgrupadas).map(([grupo, cats], idx) => (
+                      <div key={idx} className="mb-3">
+                        <h6 className="fw-bold mb-2 text-muted">{grupo}</h6>
+                        <ListGroup variant="flush">
+                          {cats.map((categoria) => (
+                            <ListGroup.Item key={categoria.id} className="px-0 py-1 border-0">
+                              <Form.Check
+                                type="checkbox"
+                                id={`categoria-${categoria.id}`}
+                                label={
+                                  <span className="d-flex align-items-center">
+                                    {getCategoryIcon(categoria.name)}
+                                    {categoria.name.charAt(0).toUpperCase() + categoria.name.slice(1)}
+                                  </span>
+                                }
+                                checked={filtros.categorias.includes(categoria.id)}
+                                onChange={(e) => handleCategoriasChange(categoria.id, e.target.checked)}
+                              />
+                            </ListGroup.Item>
+                          ))}
+                        </ListGroup>
+                      </div>
+                    ))}
+                  </Accordion.Body>
+                </Accordion.Item>
+
+                <Accordion.Item eventKey="1">
+                  <Accordion.Header>¿Dónde?</Accordion.Header>
+                  <Accordion.Body>
+                    <div className="d-flex align-items-center mb-2">
+                      <GeoAlt className="text-muted me-2" />
+                      <StableInput
+                        value={filtros.ubicacion}
+                        onChange={(value) => handleFiltroChange("ubicacion", value)}
+                        type="text"
+                        placeholder="Ej: Madrid, España"
+                        className="form-control"
+                      />
+                    </div>
+                    {filtros.ubicacion && (
+                      <div className="d-flex align-items-center mt-2">
+                        <Badge bg="success" className="d-flex align-items-center">
+                          {filtros.ubicacion}
+                          <Button
+                            variant="link"
+                            className="p-0 ms-2 text-white"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFiltroChange("ubicacion", "");
+                            }}
+                          >
+                            <XCircle size={14} />
+                          </Button>
+                        </Badge>
+                      </div>
+                    )}
+                  </Accordion.Body>
+                </Accordion.Item>
+
+                <Accordion.Item eventKey="2">
+                  <Accordion.Header>¿Cuánto quieres pagar?</Accordion.Header>
+                  <Accordion.Body>
+                    <div className="mb-3">
+                      <Form.Label>Rango de precio (Créditos)</Form.Label>
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <StableInput
+                          value={filtros.precioMin}
+                          onChange={(value) => handleFiltroChange("precioMin", Number(value))}
+                          type="number"
+                          min={rangoPrecios[0]}
+                          max={filtros.precioMax}
+                          className="form-control me-2"
+                        />
+                        <span className="mx-2">-</span>
+                        <StableInput
+                          value={filtros.precioMax}
+                          onChange={(value) => handleFiltroChange("precioMax", Number(value))}
+                          type="number"
+                          min={filtros.precioMin}
+                          max={rangoPrecios[1]}
+                          className="form-control ms-2"
+                        />
+                      </div>
+                      <Form.Range
+                        min={rangoPrecios[0]}
+                        max={rangoPrecios[1]}
+                        value={filtros.precioMax}
+                        onChange={(e) => {
+                          handleFiltroChange("precioMax", Number(e.target.value));
+                        }}
+                      />
+                    </div>
+                  </Accordion.Body>
+                </Accordion.Item>
+
+                <Accordion.Item eventKey="3">
+                  <Accordion.Header>Estado del producto</Accordion.Header>
+                  <Accordion.Body>
+                    {ESTADOS_PRODUCTO.map((estado, idx) => (
+                      <Form.Check
+                        key={idx}
+                        type="checkbox"
+                        id={`estado-${estado.valor}`}
+                        className="mb-2"
+                        label={
+                          <div>
+                            <div className="fw-medium">{estado.etiqueta}</div>
+                            <small className="text-muted">{estado.descripcion}</small>
+                          </div>
+                        }
+                        checked={filtros.estado.includes(estado.valor)}
+                        onChange={(e) => handleEstadoChange(estado.valor, e.target.checked)}
+                      />
+                    ))}
+                  </Accordion.Body>
+                </Accordion.Item>
+
+                <Accordion.Item eventKey="4">
+                  <Accordion.Header>Publicado hace</Accordion.Header>
+                  <Accordion.Body>
+                    {OPCIONES_TIEMPO.map((opcion, idx) => (
+                      <Form.Check
+                        key={idx}
+                        type="radio"
+                        name="publicadoHace"
+                        id={`tiempo-${opcion.valor}`}
+                        className="mb-2"
+                        label={opcion.etiqueta}
+                        checked={filtros.publicadoHace === opcion.valor}
+                        onChange={() => handleFiltroChange("publicadoHace", opcion.valor)}
+                      />
+                    ))}
+                  </Accordion.Body>
+                </Accordion.Item>
+              </Accordion>
+            </Card.Body>
+          </Card>
         </Col>
 
-        {/* Resultados */}
         <Col lg={9}>
           {loading ? (
             <div className="text-center py-5">
@@ -548,9 +491,7 @@ export const PaginaBusqueda = () => {
                 {filteredProductos.map((producto) => (
                   <Col key={producto.id}>
                     <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-                      <Link to={`/items/${producto.id}`} className="text-decoration-none">
-                        <ProductCard producto={producto}/>
-                      </Link>
+                      <ProductCard producto={producto} />
                     </motion.div>
                   </Col>
                 ))}
@@ -571,5 +512,5 @@ export const PaginaBusqueda = () => {
         </Col>
       </Row>
     </Container>
-  )
-}
+  );
+};
