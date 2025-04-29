@@ -1,8 +1,9 @@
 import {APIProvider, Map, MapCameraChangedEvent} from '@vis.gl/react-google-maps';
 
+const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 export default function Mapa() {
   return (
-    <APIProvider apiKey={'AIzaSyAf_ZTJFgLPkhdyodF3caPWIaK9Dwzfb-4'}>
+    <APIProvider apiKey={apiKey}>
       <Map
         style={{width: '100%', height: '100%'}}
         defaultZoom={13}
