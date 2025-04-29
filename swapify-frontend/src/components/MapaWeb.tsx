@@ -12,7 +12,7 @@ const center = {
 
 export default function MapaWeb() {
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyBW87uGfb05mWrsuS_SUq-gT51Cg36WunQ" // Sustituye por tu API Key real
+    googleMapsApiKey: "AIzaSyAf_ZTJFgLPkhdyodF3caPWIaK9Dwzfb-4" // Sustituye por tu API Key real
   });
 
   if (!isLoaded) return <div>Cargando mapa...</div>;
