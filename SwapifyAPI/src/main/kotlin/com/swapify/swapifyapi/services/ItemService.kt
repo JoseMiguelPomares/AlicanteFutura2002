@@ -74,7 +74,7 @@ class ItemService {
         }
     }
 
-    //Función para obtener un item por su categoría
+    //Función para obtener una lista de items por su categoría
     fun getItemsByCategory(category: String): List<ItemDTO>{
         val items: List<Item> = itemDAO.findByCategory(category)
         return if (items.isNotEmpty()){

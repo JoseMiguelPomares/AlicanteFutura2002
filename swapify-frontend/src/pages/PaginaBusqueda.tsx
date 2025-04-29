@@ -25,6 +25,7 @@ import {
 } from "react-bootstrap-icons"
 import { ItemService } from "../services/itemService"
 import { CategoryService } from "../services/categoryService"
+import { ProductCard } from "../components/ProductCard"
 
 interface Producto {
   id: number
@@ -548,33 +549,7 @@ export const PaginaBusqueda = () => {
                   <Col key={producto.id}>
                     <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
                       <Link to={`/items/${producto.id}`} className="text-decoration-none">
-                        <Card className="h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-                          <Card.Img
-                            variant="top"
-                            src={producto.imageUrl || "/placeholder.svg?height=180&width=300"}
-                            alt={producto.title}
-                            style={{ height: "180px", objectFit: "cover" }}
-                          />
-                          <Card.Body className="p-3">
-                            {producto.category && (
-                              <Badge bg="primary" className="mb-2 rounded-pill">
-                                {producto.category.name}
-                              </Badge>
-                            )}
-                            <Card.Title className="fw-bold text-dark mb-1" style={{ fontSize: "1rem" }}>
-                              {producto.title}
-                            </Card.Title>
-                            <Card.Text className="text-muted small mb-2" style={{ height: "40px", overflow: "hidden" }}>
-                              {producto.description}
-                            </Card.Text>
-                            <div className="d-flex justify-content-between align-items-center">
-                              <span className="fw-bold text-success">{producto.price} Créditos</span>
-                              <Button variant="outline-success" size="sm" className="rounded-pill">
-                                Ver
-                              </Button>
-                            </div>
-                          </Card.Body>
-                        </Card>
+                        <ProductCard producto={producto}/>
                       </Link>
                     </motion.div>
                   </Col>
