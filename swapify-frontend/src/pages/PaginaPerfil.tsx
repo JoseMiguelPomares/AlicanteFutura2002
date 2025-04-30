@@ -3,13 +3,14 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
-import { Container, Row, Col, Card, Button, Badge, Tabs, Tab, ListGroup, Image, Form, Alert } from "react-bootstrap"
-import { CheckCircle, GeoAlt, Calendar3, StarFill, Star, Plus, Chat, Pencil, XCircle } from "react-bootstrap-icons"
+import { Container, Row, Col, Card, Button, Badge, Tabs, Tab, ListGroup, Image, Form, Alert, ProgressBar } from "react-bootstrap"
+import { CheckCircle, GeoAlt, Calendar3, StarFill, Star, Plus, Chat, Pencil, XCircle, PlusCircle, Image as ImageIcon } from "react-bootstrap-icons"
 import { ItemService } from "../services/itemService"
 import { UserService } from "../services/userService"
 import { useAuth } from "../contexts/AuthContext"
 import { ReviewService } from "../services/reviewService"
 import { ProductCard } from "../components/ProductCard"
+import { ImageService } from "../services/imageService"
 
 interface User {
   id: number
@@ -48,6 +49,7 @@ interface Review {
   rating: number
   comment: string
   created_at: string
+  images?: string[] // Añadir campo para imágenes
 }
 
 export const PaginaPerfil = () => {
@@ -59,6 +61,7 @@ export const PaginaPerfil = () => {
   const itemService = new ItemService()
   const userService = new UserService()
   const reviewService = new ReviewService()
+  const imageService = new ImageService()
 
   // Estados para reviews
   const [reviews, setReviews] = useState<Review[]>([])
@@ -68,7 +71,7 @@ export const PaginaPerfil = () => {
   })
   const [editReviewData, setEditReviewData] = useState({
     rating: 5,
-    comment: ""
+    comment: "",
   })
   const [editingReviewId, setEditingReviewId] = useState<number | null>(null)
   const [reviewStats, setReviewStats] = useState({
@@ -77,10 +80,18 @@ export const PaginaPerfil = () => {
   })
   const [submittingReview, setSubmittingReview] = useState(false)
   const [reviewError, setReviewError] = useState<string | null>(null)
-  
+
   const { user, isAuthenticated } = useAuth()
   const isOwnProfile = isAuthenticated && user?.id === Number(id)
   const [canReview, setCanReview] = useState<boolean>(true)
+
+  // Añadir estos estados para manejar imágenes
+  const [reviewImageFiles, setReviewImageFiles] = useState<File[]>([])
+  const [reviewImagePreviewUrls, setReviewImagePreviewUrls] = useState<string[]>([])
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [editReviewImageFiles, setEditReviewImageFiles] = useState<File[]>([])
+  const [editReviewImagePreviewUrls, setEditReviewImagePreviewUrls] = useState<string[]>([])
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -134,15 +145,77 @@ export const PaginaPerfil = () => {
     checkCanReview()
   }, [isAuthenticated, user, id, reviews])
 
-  // Funciones para manejar reviews
-  const handleReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setNewReview({ ...newReview, comment: e.target.value })
+  // Añadir esta función para manejar la carga de imágenes para nuevas reviews
+  const handleReviewImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    // Añadir los nuevos archivos a la lista
+    const newFiles = Array.from(files)
+    setReviewImageFiles([...reviewImageFiles, ...newFiles])
+
+    // Crear URLs de vista previa para los nuevos archivos
+    const newPreviewUrls = await Promise.all(
+      newFiles.map((file) => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result as string)
+          reader.readAsDataURL(file)
+        })
+      }),
+    )
+
+    setReviewImagePreviewUrls([...reviewImagePreviewUrls, ...newPreviewUrls])
   }
 
-  const handleRatingChange = (rating: number) => {
-    setNewReview({ ...newReview, rating })
+  // Añadir esta función para manejar la carga de imágenes para editar reviews
+  const handleEditReviewImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    // Añadir los nuevos archivos a la lista
+    const newFiles = Array.from(files)
+    setEditReviewImageFiles([...editReviewImageFiles, ...newFiles])
+
+    // Crear URLs de vista previa para los nuevos archivos
+    const newPreviewUrls = await Promise.all(
+      newFiles.map((file) => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result as string)
+          reader.readAsDataURL(file)
+        })
+      }),
+    )
+
+    setEditReviewImagePreviewUrls([...editReviewImagePreviewUrls, ...newPreviewUrls])
   }
 
+  // Añadir esta función para eliminar imágenes de nuevas reviews
+  const removeReviewImage = (index: number) => {
+    const newFiles = [...reviewImageFiles]
+    const newPreviewUrls = [...reviewImagePreviewUrls]
+
+    newFiles.splice(index, 1)
+    newPreviewUrls.splice(index, 1)
+
+    setReviewImageFiles(newFiles)
+    setReviewImagePreviewUrls(newPreviewUrls)
+  }
+
+  // Añadir esta función para eliminar imágenes al editar reviews
+  const removeEditReviewImage = (index: number) => {
+    const newFiles = [...editReviewImageFiles]
+    const newPreviewUrls = [...editReviewImagePreviewUrls]
+
+    newFiles.splice(index, 1)
+    newPreviewUrls.splice(index, 1)
+
+    setEditReviewImageFiles(newFiles)
+    setEditReviewImagePreviewUrls(newPreviewUrls)
+  }
+
+  // Modificar la función handleSubmitReview para incluir la carga de imágenes
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -160,11 +233,36 @@ export const PaginaPerfil = () => {
     setReviewError(null)
 
     try {
+      // Subir imágenes si hay alguna
+      const imageUrls: string[] = []
+
+      if (reviewImageFiles.length > 0) {
+        setUploadingImage(true)
+
+        for (let i = 0; i < reviewImageFiles.length; i++) {
+          try {
+            const imageUrl = await imageService.uploadImage(reviewImageFiles[i], (progress) => {
+              setUploadProgress(progress)
+            })
+            imageUrls.push(imageUrl)
+          } catch (error) {
+            console.error(`Error al subir la imagen ${i + 1}:`, error)
+            setReviewError(`No se pudo subir la imagen ${i + 1}. Por favor, inténtalo de nuevo.`)
+            setSubmittingReview(false)
+            setUploadingImage(false)
+            return
+          }
+        }
+
+        setUploadingImage(false)
+      }
+
       const reviewData = {
         reviewer_id: user.id,
         reviewed_id: Number(id),
         rating: newReview.rating,
         comment: newReview.comment,
+        images: imageUrls,
       }
 
       const createdReview = await reviewService.createReview(reviewData)
@@ -177,6 +275,7 @@ export const PaginaPerfil = () => {
             name: user.name,
             imageUrl: user.imageUrl,
           },
+          images: imageUrls,
         },
         ...reviews,
       ])
@@ -194,6 +293,8 @@ export const PaginaPerfil = () => {
         rating: 5,
         comment: "",
       })
+      setReviewImageFiles([])
+      setReviewImagePreviewUrls([])
       setCanReview(false)
     } catch (error) {
       setReviewError("Error al enviar la valoración. Inténtalo de nuevo.")
@@ -203,45 +304,63 @@ export const PaginaPerfil = () => {
     }
   }
 
-  // Funciones para editar reviews
-  const handleEditReview = (review: Review) => {
-    setEditingReviewId(review.id)
-    setEditReviewData({
-      rating: review.rating,
-      comment: review.comment
-    })
-  }
-
-  const handleEditReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setEditReviewData({ ...editReviewData, comment: e.target.value })
-  }
-
-  const handleEditRatingChange = (rating: number) => {
-    setEditReviewData({ ...editReviewData, rating })
-  }
-
-  const handleCancelEdit = () => {
-    setEditingReviewId(null)
-  }
-
+  // Modificar la función handleUpdateReview para incluir la carga de imágenes
   const handleUpdateReview = async (reviewId: number) => {
     try {
       setSubmittingReview(true)
-      
-      const updatedReview = await reviewService.updateReview(reviewId, editReviewData)
-      
-      setReviews(reviews.map(review => 
-        review.id === reviewId ? {
-          ...review,
-          rating: updatedReview.rating,
-          comment: updatedReview.comment
-        } : review
-      ))
-      
+
+      // Subir imágenes nuevas si hay alguna
+      const imageUrls: string[] = []
+
+      if (editReviewImageFiles.length > 0) {
+        setUploadingImage(true)
+
+        for (let i = 0; i < editReviewImageFiles.length; i++) {
+          try {
+            const imageUrl = await imageService.uploadImage(editReviewImageFiles[i], (progress) => {
+              setUploadProgress(progress)
+            })
+            imageUrls.push(imageUrl)
+          } catch (error) {
+            console.error(`Error al subir la imagen ${i + 1}:`, error)
+            setReviewError(`No se pudo subir la imagen ${i + 1}. Por favor, inténtalo de nuevo.`)
+            setSubmittingReview(false)
+            setUploadingImage(false)
+            return
+          }
+        }
+
+        setUploadingImage(false)
+      }
+
+      // Combinar imágenes existentes con nuevas
+      const existingReview = reviews.find((r) => r.id === reviewId)
+      const combinedImages = [...(existingReview?.images || []), ...imageUrls]
+
+      const updatedReview = await reviewService.updateReview(reviewId, {
+        ...editReviewData,
+        images: combinedImages,
+      })
+
+      setReviews(
+        reviews.map((review) =>
+          review.id === reviewId
+            ? {
+              ...review,
+              rating: updatedReview.rating,
+              comment: updatedReview.comment,
+              images: combinedImages,
+            }
+            : review,
+        ),
+      )
+
       const updatedStats = await reviewService.getUserReviewStats(Number(id))
       setReviewStats(updatedStats)
-      
+
       setEditingReviewId(null)
+      setEditReviewImageFiles([])
+      setEditReviewImagePreviewUrls([])
     } catch (error) {
       setReviewError("Error al actualizar la valoración. Inténtalo de nuevo.")
       console.error("Error al actualizar review:", error)
@@ -250,26 +369,22 @@ export const PaginaPerfil = () => {
     }
   }
 
-  // Función para eliminar reviews
-  const handleDeleteReview = async (reviewId: number) => {
-    if (window.confirm("¿Estás seguro de que quieres eliminar esta valoración?")) {
-      try {
-        setSubmittingReview(true)
-        await reviewService.deleteReview(reviewId)
-        
-        setReviews(reviews.filter(review => review.id !== reviewId))
-        
-        const updatedStats = await reviewService.getUserReviewStats(Number(id))
-        setReviewStats(updatedStats)
-        
-        setCanReview(true)
-      } catch (error) {
-        setReviewError("Error al eliminar la valoración. Inténtalo de nuevo.")
-        console.error("Error al eliminar review:", error)
-      } finally {
-        setSubmittingReview(false)
-      }
-    }
+  // Modificar la función handleEditReview para inicializar las imágenes
+  const handleEditReview = (review: Review) => {
+    setEditingReviewId(review.id)
+    setEditReviewData({
+      rating: review.rating,
+      comment: review.comment,
+    })
+    setEditReviewImageFiles([])
+    setEditReviewImagePreviewUrls(review.images || [])
+  }
+
+  // Modificar la función handleCancelEdit para limpiar las imágenes
+  const handleCancelEdit = () => {
+    setEditingReviewId(null)
+    setEditReviewImageFiles([])
+    setEditReviewImagePreviewUrls([])
   }
 
   // Funciones de renderizado
@@ -301,6 +416,35 @@ export const PaginaPerfil = () => {
         ))}
       </div>
     )
+  }
+
+  // Funciones para manejar cambios en el rating y comentario
+  const handleRatingChange = (rating: number) => {
+    setNewReview({ ...newReview, rating })
+  }
+
+  const handleReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNewReview({ ...newReview, comment: e.target.value })
+  }
+
+  const handleEditRatingChange = (rating: number) => {
+    setEditReviewData({ ...editReviewData, rating })
+  }
+
+  const handleEditReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditReviewData({ ...editReviewData, comment: e.target.value })
+  }
+
+  const handleDeleteReview = async (reviewId: number) => {
+    try {
+      await reviewService.deleteReview(reviewId)
+      setReviews(reviews.filter((review) => review.id !== reviewId))
+
+      const updatedStats = await reviewService.getUserReviewStats(Number(id))
+      setReviewStats(updatedStats)
+    } catch (error) {
+      console.error("Error al eliminar la valoración:", error)
+    }
   }
 
   if (loading) {
@@ -469,7 +613,6 @@ export const PaginaPerfil = () => {
             <Tab eventKey="valoraciones" title="Valoraciones">
               <Card className="border-0 shadow-sm rounded-4">
                 <Card.Body className="p-4">
-                  {/* Formulario para nueva review */}
                   {isAuthenticated && user?.id !== Number(id) && canReview && (
                     <div className="mb-4">
                       <h5 className="fw-bold mb-3">Deja tu valoración</h5>
@@ -485,6 +628,87 @@ export const PaginaPerfil = () => {
                             required
                           />
                         </Form.Group>
+
+                        {/* Sección para subir imágenes */}
+                        <Form.Group className="mb-3">
+                          <Form.Label className="fw-medium">Imágenes (opcional)</Form.Label>
+
+                          {reviewImagePreviewUrls.length > 0 ? (
+                            <div className="mb-3">
+                              <Row xs={1} sm={3} className="g-2 mb-2">
+                                {reviewImagePreviewUrls.map((url, index) => (
+                                  <Col key={index}>
+                                    <div className="position-relative">
+                                      <img
+                                        src={url || "/placeholder.svg"}
+                                        alt={`Vista previa ${index + 1}`}
+                                        className="img-fluid rounded-3 border"
+                                        style={{ width: "100%", height: "100px", objectFit: "cover" }}
+                                      />
+                                      <Button
+                                        variant="danger"
+                                        size="sm"
+                                        className="position-absolute top-0 end-0 m-1 rounded-circle p-1"
+                                        onClick={() => removeReviewImage(index)}
+                                      >
+                                        <XCircle size={14} />
+                                      </Button>
+                                    </div>
+                                  </Col>
+                                ))}
+                                <Col>
+                                  <div
+                                    className="border rounded-3 d-flex flex-column justify-content-center align-items-center h-100"
+                                    style={{
+                                      cursor: "pointer",
+                                      backgroundColor: "#f8f9fa",
+                                      borderStyle: "dashed",
+                                      minHeight: "100px",
+                                    }}
+                                    onClick={() => document.getElementById("reviewImageInput")?.click()}
+                                  >
+                                    <PlusCircle size={24} className="text-muted mb-1" />
+                                    <p className="mb-0 text-muted small">Añadir imagen</p>
+                                  </div>
+                                </Col>
+                              </Row>
+
+                              {uploadingImage && (
+                                <div className="mb-2">
+                                  <p className="small text-muted mb-1">Subiendo imagen... {uploadProgress}%</p>
+                                  <ProgressBar now={uploadProgress} label={`${uploadProgress}%`} />
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div
+                              className="border rounded-3 p-3 text-center mb-3"
+                              style={{
+                                cursor: "pointer",
+                                backgroundColor: "#f8f9fa",
+                                borderStyle: "dashed",
+                              }}
+                              onClick={() => document.getElementById("reviewImageInput")?.click()}
+                            >
+                              <ImageIcon size={24} className="text-muted mb-2" />
+                              <p className="mb-0 small">Haz clic para subir imágenes</p>
+                            </div>
+                          )}
+
+                          <input
+                            id="reviewImageInput"
+                            type="file"
+                            accept="image/*"
+                            className="d-none"
+                            onChange={handleReviewImageUpload}
+                            multiple
+                          />
+
+                          <Form.Text className="text-muted">
+                            Puedes añadir imágenes para complementar tu valoración (opcional).
+                          </Form.Text>
+                        </Form.Group>
+
                         {reviewError && (
                           <Alert variant="danger" className="mb-3">
                             {reviewError}
@@ -526,32 +750,109 @@ export const PaginaPerfil = () => {
                                   <div className="d-flex justify-content-between align-items-center mb-2">
                                     <span className="fw-bold">{review.reviewer.name}</span>
                                     <div className="d-flex gap-2">
-                                      <Button 
-                                        variant="outline-success" 
+                                      <Button
+                                        variant="outline-success"
                                         size="sm"
                                         onClick={() => handleUpdateReview(review.id)}
                                         disabled={submittingReview}
                                       >
                                         {submittingReview ? "Guardando..." : "Guardar"}
                                       </Button>
-                                      <Button 
-                                        variant="outline-secondary" 
-                                        size="sm"
-                                        onClick={handleCancelEdit}
-                                      >
+                                      <Button variant="outline-secondary" size="sm" onClick={handleCancelEdit}>
                                         Cancelar
                                       </Button>
                                     </div>
                                   </div>
-                                  
+
                                   {renderRatingSelector(editReviewData.rating, handleEditRatingChange)}
-                                  
+
                                   <Form.Control
                                     as="textarea"
                                     rows={3}
                                     value={editReviewData.comment}
                                     onChange={handleEditReviewChange}
+                                    className="mb-3"
                                   />
+
+                                  {/* Sección para editar imágenes */}
+                                  <div className="mb-3">
+                                    <Form.Label className="fw-medium small">Imágenes</Form.Label>
+
+                                    {editReviewImagePreviewUrls.length > 0 ? (
+                                      <Row xs={1} sm={3} className="g-2 mb-2">
+                                        {editReviewImagePreviewUrls.map((url, index) => (
+                                          <Col key={index}>
+                                            <div className="position-relative">
+                                              <img
+                                                src={url || "/placeholder.svg"}
+                                                alt={`Vista previa ${index + 1}`}
+                                                className="img-fluid rounded-3 border"
+                                                style={{ width: "100%", height: "80px", objectFit: "cover" }}
+                                              />
+                                              <Button
+                                                variant="danger"
+                                                size="sm"
+                                                className="position-absolute top-0 end-0 m-1 rounded-circle p-1"
+                                                onClick={() => removeEditReviewImage(index)}
+                                              >
+                                                <XCircle size={14} />
+                                              </Button>
+                                            </div>
+                                          </Col>
+                                        ))}
+                                        <Col>
+                                          <div
+                                            className="border rounded-3 d-flex flex-column justify-content-center align-items-center h-100"
+                                            style={{
+                                              cursor: "pointer",
+                                              backgroundColor: "#f8f9fa",
+                                              borderStyle: "dashed",
+                                              minHeight: "80px",
+                                            }}
+                                            onClick={() => document.getElementById("editReviewImageInput")?.click()}
+                                          >
+                                            <PlusCircle size={20} className="text-muted mb-1" />
+                                            <p className="mb-0 text-muted small">Añadir</p>
+                                          </div>
+                                        </Col>
+                                      </Row>
+                                    ) : (
+                                      <div
+                                        className="border rounded-3 p-2 text-center mb-2"
+                                        style={{
+                                          cursor: "pointer",
+                                          backgroundColor: "#f8f9fa",
+                                          borderStyle: "dashed",
+                                        }}
+                                        onClick={() => document.getElementById("editReviewImageInput")?.click()}
+                                      >
+                                        <ImageIcon size={20} className="text-muted mb-1" />
+                                        <p className="mb-0 small">Añadir imágenes</p>
+                                      </div>
+                                    )}
+
+                                    <input
+                                      id="editReviewImageInput"
+                                      type="file"
+                                      accept="image/*"
+                                      className="d-none"
+                                      onChange={handleEditReviewImageUpload}
+                                      multiple
+                                    />
+                                  </div>
+
+                                  {uploadingImage && (
+                                    <div className="mb-2">
+                                      <p className="small text-muted mb-1">Subiendo imagen... {uploadProgress}%</p>
+                                      <ProgressBar now={uploadProgress} label={`${uploadProgress}%`} />
+                                    </div>
+                                  )}
+
+                                  {reviewError && (
+                                    <Alert variant="danger" className="mb-2 small">
+                                      {reviewError}
+                                    </Alert>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -575,19 +876,19 @@ export const PaginaPerfil = () => {
                                   <span className="text-muted ms-2 small">
                                     {new Date(review.created_at).toLocaleDateString()}
                                   </span>
-                                  
+
                                   {/* Botones de edición/eliminación (solo para mis reviews) */}
                                   {isAuthenticated && user?.id === review.reviewer.id && (
                                     <div className="ms-auto d-flex gap-2">
-                                      <Button 
-                                        variant="outline-primary" 
+                                      <Button
+                                        variant="outline-primary"
                                         size="sm"
                                         onClick={() => handleEditReview(review)}
                                       >
                                         <Pencil size={14} />
                                       </Button>
-                                      <Button 
-                                        variant="outline-danger" 
+                                      <Button
+                                        variant="outline-danger"
                                         size="sm"
                                         onClick={() => handleDeleteReview(review.id)}
                                       >
@@ -596,7 +897,23 @@ export const PaginaPerfil = () => {
                                     </div>
                                   )}
                                 </div>
-                                <p className="mb-0">{review.comment}</p>
+                                <p className="mb-2">{review.comment}</p>
+
+                                {/* Mostrar imágenes de la review */}
+                                {review.images && review.images.length > 0 && (
+                                  <div className="d-flex flex-wrap gap-2 mt-2 mb-2">
+                                    {review.images.map((img, index) => (
+                                      <img
+                                        key={index}
+                                        src={img || "/placeholder.svg"}
+                                        alt={`Imagen ${index + 1} de la valoración`}
+                                        className="img-thumbnail"
+                                        style={{ width: "80px", height: "80px", objectFit: "cover" }}
+                                        onClick={() => window.open(img, "_blank")}
+                                      />
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           )}
