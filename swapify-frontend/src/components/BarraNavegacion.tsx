@@ -153,7 +153,7 @@ export const BarraNavegacion = () => {
                 ) : (
                   <Button
                     as={Link as any}
-                    to="/registro"
+                    to="/login"
                     variant="success"
                     className="w-100 py-2 rounded-pill"
                     onClick={() => setShowMenu(false)}
@@ -253,7 +253,7 @@ export const BarraNavegacion = () => {
                   className="d-flex align-items-center gap-2 rounded-pill"
                 >
                   <BoxArrowInRight size={18} />
-                  <span className="fw-bold">Iniciar Sesión</span>
+                  <span className="fw-bold">Acceso / Registro</span>
                 </Button>
               )}
             </div>
@@ -301,7 +301,6 @@ export const BarraNavegacion = () => {
               </Nav.Link>
             </div>
 
-            {/* Botón de acceso/registro (visible solo en PANTALLAS GRANDES) */}
             {isAuthenticated && (
               <Button
                 as={Link as any}
