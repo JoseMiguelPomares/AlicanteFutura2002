@@ -24,11 +24,11 @@ class ReviewService {
             id = review.id,
             reviewerId = review.reviewer?.id,
             reviewerName = review.reviewer?.name,
-            reviewerImageUrl = review.reviewer?.imageUrl,
             reviewedId = review.reviewed?.id,
             reviewedName = review.reviewed?.name,
             rating = review.rating,
             comment = review.comment,
+            imageUrl = review.imageUrl,
             createdAt = review.createdAt
         )
     }
@@ -69,6 +69,7 @@ class ReviewService {
             val updatedReview = existingReview.get()
             updatedReview.rating = review.rating
             updatedReview.comment = review.comment
+            updatedReview.imageUrl = review.imageUrl
             return reviewDAO.save(updatedReview)
         }else{
             throw Exception("Review not found")

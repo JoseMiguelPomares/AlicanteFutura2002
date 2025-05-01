@@ -145,7 +145,20 @@ export const PaginaPerfil = () => {
     checkCanReview()
   }, [isAuthenticated, user, id, reviews])
 
-  // Añadir esta función para manejar la carga de imágenes para nuevas reviews
+  // Función reutilizable para crear vistas previas de imágenes
+  const createImagePreviews = async (files: File[]): Promise<string[]> => {
+    return Promise.all(
+      files.map((file) => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result as string)
+          reader.readAsDataURL(file)
+        })
+      })
+    )
+  }
+
+  // Función para manejar la carga de imágenes para nuevas reviews
   const handleReviewImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
@@ -155,20 +168,11 @@ export const PaginaPerfil = () => {
     setReviewImageFiles([...reviewImageFiles, ...newFiles])
 
     // Crear URLs de vista previa para los nuevos archivos
-    const newPreviewUrls = await Promise.all(
-      newFiles.map((file) => {
-        return new Promise<string>((resolve) => {
-          const reader = new FileReader()
-          reader.onload = () => resolve(reader.result as string)
-          reader.readAsDataURL(file)
-        })
-      }),
-    )
-
+    const newPreviewUrls = await createImagePreviews(newFiles)
     setReviewImagePreviewUrls([...reviewImagePreviewUrls, ...newPreviewUrls])
   }
 
-  // Añadir esta función para manejar la carga de imágenes para editar reviews
+  // Función para manejar la carga de imágenes para editar reviews
   const handleEditReviewImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
@@ -178,16 +182,7 @@ export const PaginaPerfil = () => {
     setEditReviewImageFiles([...editReviewImageFiles, ...newFiles])
 
     // Crear URLs de vista previa para los nuevos archivos
-    const newPreviewUrls = await Promise.all(
-      newFiles.map((file) => {
-        return new Promise<string>((resolve) => {
-          const reader = new FileReader()
-          reader.onload = () => resolve(reader.result as string)
-          reader.readAsDataURL(file)
-        })
-      }),
-    )
-
+    const newPreviewUrls = await createImagePreviews(newFiles)
     setEditReviewImagePreviewUrls([...editReviewImagePreviewUrls, ...newPreviewUrls])
   }
 
@@ -208,14 +203,42 @@ export const PaginaPerfil = () => {
     const newFiles = [...editReviewImageFiles]
     const newPreviewUrls = [...editReviewImagePreviewUrls]
 
+    // Eliminar el elemento en el índice especificado
     newFiles.splice(index, 1)
     newPreviewUrls.splice(index, 1)
 
+    // Actualizar los estados con los nuevos arrays
     setEditReviewImageFiles(newFiles)
     setEditReviewImagePreviewUrls(newPreviewUrls)
+    
+    console.log('Imagen eliminada. Imágenes restantes:', newPreviewUrls)
   }
 
-  // Modificar la función handleSubmitReview para incluir la carga de imágenes
+  // Función para subir imágenes - reutilizable para crear y editar reviews
+  const uploadImages = async (files: File[]): Promise<string[]> => {
+    const imageUrls: string[] = []
+    
+    if (files.length === 0) return imageUrls
+    
+    setUploadingImage(true)
+    
+    for (let i = 0; i < files.length; i++) {
+      try {
+        const imageUrl = await imageService.uploadImage(files[i], (progress) => {
+          setUploadProgress(progress)
+        })
+        imageUrls.push(imageUrl)
+      } catch (error) {
+        console.error(`Error al subir la imagen ${i + 1}:`, error)
+        throw new Error(`No se pudo subir la imagen ${i + 1}. Por favor, inténtalo de nuevo.`)
+      }
+    }
+    
+    setUploadingImage(false)
+    return imageUrls
+  }
+
+  // Función para enviar una nueva review
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -234,28 +257,7 @@ export const PaginaPerfil = () => {
 
     try {
       // Subir imágenes si hay alguna
-      const imageUrls: string[] = []
-
-      if (reviewImageFiles.length > 0) {
-        setUploadingImage(true)
-
-        for (let i = 0; i < reviewImageFiles.length; i++) {
-          try {
-            const imageUrl = await imageService.uploadImage(reviewImageFiles[i], (progress) => {
-              setUploadProgress(progress)
-            })
-            imageUrls.push(imageUrl)
-          } catch (error) {
-            console.error(`Error al subir la imagen ${i + 1}:`, error)
-            setReviewError(`No se pudo subir la imagen ${i + 1}. Por favor, inténtalo de nuevo.`)
-            setSubmittingReview(false)
-            setUploadingImage(false)
-            return
-          }
-        }
-
-        setUploadingImage(false)
-      }
+      const imageUrls = await uploadImages(reviewImageFiles)
 
       const reviewData = {
         reviewer_id: user.id,
@@ -265,8 +267,11 @@ export const PaginaPerfil = () => {
         images: imageUrls,
       }
 
+      // Crear la review en el backend
       const createdReview = await reviewService.createReview(reviewData)
+      console.log('Review creada:', createdReview)
 
+      // Actualizar el estado local con la nueva review
       setReviews([
         {
           ...createdReview,
@@ -275,11 +280,11 @@ export const PaginaPerfil = () => {
             name: user.name,
             imageUrl: user.imageUrl,
           },
-          images: imageUrls,
         },
         ...reviews,
       ])
 
+      // Actualizar estadísticas
       const newTotalReviews = reviewStats.totalReviews + 1
       const newAverageRating =
         (reviewStats.averageRating * reviewStats.totalReviews + newReview.rating) / newTotalReviews
@@ -289,6 +294,7 @@ export const PaginaPerfil = () => {
         averageRating: newAverageRating,
       })
 
+      // Limpiar el formulario
       setNewReview({
         rating: 5,
         comment: "",
@@ -297,51 +303,36 @@ export const PaginaPerfil = () => {
       setReviewImagePreviewUrls([])
       setCanReview(false)
     } catch (error) {
-      setReviewError("Error al enviar la valoración. Inténtalo de nuevo.")
+      setReviewError(error instanceof Error ? error.message : "Error al enviar la valoración. Inténtalo de nuevo.")
       console.error("Error al enviar review:", error)
     } finally {
       setSubmittingReview(false)
     }
   }
 
-  // Modificar la función handleUpdateReview para incluir la carga de imágenes
+  // Función para actualizar una review existente
   const handleUpdateReview = async (reviewId: number) => {
     try {
       setSubmittingReview(true)
+      setReviewError(null)
 
-      // Subir imágenes nuevas si hay alguna
-      const imageUrls: string[] = []
+      // Subir imágenes nuevas usando la función reutilizable
+      const newImageUrls = await uploadImages(editReviewImageFiles)
 
-      if (editReviewImageFiles.length > 0) {
-        setUploadingImage(true)
+      // Usar solo las imágenes que están actualmente en la vista previa
+      // más las nuevas imágenes subidas
+      const existingPreviewUrls = editReviewImagePreviewUrls.filter(url => !url.startsWith('data:'))
+      const combinedImages = [...existingPreviewUrls, ...newImageUrls]
 
-        for (let i = 0; i < editReviewImageFiles.length; i++) {
-          try {
-            const imageUrl = await imageService.uploadImage(editReviewImageFiles[i], (progress) => {
-              setUploadProgress(progress)
-            })
-            imageUrls.push(imageUrl)
-          } catch (error) {
-            console.error(`Error al subir la imagen ${i + 1}:`, error)
-            setReviewError(`No se pudo subir la imagen ${i + 1}. Por favor, inténtalo de nuevo.`)
-            setSubmittingReview(false)
-            setUploadingImage(false)
-            return
-          }
-        }
-
-        setUploadingImage(false)
-      }
-
-      // Combinar imágenes existentes con nuevas
-      const existingReview = reviews.find((r) => r.id === reviewId)
-      const combinedImages = [...(existingReview?.images || []), ...imageUrls]
-
+      // Actualizar la review en el backend
       const updatedReview = await reviewService.updateReview(reviewId, {
         ...editReviewData,
         images: combinedImages,
       })
+      
+      console.log('Review actualizada:', updatedReview)
 
+      // Actualizar el estado local con la review actualizada
       setReviews(
         reviews.map((review) =>
           review.id === reviewId
@@ -349,20 +340,22 @@ export const PaginaPerfil = () => {
               ...review,
               rating: updatedReview.rating,
               comment: updatedReview.comment,
-              images: combinedImages,
+              images: updatedReview.images, // Usar las imágenes devueltas por el backend
             }
             : review,
         ),
       )
 
+      // Actualizar estadísticas
       const updatedStats = await reviewService.getUserReviewStats(Number(id))
       setReviewStats(updatedStats)
 
+      // Limpiar el formulario de edición
       setEditingReviewId(null)
       setEditReviewImageFiles([])
       setEditReviewImagePreviewUrls([])
     } catch (error) {
-      setReviewError("Error al actualizar la valoración. Inténtalo de nuevo.")
+      setReviewError(error instanceof Error ? error.message : "Error al actualizar la valoración. Inténtalo de nuevo.")
       console.error("Error al actualizar review:", error)
     } finally {
       setSubmittingReview(false)
@@ -376,8 +369,12 @@ export const PaginaPerfil = () => {
       rating: review.rating,
       comment: review.comment,
     })
+    // Reiniciar los archivos de imagen para edición
     setEditReviewImageFiles([])
+    // Establecer las URLs de vista previa con las imágenes existentes
     setEditReviewImagePreviewUrls(review.images || [])
+    
+    console.log('Editando review con imágenes:', review.images)
   }
 
   // Modificar la función handleCancelEdit para limpiar las imágenes
@@ -793,7 +790,10 @@ export const PaginaPerfil = () => {
                                                 variant="danger"
                                                 size="sm"
                                                 className="position-absolute top-0 end-0 m-1 rounded-circle p-1"
-                                                onClick={() => removeEditReviewImage(index)}
+                                                onClick={(e) => {
+                                                  e.stopPropagation(); // Evitar que se abra el selector de archivos
+                                                  removeEditReviewImage(index);
+                                                }}
                                               >
                                                 <XCircle size={14} />
                                               </Button>
@@ -902,16 +902,19 @@ export const PaginaPerfil = () => {
                                 {/* Mostrar imágenes de la review */}
                                 {review.images && review.images.length > 0 && (
                                   <div className="d-flex flex-wrap gap-2 mt-2 mb-2">
-                                    {review.images.map((img, index) => (
-                                      <img
-                                        key={index}
-                                        src={img || "/placeholder.svg"}
-                                        alt={`Imagen ${index + 1} de la valoración`}
-                                        className="img-thumbnail"
-                                        style={{ width: "80px", height: "80px", objectFit: "cover" }}
-                                        onClick={() => window.open(img, "_blank")}
-                                      />
-                                    ))}
+                                    {review.images.map((img, index) => {
+                                      console.log(`Mostrando imagen de review: ${img}`);
+                                      return (
+                                        <img
+                                          key={index}
+                                          src={img || "/placeholder.svg"}
+                                          alt={`Imagen ${index + 1} de la valoración`}
+                                          className="img-thumbnail"
+                                          style={{ width: "80px", height: "80px", objectFit: "cover", cursor: "pointer" }}
+                                          onClick={() => window.open(img, "_blank")}
+                                        />
+                                      );
+                                    })}
                                   </div>
                                 )}
                               </div>

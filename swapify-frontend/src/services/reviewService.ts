@@ -14,13 +14,13 @@ export class ReviewService {
         reviewer: {
           id: item.reviewerId,
           name: item.reviewerName,
-          imageUrl: item.reviewerImageUrl,
+          imageUrl: item.imageUrl,
         },
         reviewed_id: item.reviewedId,
         rating: item.rating,
         comment: item.comment,
         created_at: item.createdAt,
-        images: item.images || [],
+        images: item.imageUrl ? item.imageUrl.split("|") : [],
       }))
     } catch (error) {
       console.error("Error al obtener reseñas del usuario:", error)
@@ -45,7 +45,7 @@ export class ReviewService {
         reviewer: {
           id: item.reviewerId,
           name: item.reviewerName,
-          imageUrl: item.reviewerImageUrl,
+          imageUrl: item.imageUrl,
         },
         reviewed_id: item.reviewedId,
         rating: item.rating,
@@ -73,11 +73,13 @@ export class ReviewService {
         reviewed: { id: reviewData.reviewed_id },
         rating: reviewData.rating,
         comment: reviewData.comment,
-        images: reviewData.images || [],
+        imageUrl: reviewData.images && reviewData.images.length > 0 ? reviewData.images.join("|") : null,
       }
 
+      console.log('Enviando datos al backend:', backendData);
       const res = await axios.post(`${this.baseUrl}create`, backendData)
       const item = res.data
+      console.log('Respuesta del backend:', item);
 
       // Transform response back to frontend format
       return {
@@ -91,7 +93,7 @@ export class ReviewService {
         rating: item.rating,
         comment: item.comment,
         created_at: item.createdAt,
-        images: item.images || [],
+        images: item.imageUrl ? item.imageUrl.split("|") : [],
       }
     } catch (error) {
       console.error("Error al crear la reseña:", error)
@@ -123,11 +125,14 @@ export class ReviewService {
         id: reviewId,
         rating: reviewData.rating,
         comment: reviewData.comment,
-        images: reviewData.images || [],
+        imageUrl: reviewData.images && reviewData.images.length > 0 ? reviewData.images.join("|") : null,
       }
 
       const res = await axios.put(`${this.baseUrl}modify/`, backendData)
-      return res.data
+      return {
+        ...res.data,
+        images: res.data.imageUrl ? res.data.imageUrl.split("|") : [],
+      }
     } catch (error) {
       console.error("Error al actualizar la reseña:", error)
       throw error
