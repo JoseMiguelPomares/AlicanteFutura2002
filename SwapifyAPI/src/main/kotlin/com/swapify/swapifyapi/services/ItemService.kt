@@ -59,6 +59,8 @@ class ItemService {
                     ),
                     it.title!!,
                     it.description!!,
+                    it.itemCondition!!,
+                    it.location!!,
                     it.price!!,
                     CategoryDTO(
                         it.category!!.id!!,
@@ -87,6 +89,8 @@ class ItemService {
                     ),
                     it.title!!,
                     it.description!!,
+                    it.itemCondition!!,
+                    it.location!!,
                     it.price!!,
                     CategoryDTO(
                         it.category!!.id!!,
@@ -115,6 +119,8 @@ class ItemService {
                     ),
                     it.title!!,
                     it.description!!,
+                    it.itemCondition!!,
+                    it.location!!,
                     it.price!!,
                     CategoryDTO(
                         it.category!!.id!!,
@@ -143,6 +149,8 @@ class ItemService {
                     ),
                     it.title.toString(),
                     it.description.toString(),
+                    it.itemCondition!!,
+                    it.location!!,
                     it.price!!,
                     CategoryDTO(
                         it.category!!.id!!,
@@ -276,6 +284,8 @@ class ItemService {
                     ),
                     it.title!!,
                     it.description!!,
+                    it.itemCondition!!,
+                    it.location!!,
                     it.price!!,
                     CategoryDTO(
                         it.category!!.id!!,

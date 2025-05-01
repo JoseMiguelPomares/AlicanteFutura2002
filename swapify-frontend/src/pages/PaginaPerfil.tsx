@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
-import { Container, Row, Col, Card, Button, Badge, Tabs, Tab, ListGroup, Image, Form, Alert, ProgressBar } from "react-bootstrap"
+import { Container, Row, Col, Card, Button, Badge, Tabs, Tab, ListGroup, Image, Form, Alert, ProgressBar, Modal, Carousel } from "react-bootstrap"
 import { CheckCircle, GeoAlt, Calendar3, StarFill, Star, Plus, Chat, Pencil, XCircle, PlusCircle, Image as ImageIcon } from "react-bootstrap-icons"
 import { ItemService } from "../services/itemService"
 import { UserService } from "../services/userService"
@@ -92,6 +92,11 @@ export const PaginaPerfil = () => {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [editReviewImageFiles, setEditReviewImageFiles] = useState<File[]>([])
   const [editReviewImagePreviewUrls, setEditReviewImagePreviewUrls] = useState<string[]>([])
+
+  // Estados para el lightbox de imágenes de reviews
+  const [showLightbox, setShowLightbox] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [lightboxImages, setLightboxImages] = useState<string[]>([])
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -210,18 +215,18 @@ export const PaginaPerfil = () => {
     // Actualizar los estados con los nuevos arrays
     setEditReviewImageFiles(newFiles)
     setEditReviewImagePreviewUrls(newPreviewUrls)
-    
+
     console.log('Imagen eliminada. Imágenes restantes:', newPreviewUrls)
   }
 
   // Función para subir imágenes - reutilizable para crear y editar reviews
   const uploadImages = async (files: File[]): Promise<string[]> => {
     const imageUrls: string[] = []
-    
+
     if (files.length === 0) return imageUrls
-    
+
     setUploadingImage(true)
-    
+
     for (let i = 0; i < files.length; i++) {
       try {
         const imageUrl = await imageService.uploadImage(files[i], (progress) => {
@@ -233,7 +238,7 @@ export const PaginaPerfil = () => {
         throw new Error(`No se pudo subir la imagen ${i + 1}. Por favor, inténtalo de nuevo.`)
       }
     }
-    
+
     setUploadingImage(false)
     return imageUrls
   }
@@ -329,7 +334,7 @@ export const PaginaPerfil = () => {
         ...editReviewData,
         images: combinedImages,
       })
-      
+
       console.log('Review actualizada:', updatedReview)
 
       // Actualizar el estado local con la review actualizada
@@ -373,7 +378,7 @@ export const PaginaPerfil = () => {
     setEditReviewImageFiles([])
     // Establecer las URLs de vista previa con las imágenes existentes
     setEditReviewImagePreviewUrls(review.images || [])
-    
+
     console.log('Editando review con imágenes:', review.images)
   }
 
@@ -905,14 +910,23 @@ export const PaginaPerfil = () => {
                                     {review.images.map((img, index) => {
                                       console.log(`Mostrando imagen de review: ${img}`);
                                       return (
-                                        <img
+                                        <div
                                           key={index}
-                                          src={img || "/placeholder.svg"}
-                                          alt={`Imagen ${index + 1} de la valoración`}
-                                          className="img-thumbnail"
-                                          style={{ width: "80px", height: "80px", objectFit: "cover", cursor: "pointer" }}
-                                          onClick={() => window.open(img, "_blank")}
-                                        />
+                                          className="thumbnail-container position-relative"
+                                          style={{ width: "80px", height: "80px" }}
+                                        >
+                                          <img
+                                            src={img || "/placeholder.svg"}
+                                            alt={`Imagen ${index + 1} de la valoración`}
+                                            className="img-thumbnail"
+                                            style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "pointer" }}
+                                            onClick={() => {
+                                              setLightboxImages(review.images || [])
+                                              setCurrentImageIndex(index)
+                                              setShowLightbox(true)
+                                            }}
+                                          />
+                                        </div>
                                       );
                                     })}
                                   </div>
@@ -936,6 +950,39 @@ export const PaginaPerfil = () => {
           </Tabs>
         </Col>
       </Row>
+      {/* Lightbox para imágenes de reviews */}
+      <Modal
+        show={showLightbox}
+        onHide={() => setShowLightbox(false)}
+        size="lg"
+        centered
+        className="lightbox-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Imagen {currentImageIndex + 1} de {lightboxImages.length}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-0">
+          <Carousel
+            activeIndex={currentImageIndex}
+            onSelect={(index) => setCurrentImageIndex(index)}
+            interval={null}
+            indicators={lightboxImages.length > 1}
+            controls={lightboxImages.length > 1}
+          >
+            {lightboxImages.map((img, index) => (
+              <Carousel.Item key={index}>
+                <div className="d-flex justify-content-center align-items-center bg-dark" style={{ height: "70vh" }}>
+                  <img
+                    src={img || "/placeholder.svg"}
+                    alt={`Imagen ${index + 1}`}
+                    style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }}
+                  />
+                </div>
+              </Carousel.Item>
+            ))}
+          </Carousel>
+        </Modal.Body>
+      </Modal>
     </Container>
   )
 }

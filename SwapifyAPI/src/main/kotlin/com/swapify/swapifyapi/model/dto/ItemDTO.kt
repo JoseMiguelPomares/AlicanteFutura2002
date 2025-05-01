@@ -5,9 +5,11 @@ import java.time.Instant
 
 class ItemDTO (
     val id: Int,
-    val username: UserDTO,
+    val user: UserDTO,
     val title: String,
     val description: String,
+    val itemCondition: String,
+    val location: String,
     val price: BigDecimal,
     val category: CategoryDTO?,
     val imageUrl: String?,
