@@ -195,8 +195,6 @@ export const PaginaVender = () => {
         status: "Available",
         price: Number.parseFloat(formData.price),
         imageUrl: uploadedUrls.join('|'), // Modificado: Unimos todas las URLs con un separador '|'
-        // En una implementación completa, aquí se enviaría el array completo de URLs
-        // imageUrls: uploadedUrls,
         userId: user?.id,
         location: formData.location,
       }
