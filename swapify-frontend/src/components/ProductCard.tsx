@@ -3,6 +3,7 @@ import { Card, Badge, Button } from "react-bootstrap"
 import { Link } from "react-router-dom"
 import { GeoAlt, Calendar3 } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
+import { useNavigate } from "react-router-dom"
 
 // Definir la interfaz para el producto
 export interface Producto {
@@ -22,6 +23,7 @@ export interface Producto {
     id: number
     name: string
     location?: string
+    imageUrl?: string | null
   }
   itemCondition?: string
 }
@@ -32,10 +34,13 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimation = true }) => {
+
+  const navigate = useNavigate()
+
   // Función para obtener el color de la categoría
   const getCategoryColor = (categoryName?: string): string => {
     if (!categoryName) return "secondary"
-    
+
     switch (categoryName.toLowerCase()) {
       case "tecnología":
         return "primary"
@@ -61,6 +66,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimatio
       default:
         return "secondary"
     }
+  }
+
+  const handleClick = () => {
+    navigate(`/items/${producto.id}`)
   }
 
   // Componente de tarjeta
@@ -112,6 +121,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimatio
             {new Date(producto.createdAt).toLocaleDateString()}
           </div>
         )}
+
+        {/* Añadir información del propietario */}
+        {producto.user && (
+          <div className="mt-2 d-flex justify-content-end align-items-center">
+            <Link
+              to={`/perfil/${producto.user.id}`}
+              className="text-decoration-none d-flex align-items-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <span className="small text-muted me-2">{producto.user.name}</span>
+              <img
+                src={producto.user.imageUrl || "/placeholder.svg"}
+                alt={producto.user.name}
+                className="rounded-circle border"
+                style={{ width: "24px", height: "24px", objectFit: "cover" }}
+              />
+            </Link>
+          </div>
+        )}
       </Card.Body>
     </Card>
   )
@@ -119,18 +147,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimatio
   // Si se solicita animación, envolver en motion.div
   if (showAnimation) {
     return (
-      <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-        <Link to={`/items/${producto.id}`} className="text-decoration-none">
-          {cardContent}
-        </Link>
+      <motion.div
+        whileHover={{ y: -5 }}
+        transition={{ duration: 0.2 }}
+        onClick={handleClick}
+        style={{ cursor: "pointer" }}
+      >
+        {cardContent}
       </motion.div>
     )
   }
 
   // Sin animación
   return (
-    <Link to={`/items/${producto.id}`} className="text-decoration-none">
+    <div onClick={handleClick} style={{ cursor: "pointer" }}>
       {cardContent}
-    </Link>
+    </div>
   )
 }
