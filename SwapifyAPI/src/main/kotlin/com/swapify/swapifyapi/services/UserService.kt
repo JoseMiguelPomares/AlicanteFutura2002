@@ -6,6 +6,7 @@ import com.swapify.swapifyapi.model.dto.CreditsUserDTO
 import com.swapify.swapifyapi.model.dto.ReputationUserDTO
 import com.swapify.swapifyapi.model.dto.UserSignInDTO
 import com.swapify.swapifyapi.model.dto.SocialAuthUserDTO
+import com.swapify.swapifyapi.model.dto.UserProfileDTO
 import com.swapify.swapifyapi.model.entities.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -165,6 +166,23 @@ class UserService {
         val userOptional: Optional<User> = userDAO.findUserByItemId(itemId)
         return if (userOptional.isPresent) {
             ResponseEntity.ok(userOptional.get())
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
+
+    //Función para actualizar el perfil de un usuario
+    fun updateUserProfile(id: Int, userProfileDTO: UserProfileDTO): ResponseEntity<UserProfileDTO> {
+        val userOptional: Optional<User> = userDAO.findById(id)
+        return if (userOptional.isPresent) {
+            val user = userOptional.get()
+            user.name = userProfileDTO.name
+            user.email = userProfileDTO.email
+            user.imageUrl = userProfileDTO.imageUrl
+            user.location = userProfileDTO.location
+            user.aboutMe = userProfileDTO.aboutMe
+            userDAO.save(user)
+            ResponseEntity.ok(userProfileDTO)
         } else {
             ResponseEntity.notFound().build()
         }

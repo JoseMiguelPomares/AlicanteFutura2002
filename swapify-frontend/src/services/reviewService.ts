@@ -14,7 +14,7 @@ export class ReviewService {
         reviewer: {
           id: item.reviewerId,
           name: item.reviewerName,
-          imageUrl: item.imageUrl,
+          imageUrl: item.reviewerImageUrl, // Usar reviewerImageUrl para la imagen de perfil del reviewer
         },
         reviewed_id: item.reviewedId,
         rating: item.rating,

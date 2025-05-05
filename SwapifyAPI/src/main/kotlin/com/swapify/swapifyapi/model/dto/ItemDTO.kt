@@ -21,7 +21,7 @@ class ItemDTO (
 data class UserDTO(
     val id: Int,
     val name: String,
-
+    val imageUrl: String?
 )
 
 data class CategoryDTO(
