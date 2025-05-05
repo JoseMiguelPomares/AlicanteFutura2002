@@ -19,7 +19,7 @@ export const PaginaRegistro = () => {
     name: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    confirmPassword: ""
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
@@ -139,10 +139,14 @@ export const PaginaRegistro = () => {
     setError(null)
 
     try {
+      // Generar una imagen con las iniciales del usuario
+      const imageUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(formData.name) + "&background=random"
+      
       await userService.register({
         email: formData.email,
         password: formData.password,
         name: formData.name,
+        imageUrl: imageUrl, // Incluir la URL de la imagen generada
         recaptchaToken: recaptchaToken, // Enviar el token al servidor
       })
 
