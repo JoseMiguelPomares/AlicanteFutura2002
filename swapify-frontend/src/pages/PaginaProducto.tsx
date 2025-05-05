@@ -579,7 +579,9 @@ export const PaginaProducto = () => {
           <div className="d-grid gap-2">
             {!isOwner ? (
               <>
-                <Button variant="success" size="lg" className="rounded-pill">
+                <Button variant="success" size="lg" className="rounded-pill" 
+                as={Link as any} 
+                to={`/chat/${user.id}/${currentUser?.id}`}> {/*En modificacion*/}
                   <ChatLeftText className="me-2" />
                   Contactar con el vendedor
                 </Button>
