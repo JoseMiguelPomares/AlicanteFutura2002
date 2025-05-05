@@ -7,19 +7,20 @@ export class ReviewService {
   async getReviewsByUserId(userId: number) {
     try {
       const res = await axios.get(`${this.baseUrl}userReviews/${userId}`)
-      
+
       // Transform backend DTO to frontend Review format
       return res.data.map((item: any) => ({
         id: item.id,
         reviewer: {
           id: item.reviewerId,
           name: item.reviewerName,
-          imageUrl: item.reviewerImageUrl
+          imageUrl: item.imageUrl,
         },
         reviewed_id: item.reviewedId,
         rating: item.rating,
         comment: item.comment,
-        created_at: item.createdAt
+        created_at: item.createdAt,
+        images: item.imageUrl ? item.imageUrl.split("|") : [],
       }))
     } catch (error) {
       console.error("Error al obtener reseñas del usuario:", error)
@@ -37,19 +38,19 @@ export class ReviewService {
   async getReviewsByItem(itemId: number) {
     try {
       const res = await axios.get(`${this.baseUrl}item/${itemId}`)
-      
+
       // Transform backend DTO to frontend Review format
       return res.data.map((item: any) => ({
         id: item.id,
         reviewer: {
           id: item.reviewerId,
           name: item.reviewerName,
-          imageUrl: item.reviewerImageUrl
+          imageUrl: item.imageUrl,
         },
         reviewed_id: item.reviewedId,
         rating: item.rating,
         comment: item.comment,
-        created_at: item.createdAt
+        created_at: item.createdAt,
       }))
     } catch (error) {
       console.error("Error al obtener reseñas:", error)
@@ -63,6 +64,7 @@ export class ReviewService {
     reviewed_id: number
     rating: number
     comment: string
+    images?: string[]
   }) {
     try {
       // Transform frontend data to backend format
@@ -70,24 +72,28 @@ export class ReviewService {
         reviewer: { id: reviewData.reviewer_id },
         reviewed: { id: reviewData.reviewed_id },
         rating: reviewData.rating,
-        comment: reviewData.comment
+        comment: reviewData.comment,
+        imageUrl: reviewData.images && reviewData.images.length > 0 ? reviewData.images.join("|") : null,
       }
-      
+
+      console.log('Enviando datos al backend:', backendData);
       const res = await axios.post(`${this.baseUrl}create`, backendData)
       const item = res.data
-      
+      console.log('Respuesta del backend:', item);
+
       // Transform response back to frontend format
       return {
         id: item.id,
         reviewer: {
           id: item.reviewer?.id,
           name: item.reviewer?.name,
-          imageUrl: item.reviewer?.imageUrl
+          imageUrl: item.reviewer?.imageUrl,
         },
         reviewed_id: item.reviewed?.id,
         rating: item.rating,
         comment: item.comment,
-        created_at: item.createdAt
+        created_at: item.createdAt,
+        images: item.imageUrl ? item.imageUrl.split("|") : [],
       }
     } catch (error) {
       console.error("Error al crear la reseña:", error)
@@ -106,30 +112,38 @@ export class ReviewService {
     }
   }
 
-  async updateReview(reviewId: number, reviewData: {
-    rating: number;
-    comment: string;
-  }) {
+  async updateReview(
+    reviewId: number,
+    reviewData: {
+      rating: number
+      comment: string
+      images?: string[]
+    },
+  ) {
     try {
       const backendData = {
         id: reviewId,
         rating: reviewData.rating,
-        comment: reviewData.comment
+        comment: reviewData.comment,
+        imageUrl: reviewData.images && reviewData.images.length > 0 ? reviewData.images.join("|") : null,
       }
-      
+
       const res = await axios.put(`${this.baseUrl}modify/`, backendData)
-      return res.data
+      return {
+        ...res.data,
+        images: res.data.imageUrl ? res.data.imageUrl.split("|") : [],
+      }
     } catch (error) {
       console.error("Error al actualizar la reseña:", error)
       throw error
     }
   }
-  
+
   async deleteReview(reviewId: number) {
     try {
       console.log(`Intentando eliminar review con ID: ${reviewId}`)
       const response = await axios.delete(`${this.baseUrl}delete/${reviewId}`)
-      console.log('Respuesta del servidor:', response)
+      console.log("Respuesta del servidor:", response)
       return response.data
     } catch (error) {
       console.error("Error al eliminar la reseña:", error)
@@ -137,4 +151,3 @@ export class ReviewService {
     }
   }
 }
-

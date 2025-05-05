@@ -69,13 +69,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("No se pudo obtener el email del usuario")
       }
 
+      // Asegurarnos de tener una imagen de perfil
+      // Si no hay photoURL, generamos una imagen con las iniciales del usuario
+      const imageUrl = photoURL || 
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName || email.split("@")[0])}&background=random`
+
       // Verificar si el usuario existe en nuestra base de datos
       // O registrarlo si no existe
       const response = await userService.loginWithSocialProvider({
         socialId: uid,
         name: displayName || email.split("@")[0],
         email: email,
-        imageUrl: photoURL || undefined,
+        imageUrl: imageUrl, // Siempre enviamos una URL de imagen
         token: token, // Enviamos el token al backend
       })
 

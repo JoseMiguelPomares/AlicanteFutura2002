@@ -602,7 +602,20 @@ export const PaginaProducto = () => {
                   Editar producto
                 </Button>
                 <div className="d-flex gap-2">
-                  <Button variant="outline-danger" className="w-100 rounded-pill">
+                  <Button variant="outline-danger" className="w-100 rounded-pill" onClick={async () => {
+                    if (!producto) return;
+                    if (!window.confirm("¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.")) return;
+                    try {
+                      setLoading(true);
+                      await itemService.deleteItem(producto.id);
+                      alert("Producto eliminado correctamente.");
+                      window.location.href = "/";
+                    } catch (error) {
+                      alert("No se pudo eliminar el producto. Inténtalo de nuevo más tarde.");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}>
                     <Trash className="me-2" />
                     Eliminar producto
                   </Button>
