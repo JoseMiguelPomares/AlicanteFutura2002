@@ -24,6 +24,7 @@ class ReviewService {
             id = review.id,
             reviewerId = review.reviewer?.id,
             reviewerName = review.reviewer?.name,
+            reviewerImageUrl = review.reviewer?.imageUrl,
             reviewedId = review.reviewed?.id,
             reviewedName = review.reviewed?.name,
             rating = review.rating,

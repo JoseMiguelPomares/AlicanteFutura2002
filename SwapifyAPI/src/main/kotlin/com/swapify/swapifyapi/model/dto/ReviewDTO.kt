@@ -7,6 +7,7 @@ data class ReviewDTO(
     val id: Int?,
     val reviewerId: Int?,
     val reviewerName: String?,
+    val reviewerImageUrl: String?,
     val reviewedId: Int?,
     val reviewedName: String?,
     val rating: Int?,
