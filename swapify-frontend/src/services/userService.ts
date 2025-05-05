@@ -40,4 +40,9 @@ export class UserService {
   loginWithSocialProvider(userData: SocialAuthUser) {
     return axios.post(this.baseUrl + "social-auth", userData)
   }
+
+  // Método para actualizar la información del usuario
+  updateUser(userData: any) {
+    return axios.put(this.baseUrl + `updateProfile/${userData.id}`, userData)
+  }
 }

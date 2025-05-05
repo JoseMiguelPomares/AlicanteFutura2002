@@ -20,7 +20,7 @@ interface User {
   verified?: boolean
   location?: string
   joinDate?: string
-  description?: string
+  aboutMe?: string
   reputation?: number
 }
 
@@ -598,8 +598,8 @@ export const PaginaPerfil = () => {
             <Tab eventKey="sobre" title="Sobre mí">
               <Card className="border-0 shadow-sm rounded-4">
                 <Card.Body className="p-4">
-                  {userProfile.description ? (
-                    <p className="mb-0">{userProfile.description}</p>
+                  {userProfile.aboutMe ? (
+                    <p className="mb-0">{userProfile.aboutMe}</p>
                   ) : (
                     <p className="text-muted text-center mb-0">
                       {isOwnProfile

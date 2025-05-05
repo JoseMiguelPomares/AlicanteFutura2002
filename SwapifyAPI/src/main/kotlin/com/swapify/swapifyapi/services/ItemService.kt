@@ -56,6 +56,7 @@ class ItemService {
                     UserDTO(
                         it.user!!.id!!,
                         it.user!!.name!!,
+                        it.user!!.imageUrl
                     ),
                     it.title!!,
                     it.description!!,
@@ -86,6 +87,7 @@ class ItemService {
                     UserDTO(
                         it.user!!.id!!,
                         it.user!!.name!!,
+                        it.user!!.imageUrl
                     ),
                     it.title!!,
                     it.description!!,
@@ -116,6 +118,7 @@ class ItemService {
                     UserDTO(
                         it.user!!.id!!,
                         it.user!!.name!!,
+                        it.user!!.imageUrl
                     ),
                     it.title!!,
                     it.description!!,
@@ -146,6 +149,7 @@ class ItemService {
                     UserDTO(
                         it.user!!.id!!,
                         it.user!!.name!!,
+                        it.user!!.imageUrl
                     ),
                     it.title.toString(),
                     it.description.toString(),
@@ -281,6 +285,7 @@ class ItemService {
                     UserDTO(
                         it.user!!.id!!,
                         it.user!!.name!!,
+                        it.user!!.imageUrl
                     ),
                     it.title!!,
                     it.description!!,

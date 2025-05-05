@@ -15,6 +15,7 @@ import { PaginaBusqueda } from "./pages/PaginaBusqueda"
 import PaginaContacto from "./pages/PaginaContacto"
 import { AuthProvider } from "./contexts/AuthContext"
 import { PaginaPorCategoria } from "./pages/PaginaPorCategoria"
+import { PaginaEditarPerfil } from "./pages/PaginaEditarPerfil"
 
 import { useState, useEffect } from "react"
 import { Button, Form } from "react-bootstrap"
@@ -31,6 +32,7 @@ export const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<PaginaInicio />} />
               <Route path="/perfil/:id" element={<PaginaPerfil />} />
+              <Route path="/editar-perfil" element={<PaginaEditarPerfil />} />
               <Route path="/vender" element={<PaginaVender />} />
               <Route path="/registro" element={<PaginaRegistro />} />
               <Route path="/login" element={<PaginaLogin />} />

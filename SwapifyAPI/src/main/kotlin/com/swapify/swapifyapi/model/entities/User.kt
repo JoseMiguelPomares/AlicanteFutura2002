@@ -45,4 +45,7 @@ open class User {
     // Nuevo campo para almacenar la URL de la imagen del usuario
     @Column(name = "image_url", length = 255)
     open var imageUrl: String? = null
+
+    @Column(name = "about_me", length = 500)
+    open var aboutMe: String? = null
 }
