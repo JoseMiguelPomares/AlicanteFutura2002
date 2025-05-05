@@ -750,7 +750,10 @@ export const PaginaPerfil = () => {
                                 </div>
                                 <div className="flex-grow-1">
                                   <div className="d-flex justify-content-between align-items-center mb-2">
-                                    <span className="fw-bold">{review.reviewer.name}</span>
+                                    <span className={`fw-bold ${isAuthenticated && user?.id === review.reviewer.id ? 'text-success' : ''}`}>
+                                      {review.reviewer.name}
+                                      {isAuthenticated && user?.id === review.reviewer.id && " (Tú)"}
+                                    </span>
                                     <div className="d-flex gap-2">
                                       <Button
                                         variant="outline-success"
@@ -874,8 +877,12 @@ export const PaginaPerfil = () => {
                               </div>
                               <div className="flex-grow-1">
                                 <div className="d-flex align-items-center gap-2 mb-2">
-                                  <Link to={`/perfil/${review.reviewer.id}`} className="fw-bold text-decoration-none">
+                                  <Link 
+                                    to={`/perfil/${review.reviewer.id}`} 
+                                    className={`fw-bold text-decoration-none ${isAuthenticated && user?.id === review.reviewer.id ? 'text-success' : ''}`}
+                                  >
                                     {review.reviewer.name}
+                                    {isAuthenticated && user?.id === review.reviewer.id && " (Tú)"}
                                   </Link>
                                   {renderStars(review.rating)}
                                   <span className="text-muted ms-2 small">
