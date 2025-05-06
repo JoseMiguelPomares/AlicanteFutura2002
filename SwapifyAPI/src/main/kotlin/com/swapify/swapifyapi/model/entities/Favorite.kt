@@ -1,10 +1,8 @@
 package com.swapify.swapifyapi.model.entities
 
 import jakarta.persistence.*
-import org.hibernate.annotations.ColumnDefault
-import org.hibernate.annotations.DynamicInsert
-import org.hibernate.annotations.OnDelete
-import org.hibernate.annotations.OnDeleteAction
+import jakarta.persistence.Table
+import org.hibernate.annotations.*
 import java.time.Instant
 
 @Entity
@@ -27,6 +25,7 @@ open class Favorite {
     @JoinColumn(name = "item_id")
     open var item: Item? = null
 
-    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     open var createdAt: Instant? = null
 }
