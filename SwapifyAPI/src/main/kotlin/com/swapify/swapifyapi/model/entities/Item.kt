@@ -1,10 +1,8 @@
 package com.swapify.swapifyapi.model.entities
 
 import jakarta.persistence.*
-import org.hibernate.annotations.ColumnDefault
-import org.hibernate.annotations.DynamicInsert
-import org.hibernate.annotations.OnDelete
-import org.hibernate.annotations.OnDeleteAction
+import jakarta.persistence.Table
+import org.hibernate.annotations.*
 import java.math.BigDecimal
 import java.time.Instant
 
@@ -49,6 +47,7 @@ open class Item {
     @Column(name = "status", length = 50)
     open var status: String? = "Available"
 
-    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     open var createdAt: Instant? = null
 }

@@ -2,6 +2,7 @@ package com.swapify.swapifyapi.model.entities
 
 import jakarta.persistence.*
 import org.hibernate.annotations.ColumnDefault
+import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.DynamicInsert
 import java.time.Instant
 
@@ -35,7 +36,8 @@ open class User {
     @Column(name = "reputation")
     open var reputation: Double? = null
 
-    @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     open var createdAt: Instant? = null
 
     // Nuevo campo para almacenar el ID de Google
