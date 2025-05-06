@@ -3,6 +3,29 @@ import axios from "axios"
 export class ChatService {
   baseUrl = "http://localhost:8080/swapify/chats/"
 
+  async getMessages(chatId: number) {
+    try {
+      const response = await axios.get(`${this.baseUrl}${chatId}`)
+      return response.data
+    } catch (error) {
+      console.error("Error al obtener chat:", error)
+      throw error
+    }
+  }
+
+  async postMessage(chatId: number, senderId: number, content: string) {
+    try {
+      const response = await axios.post(`${this.baseUrl}${chatId}`, {
+        senderId,
+        content,
+      })
+      return response.data
+    } catch (error) {
+      console.error("Error al enviar mensaje:", error)
+      throw error
+    }
+  }
+  /*
   async getChats(userId: number) {
     try {
       const response = await axios.get(`${this.baseUrl}user/${userId}`)
@@ -57,5 +80,5 @@ export class ChatService {
       console.error("Error al crear chat:", error)
       throw error
     }
-  }
+  }*/
 }
