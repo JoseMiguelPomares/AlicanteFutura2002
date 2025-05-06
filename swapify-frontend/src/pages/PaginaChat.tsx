@@ -322,7 +322,7 @@ const chatService = {
 export const PaginaChat = () => {
   const { chatId } = useParams<{ chatId?: string }>()
   const navigate = useNavigate()
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, loading } = useAuth()
   const [chats, setChats] = useState<Chat[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
@@ -341,10 +341,10 @@ export const PaginaChat = () => {
 
   // Verificar autenticación
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!loading && !isAuthenticated) { // Ahora espera a que loading sea false antes de verificar isAuthenticated
       navigate("/login?redirect=/chat")
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, loading, navigate])
 
   // Cargar chats
   useEffect(() => {
@@ -594,7 +594,7 @@ export const PaginaChat = () => {
                       ? "No se encontraron conversaciones que coincidan con tu búsqueda."
                       : "No tienes conversaciones activas."}
                   </p>
-                  <Button as={Link} to="/" variant="success" className="mt-2 rounded-pill">
+                  <Button as={Link as any} to="/" variant="success" className="mt-2 rounded-pill">
                     Explorar productos
                   </Button>
                 </div>

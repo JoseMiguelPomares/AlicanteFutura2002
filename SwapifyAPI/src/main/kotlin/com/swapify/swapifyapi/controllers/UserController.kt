@@ -4,6 +4,7 @@ import com.swapify.swapifyapi.model.dto.CreditsUserDTO
 import com.swapify.swapifyapi.model.dto.ReputationUserDTO
 import com.swapify.swapifyapi.model.dto.UserSignInDTO
 import com.swapify.swapifyapi.model.dto.SocialAuthUserDTO
+import com.swapify.swapifyapi.model.dto.UserProfileDTO
 import com.swapify.swapifyapi.model.entities.User
 import com.swapify.swapifyapi.services.UserService
 import org.springframework.beans.factory.annotation.Autowired
@@ -69,5 +70,11 @@ class UserController {
     @GetMapping("/getUserByItemId/{itemId}")
     fun getUserByItemId(@PathVariable itemId: Int): ResponseEntity<User> {
         return userService.getUserByItemId(itemId)
+    }
+
+    //Función para actualizar el perfil de un usuario
+    @PutMapping("/updateProfile/{id}")
+    fun updateUserProfile(@PathVariable id: Int, @RequestBody userProfileDTO: UserProfileDTO): ResponseEntity<UserProfileDTO> {
+        return userService.updateUserProfile(id, userProfileDTO)
     }
 }

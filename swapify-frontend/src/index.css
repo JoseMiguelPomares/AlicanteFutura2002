@@ -276,3 +276,7 @@ body {
 .nav-link-hover:hover svg {
   transform: scale(1.2);
 }
+
+.non-resizable-textarea {
+  resize: none;
+}
