@@ -27,6 +27,7 @@ import { ItemService } from "../services/itemService"
 import { CategoryService } from "../services/categoryService"
 import { ProductCard } from "../components/ProductCard"
 import { StableInput } from "../components/StableInput"
+import { useAuth } from "../contexts/AuthContext"
 
 interface Producto {
   id: number
@@ -83,6 +84,8 @@ export const PaginaBusqueda = () => {
   const [productos, setProductos] = useState<Producto[]>([])
   const [loading, setLoading] = useState(true)
   const [filteredProductos, setFilteredProductos] = useState<Producto[]>([])
+  const { user } = useAuth();
+
 
   // Estado para las categorías
   const [, setCategorias] = useState<{ id: number; name: string; parent_id?: number }[]>([])
@@ -97,7 +100,7 @@ export const PaginaBusqueda = () => {
     estado: [],
     publicadoHace: "todos",
   })
-    // Estado para mostrar/ocultar filtros en móvil
+  // Estado para mostrar/ocultar filtros en móvil
   const [mostrarFiltros, setMostrarFiltros] = useState(false)
 
   // Estado para el rango de precios disponible
@@ -146,6 +149,11 @@ export const PaginaBusqueda = () => {
   useEffect(() => {
     if (productos.length > 0) {
       let filtered = [...productos]
+
+      // Filtrar productos del usuario autenticado
+      if (user) {
+        filtered = filtered.filter(p => p.user?.id !== user.id);
+      }
 
       // Filtrar por término de búsqueda
       if (query) {

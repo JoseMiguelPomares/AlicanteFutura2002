@@ -16,6 +16,7 @@ import {
   ArrowDownCircle,
 } from "react-bootstrap-icons"
 import { useNavigate } from "react-router-dom" // <-- Agrega esta línea
+import { useAuth } from "../contexts/AuthContext"
 
 // Actualizar la interfaz Producto para reflejar la estructura de la base de datos
 interface Producto {
@@ -55,6 +56,7 @@ export const PaginaInicio = () => {
   const [mostrarTodasCategorias, setMostrarTodasCategorias] = useState<boolean>(false)
   const itemService = useRef(new ItemService()).current
   const navigate = useNavigate()
+  const { user } = useAuth();
 
   // Detectar cambios en el tamaño de la ventana
   useEffect(() => {
@@ -99,10 +101,17 @@ export const PaginaInicio = () => {
         }
 
         // Filtrar productos para diferentes secciones
+        // Filtrar productos del usuario actual si está autenticado
+        let filtered = data;
+        
+        if (user) {
+          filtered = filtered.filter((p: { user: { id: number } }) => p.user?.id !== user.id);
+        }
+        
         setProductosFiltrados({
-          destacados: data.slice(0, 4),
-          recientes: recentProducts.data.slice(0, 4), // Usar los productos recientes de la API
-          populares: data.slice(8, 12),
+          destacados: filtered.slice(0, 4),
+          recientes: recentProducts.data.filter((p: Producto) => !user || p.user?.id !== user.id).slice(0, 4),
+          populares: filtered.slice(8, 12),
         })
 
         setCargando(false)
@@ -114,10 +123,13 @@ export const PaginaInicio = () => {
     }
 
     fetchData()
-  }, [])
+  }, [user])
 
-  const productosMostrados =
-    categoriaActiva === "Todos" ? productos : productos.filter((p) => p.category?.name === categoriaActiva)
+  const productosMostrados = categoriaActiva === "Todos" 
+    ? (user ? productos.filter(p => p.user?.id !== user.id) : productos) 
+    : (user 
+        ? productos.filter(p => p.category?.name === categoriaActiva && p.user?.id !== user.id)
+        : productos.filter(p => p.category?.name === categoriaActiva));
 
   if (error)
     return (
