@@ -398,10 +398,7 @@ export const PaginaProducto = () => {
         </Breadcrumb.Item>
         {producto.category && (
           <>
-            <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/categorias" }}>
-              Categorías
-            </Breadcrumb.Item>
-            <Breadcrumb.Item linkAs={Link} linkProps={{ to: `/categorias/${producto.category?.name?.toLowerCase()}` }}>
+            <Breadcrumb.Item linkAs={Link} linkProps={{ to: `/categoria/${producto.category?.name?.toLowerCase()}` }}>
               {producto.category?.name}
             </Breadcrumb.Item>
           </>
