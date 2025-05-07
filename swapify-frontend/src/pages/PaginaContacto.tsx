@@ -2,16 +2,24 @@
 
 import type React from "react"
 
-import { Container, Row, Col, Form, Button, Card } from "react-bootstrap"
+import { Container, Row, Col, Form, Button, Card, Alert } from "react-bootstrap"
 import { motion } from "framer-motion"
 import { GeoAlt as MapPin, Envelope, Telephone, ShieldFill as Shield, CreditCard as CreditCard, CheckCircleFill as CheckCircle } from "react-bootstrap-icons"
 import MapaWeb from "../components/MapaWeb"
+import { useState } from "react"
 
 export const PaginaContacto = () => {
+  const [mostrarAlerta, setMostrarAlerta] = useState(false);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Aquí iría la lógica para enviar el formulario
-    alert("Mensaje enviado correctamente")
+    setMostrarAlerta(true);
+    
+    // Ocultar la alerta después de unos segundos
+    setTimeout(() => {
+      setMostrarAlerta(false);
+    }, 5000);
   }
 
   return (
@@ -24,6 +32,13 @@ export const PaginaContacto = () => {
       {/* Formulario de contacto */}
       <Container className="mb-5">
         <h2 className="mb-4">Envíanos un mensaje</h2>
+        
+        {mostrarAlerta && (
+          <Alert variant="success" onClose={() => setMostrarAlerta(false)} dismissible>
+            Mensaje enviado correctamente
+          </Alert>
+        )}
+        
         <Form onSubmit={handleSubmit}>
           <Row className="mb-3">
             <Col md={6} className="mb-3 mb-md-0">
