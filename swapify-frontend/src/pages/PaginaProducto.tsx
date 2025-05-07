@@ -79,6 +79,23 @@ export const PaginaProducto = () => {
   const [productosRelacionados, setProductosRelacionados] = useState<Producto[]>([])
   const itemService = useRef(new ItemService()).current
 
+  // Añadir estados para las alertas
+  const [alertaVisible, setAlertaVisible] = useState(false)
+  const [mensajeAlerta, setMensajeAlerta] = useState("")
+  const [tipoAlerta, setTipoAlerta] = useState<"success" | "danger">("danger")
+
+  // Añadir estos estados para el modal de confirmación
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<() => void>(() => { });
+  const [confirmMessage, setConfirmMessage] = useState("");
+
+  // Función para mostrar el modal de confirmación
+  const showConfirm = (message: string, onConfirm: () => void) => {
+    setConfirmMessage(message);
+    setConfirmAction(() => onConfirm);
+    setShowConfirmModal(true);
+  };
+
   // Dentro de la función PaginaProducto, añadir estos estados para el lightbox y manejo de múltiples imágenes
   const [showLightbox, setShowLightbox] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -219,7 +236,16 @@ export const PaginaProducto = () => {
         console.error("Error al subir la imagen:", error)
         // Eliminar la última imagen añadida si hay error
         setProductImages((prevImages) => prevImages.slice(0, -1))
-        alert("No se pudo subir la imagen. Por favor, inténtalo de nuevo.")
+
+        // Reemplazar el alert por el estado de alerta
+        setMensajeAlerta("No se pudo subir la imagen. Por favor, inténtalo de nuevo.")
+        setTipoAlerta("danger")
+        setAlertaVisible(true)
+
+        // Ocultar la alerta después de 5 segundos
+        setTimeout(() => {
+          setAlertaVisible(false)
+        }, 5000)
       } finally {
         setLoading(false)
       }
@@ -231,7 +257,9 @@ export const PaginaProducto = () => {
 
   // Función para eliminar una imagen
   const handleDeleteImage = async (index: number) => {
-    try {
+    // Usar el modal de confirmación
+    showConfirm("¿Estás seguro de que deseas eliminar esta imagen?", async () => {
+      try {
       setLoading(true)
 
       // Crear una copia del array de imágenes y eliminar la imagen seleccionada
@@ -274,15 +302,25 @@ export const PaginaProducto = () => {
       }
     } catch (error) {
       console.error("Error al eliminar la imagen:", error)
-      alert("No se pudo eliminar la imagen. Por favor, inténtalo de nuevo.")
 
-      // Restaurar las imágenes originales en caso de error
-      if (producto && producto.imageUrl) {
-        setProductImages(producto.imageUrl.split("|"))
+        // Reemplazar el alert por el estado de alerta
+        setMensajeAlerta("No se pudo eliminar la imagen. Por favor, inténtalo de nuevo.")
+        setTipoAlerta("danger")
+        setAlertaVisible(true)
+
+        // Ocultar la alerta después de 5 segundos
+        setTimeout(() => {
+          setAlertaVisible(false)
+        }, 5000)
+
+        // Restaurar las imágenes originales en caso de error
+        if (producto && producto.imageUrl) {
+          setProductImages(producto.imageUrl.split("|"))
+        }
+      } finally {
+        setLoading(false)
       }
-    } finally {
-      setLoading(false)
-    }
+    });
   }
 
   // Verificar si el producto pertenece al usuario actual
@@ -341,6 +379,18 @@ export const PaginaProducto = () => {
 
   return (
     <Container className="py-5">
+      {/* Mostrar alerta si es visible */}
+      {alertaVisible && (
+        <Alert
+          variant={tipoAlerta}
+          dismissible
+          onClose={() => setAlertaVisible(false)}
+          className="mb-4"
+        >
+          {mensajeAlerta}
+        </Alert>
+      )}
+
       {/* Breadcrumb */}
       <Breadcrumb className="mb-4">
         <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/" }}>
@@ -579,9 +629,9 @@ export const PaginaProducto = () => {
           <div className="d-grid gap-2">
             {!isOwner ? (
               <>
-                <Button variant="success" size="lg" className="rounded-pill" 
-                as={Link as any} 
-                to={`/chat/${user.id}/${currentUser?.id}`}> {/*En modificacion*/}
+                <Button variant="success" size="lg" className="rounded-pill"
+                  as={Link as any}
+                  to={`/chat/${user.id}/${currentUser?.id}`}> {/*En modificacion*/}
                   <ChatLeftText className="me-2" />
                   Contactar con el vendedor
                 </Button>
@@ -604,17 +654,24 @@ export const PaginaProducto = () => {
                 <div className="d-flex gap-2">
                   <Button variant="outline-danger" className="w-100 rounded-pill" onClick={async () => {
                     if (!producto) return;
-                    if (!window.confirm("¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.")) return;
-                    try {
-                      setLoading(true);
-                      await itemService.deleteItem(producto.id);
-                      alert("Producto eliminado correctamente.");
-                      window.location.href = "/";
-                    } catch (error) {
-                      alert("No se pudo eliminar el producto. Inténtalo de nuevo más tarde.");
-                    } finally {
-                      setLoading(false);
-                    }
+                    showConfirm("¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.", async () => {
+                      try {
+                        setLoading(true);
+                        await itemService.deleteItem(producto.id);
+                        setMensajeAlerta("Producto eliminado correctamente.");
+                        setTipoAlerta("success");
+                        setAlertaVisible(true);
+                        setTimeout(() => {
+                          window.location.href = "/";
+                        }, 2000);
+                      } catch (error) {
+                        setMensajeAlerta("No se pudo eliminar el producto. Inténtalo de nuevo más tarde.");
+                        setTipoAlerta("danger");
+                        setAlertaVisible(true);
+                      } finally {
+                        setLoading(false);
+                      }
+                    });
                   }}>
                     <Trash className="me-2" />
                     Eliminar producto
@@ -753,6 +810,27 @@ export const PaginaProducto = () => {
               </Button>
             </div>
           )}
+        </Modal.Footer>
+      </Modal>
+      {/* Modal de confirmación */}
+      <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar acción</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>{confirmMessage}</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
+            Cancelar
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              confirmAction();
+              setShowConfirmModal(false);
+            }}
+          >
+            Confirmar
+          </Button>
         </Modal.Footer>
       </Modal>
     </Container>
