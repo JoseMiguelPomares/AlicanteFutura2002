@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Navbar, Container, Form, InputGroup, Button, Nav, Offcanvas, Image } from "react-bootstrap"
+import { Navbar, Container, Form, InputGroup, Button, Nav, Offcanvas, Image, Badge } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import {
   Search,
@@ -17,12 +17,13 @@ import {
   Bicycle,
   InfoCircle,
   Envelope,
-} from "react-bootstrap-icons"
+  Heart } from "react-bootstrap-icons"
 import { useMediaQuery } from "react-responsive"
 import logo from "../assets/images/logosSwapify/logoNegroLargoFondoTransp.png"
 import logoPequeno from "../assets/images/logosSwapify/logoNegroTransp.png" // Logo para móviles
 import { BarraLateral } from "./BarraLateral"
 import { useAuth } from "../contexts/AuthContext"
+import { useFavorites } from "../contexts/FavoritesContext"
 
 export const BarraNavegacion = () => {
   const [showSidebar, setShowSidebar] = useState(false)
@@ -30,6 +31,7 @@ export const BarraNavegacion = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const isMobile = useMediaQuery({ maxWidth: 640 }) // Pantallas pequeñas
   const navigate = useNavigate()
+  const { favorites } = useFavorites();
 
   // Añadir dentro de la función BarraNavegacion
   const { user, isAuthenticated, logout } = useAuth()
@@ -175,6 +177,15 @@ export const BarraNavegacion = () => {
 
               {/* Enlaces de navegación */}
               <div className="border-top border-bottom py-3 my-2">
+                <Nav.Link as={Link} to="/favoritos" className="py-2 d-flex align-items-center" onClick={() => setShowMenu(false)}>
+                  <Heart className="me-2" size={18} />
+                  Favoritos
+                  {favorites.length > 0 && (
+                    <Badge bg="danger" pill className="ms-2">
+                      {favorites.length}
+                    </Badge>
+                  )}
+                </Nav.Link>
                 <Nav.Link as={Link} to="/contacto" className="py-2" onClick={() => setShowMenu(false)}>
                   Contacto
                 </Nav.Link>
@@ -209,6 +220,14 @@ export const BarraNavegacion = () => {
               Vender
             </Button>
             <div className="d-flex align-items-center ms-auto gap-4">
+              <Nav.Link as={Link} to="/favoritos" className="text-white position-relative">
+                <Heart size={22} />
+                {favorites.length > 0 && (
+                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {favorites.length}
+                  </span>
+                )}
+              </Nav.Link>
               <Nav.Link as={Link} to="/notificaciones" className="text-white position-relative">
                 <Bell size={22} />
                 <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">

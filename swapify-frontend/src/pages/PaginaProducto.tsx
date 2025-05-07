@@ -16,6 +16,7 @@ import {
   Alert,
   Modal,
   Carousel,
+  Spinner,
 } from "react-bootstrap"
 import {
   Star,
@@ -39,6 +40,7 @@ import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
 import { ImageService } from "../services/imageService"
 import { useAuth } from "../contexts/AuthContext"
+import { useFavorites } from "../contexts/FavoritesContext"
 import { ProductCard } from "../components/ProductCard"
 
 interface Producto {
@@ -75,14 +77,23 @@ export const PaginaProducto = () => {
   const [producto, setProducto] = useState<Producto | null>(null)
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [isFavorite, setIsFavorite] = useState(false)
   const [productosRelacionados, setProductosRelacionados] = useState<Producto[]>([])
   const itemService = useRef(new ItemService()).current
+  const { user: currentUser } = useAuth() // Añadir esta línea para obtener el usuario actual
+
+  const { isFavorite, addFavorite, removeFavorite, getFavoritesCount, refreshFavoritesCount, loading: favoritesLoading } = useFavorites();
+
+  const favoriteCount = producto ? getFavoritesCount(producto.id) : 0
 
   // Añadir estados para las alertas
   const [alertaVisible, setAlertaVisible] = useState(false)
   const [mensajeAlerta, setMensajeAlerta] = useState("")
   const [tipoAlerta, setTipoAlerta] = useState<"success" | "danger">("danger")
+
+  // Estados para el lightbox y manejo de múltiples imágenes
+  const [showLightbox, setShowLightbox] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [productImages, setProductImages] = useState<string[]>([])
 
   // Añadir estos estados para el modal de confirmación
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -96,11 +107,8 @@ export const PaginaProducto = () => {
     setShowConfirmModal(true);
   };
 
-  // Dentro de la función PaginaProducto, añadir estos estados para el lightbox y manejo de múltiples imágenes
-  const [showLightbox, setShowLightbox] = useState(false)
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [productImages, setProductImages] = useState<string[]>([])
-  const { user: currentUser } = useAuth() // Añadir esta línea para obtener el usuario actual
+  // Verificar si el producto pertenece al usuario actual
+  const isOwner = currentUser && producto && producto.user && currentUser.id === producto.user.id
 
   useEffect(() => {
     if (!id) {
@@ -112,7 +120,6 @@ export const PaginaProducto = () => {
     const fetchProducto = async () => {
       try {
         setLoading(true)
-
         const response = await itemService.getItemById(idNumber)
 
         if (!response || !response.data) {
@@ -138,7 +145,6 @@ export const PaginaProducto = () => {
     }
 
     fetchProducto()
-
     // Scroll al inicio cuando se carga un nuevo producto
     window.scrollTo(0, 0)
   }, [id])
@@ -260,48 +266,48 @@ export const PaginaProducto = () => {
     // Usar el modal de confirmación
     showConfirm("¿Estás seguro de que deseas eliminar esta imagen?", async () => {
       try {
-      setLoading(true)
+        setLoading(true)
 
-      // Crear una copia del array de imágenes y eliminar la imagen seleccionada
-      const newImages = [...productImages]
-      newImages.splice(index, 1)
+        // Crear una copia del array de imágenes y eliminar la imagen seleccionada
+        const newImages = [...productImages]
+        newImages.splice(index, 1)
 
-      // Actualizar el estado local con las imágenes restantes o una imagen de placeholder
-      const finalImages = newImages.length > 0 ? newImages : ["/placeholder.svg?height=600&width=800"]
-      setProductImages(finalImages)
+        // Actualizar el estado local con las imágenes restantes o una imagen de placeholder
+        const finalImages = newImages.length > 0 ? newImages : ["/placeholder.svg?height=600&width=800"]
+        setProductImages(finalImages)
 
-      // Solo actualizar en el backend si el producto existe
-      if (producto && producto.id) {
-        // Convertir el array de imágenes a una cadena separada por '|'
-        const allImageUrls = finalImages.join("|")
+        // Solo actualizar en el backend si el producto existe
+        if (producto && producto.id) {
+          // Convertir el array de imágenes a una cadena separada por '|'
+          const allImageUrls = finalImages.join("|")
 
-        console.log("Enviando actualización después de eliminar imagen:", {
-          productId: producto.id,
-          imageUrl: allImageUrls,
-        })
+          console.log("Enviando actualización después de eliminar imagen:", {
+            productId: producto.id,
+            imageUrl: allImageUrls,
+          })
 
-        // Crear un objeto completo con todos los campos requeridos
-        const itemData = {
-          title: producto.title,
-          description: producto.description,
-          categoryId: producto.category.id,
-          imageUrl: allImageUrls,
-          price: producto.price,
-          itemCondition: producto.itemCondition || "bueno",
-          location: producto.location || "",
+          // Crear un objeto completo con todos los campos requeridos
+          const itemData = {
+            title: producto.title,
+            description: producto.description,
+            categoryId: producto.category.id,
+            imageUrl: allImageUrls,
+            price: producto.price,
+            itemCondition: producto.itemCondition || "bueno",
+            location: producto.location || "",
+          }
+
+          // Enviar la actualización al backend
+          await itemService.modifyItem(producto.id, itemData)
+
+          // Actualizar el producto local con la nueva URL de imagen
+          setProducto((prev) => {
+            if (!prev) return null
+            return { ...prev, imageUrl: allImageUrls }
+          })
         }
-
-        // Enviar la actualización al backend
-        await itemService.modifyItem(producto.id, itemData)
-
-        // Actualizar el producto local con la nueva URL de imagen
-        setProducto((prev) => {
-          if (!prev) return null
-          return { ...prev, imageUrl: allImageUrls }
-        })
-      }
-    } catch (error) {
-      console.error("Error al eliminar la imagen:", error)
+      } catch (error) {
+        console.error("Error al eliminar la imagen:", error)
 
         // Reemplazar el alert por el estado de alerta
         setMensajeAlerta("No se pudo eliminar la imagen. Por favor, inténtalo de nuevo.")
@@ -323,12 +329,43 @@ export const PaginaProducto = () => {
     });
   }
 
-  // Verificar si el producto pertenece al usuario actual
-  const isOwner = currentUser && producto && producto.user && currentUser.id === producto.user.id
+  // Función para alternar favoritos
+  const toggleFavorite = async () => {
+    if (!currentUser) {
+      setMensajeAlerta("Por favor, inicia sesión para agregar a favoritos.")
+      setTipoAlerta("danger")
+      setAlertaVisible(true)
+      return
+    }
 
-  const toggleFavorite = () => {
-    setIsFavorite(!isFavorite)
-    // Aquí se implementaría la lógica para guardar el favorito en la base de datos
+    if (!producto) return
+
+    try {
+      setLoading(true)
+
+      if (isFavorite(producto.id)) {
+        await removeFavorite(producto.id)
+        setMensajeAlerta("Producto eliminado de favoritos.")
+      } else {
+        await addFavorite(producto)
+        setMensajeAlerta("Producto añadido a favoritos.")
+      }
+
+      // Actualizar el conteo de favoritos
+      await refreshFavoritesCount(producto.id)
+
+      setTipoAlerta("success")
+      setAlertaVisible(true)
+
+      setTimeout(() => setAlertaVisible(false), 5000)
+    } catch (error) {
+      console.error("Error al actualizar favoritos:", error)
+      setMensajeAlerta("Hubo un error al actualizar favoritos. Intenta de nuevo.")
+      setTipoAlerta("danger")
+      setAlertaVisible(true)
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Renderizar estrellas para una valoración
@@ -398,10 +435,7 @@ export const PaginaProducto = () => {
         </Breadcrumb.Item>
         {producto.category && (
           <>
-            <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/categorias" }}>
-              Categorías
-            </Breadcrumb.Item>
-            <Breadcrumb.Item linkAs={Link} linkProps={{ to: `/categorias/${producto.category?.name?.toLowerCase()}` }}>
+            <Breadcrumb.Item linkAs={Link} linkProps={{ to: `/categoria/${producto.category?.name?.toLowerCase()}` }}>
               {producto.category?.name}
             </Breadcrumb.Item>
           </>
@@ -425,6 +459,13 @@ export const PaginaProducto = () => {
                   className="img-fluid rounded-4 shadow-sm mb-3"
                   style={{ width: "100%", height: "400px", objectFit: "contain" }}
                 />
+                 {/* Badge de favoritos */}
+                {favoriteCount > 0 && (
+                  <Badge bg="danger" className="position-absolute bottom-0 start-0 m-2 rounded-pill">
+                    <HeartFill size={12} className="me-1" />
+                    {favoriteCount}
+                  </Badge>
+                )}
                 <div className="position-absolute top-0 end-0 m-2">
                   <Button
                     variant="light"
@@ -518,12 +559,19 @@ export const PaginaProducto = () => {
               </Badge>
             )}
             <Button
-              variant={isFavorite ? "danger" : "outline-danger"}
+              variant={isFavorite(producto.id) ? "danger" : "outline-danger"}
               className="rounded-circle p-2"
               onClick={toggleFavorite}
-              aria-label={isFavorite ? "Quitar de favoritos" : "Añadir a favoritos"}
+              disabled={favoritesLoading}
+              aria-label={isFavorite(producto.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
             >
-              {isFavorite ? <HeartFill size={20} /> : <Heart size={20} />}
+              {favoritesLoading ? (
+                <Spinner animation="border" size="sm" />
+              ) : isFavorite(producto.id) ? (
+                <HeartFill size={20} />
+              ) : (
+                <Heart size={20} />
+              )}
             </Button>
           </div>
 

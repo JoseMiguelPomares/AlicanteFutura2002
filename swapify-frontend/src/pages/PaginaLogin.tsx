@@ -125,7 +125,7 @@ export const PaginaLogin = () => {
                       <span className="input-group-text bg-light">
                         <EnvelopeFill />
                       </span>
-                      <Form.Control type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                      <Form.Control type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" />
                       <Form.Control.Feedback type="invalid">Please provide a valid email.</Form.Control.Feedback>
                     </div>
                   </Form.Group>
@@ -141,6 +141,7 @@ export const PaginaLogin = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        autoComplete="current-password"
                       />
                       <Button
                         variant="outline-secondary"
