@@ -21,6 +21,7 @@ import {
 import { ItemService } from "../services/itemService"
 import { CategoryService } from "../services/categoryService"
 import { ProductCard } from "../components/ProductCard"
+import { useAuth } from "../contexts/AuthContext"
 
 interface Producto {
   id: number
@@ -60,6 +61,7 @@ export const PaginaPorCategoria = () => {
   const [error, setError] = useState<string | null>(null)
   const itemService = new ItemService()
   const categoryService = new CategoryService()
+  const { user } = useAuth();
 
   // Cargar categorías disponibles
   useEffect(() => {
@@ -134,6 +136,11 @@ export const PaginaPorCategoria = () => {
   useEffect(() => {
     if (productos.length > 0) {
       let filtered = [...productos]
+
+      // Filtrar productos del usuario autenticado
+      if (user) {
+        filtered = filtered.filter(p => p.user?.id !== user.id);
+      }
 
       // Filtrar por rango de precio
       filtered = filtered.filter((p) => p.price >= priceRange[0] && p.price <= priceRange[1])
