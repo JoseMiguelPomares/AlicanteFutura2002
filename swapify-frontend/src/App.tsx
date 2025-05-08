@@ -17,6 +17,7 @@ import { AuthProvider } from "./contexts/AuthContext"
 import { PaginaPorCategoria } from "./pages/PaginaPorCategoria"
 import { PaginaChat } from "./pages/PaginaChat"
 import { PaginaEditarPerfil } from "./pages/PaginaEditarPerfil"
+import { ScrollToTopButton } from "./components/ScrollToTopButton"
 
 import { useState, useEffect } from "react"
 import { Button, Form } from "react-bootstrap"
@@ -51,6 +52,7 @@ export const App: React.FC = () => {
             </main>
             <Footer />
           </div>
+          <ScrollToTopButton />
           <CookieConsent />
         </BrowserRouter>
       </FavoritesProvider>
