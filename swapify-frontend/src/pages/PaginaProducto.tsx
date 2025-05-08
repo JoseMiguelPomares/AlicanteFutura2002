@@ -558,21 +558,23 @@ export const PaginaProducto = () => {
                 {producto.category.name}
               </Badge>
             )}
-            <Button
-              variant={isFavorite(producto.id) ? "danger" : "outline-danger"}
-              className="rounded-circle p-2"
-              onClick={toggleFavorite}
-              disabled={favoritesLoading}
-              aria-label={isFavorite(producto.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
-            >
-              {favoritesLoading ? (
-                <Spinner animation="border" size="sm" />
-              ) : isFavorite(producto.id) ? (
-                <HeartFill size={20} />
-              ) : (
-                <Heart size={20} />
-              )}
-            </Button>
+            {!isOwner && (
+              <Button
+                variant={isFavorite(producto.id) ? "danger" : "outline-danger"}
+                className="rounded-circle p-2"
+                onClick={toggleFavorite}
+                disabled={favoritesLoading}
+                aria-label={isFavorite(producto.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+              >
+                {favoritesLoading ? (
+                  <Spinner animation="border" size="sm" />
+                ) : isFavorite(producto.id) ? (
+                  <HeartFill size={20} />
+                ) : (
+                  <Heart size={20} />
+                )}
+              </Button>
+            )}
           </div>
 
           <h1 className="fw-bold mb-3">{producto.title}</h1>
