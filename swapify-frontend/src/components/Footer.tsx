@@ -13,9 +13,11 @@ import {
 } from "react-bootstrap-icons"
 import { Link } from "react-router-dom"
 import logo from "../assets/images/logosSwapify/logoNegroLargoFondoTransp.png"
+import { useAuth } from "../contexts/AuthContext"
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear()
+  const { user } = useAuth();
 
   return (
     <footer className="footer-section mt-5">
@@ -64,10 +66,7 @@ export const Footer = () => {
                   <Link to="/como-funciona">Cómo funciona</Link>
                 </li>
                 <li>
-                  <Link to="/destacados">Destacados</Link>
-                </li>
-                <li>
-                  <Link to="/recientes">Recién añadidos</Link>
+                  <Link to="/contacto">Contáctanos</Link>
                 </li>
               </ul>
             </Col>
@@ -83,10 +82,7 @@ export const Footer = () => {
                   <Link to="/login">Iniciar sesión</Link>
                 </li>
                 <li>
-                  <Link to="/perfil">Mi perfil</Link>
-                </li>
-                <li>
-                  <Link to="/mis-productos">Mis productos</Link>
+                  <Link to={user ? `/perfil/${user.id}` : "/login?redirect=perfil"}>Mi perfil</Link>
                 </li>
                 <li>
                   <Link to="/favoritos">Favoritos</Link>
