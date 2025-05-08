@@ -60,7 +60,7 @@ class ItemService {
                     ),
                     it.title!!,
                     it.description!!,
-                    it.itemCondition!!,
+                    it.itemCondition,
                     it.location!!,
                     it.price!!,
                     CategoryDTO(
@@ -91,7 +91,7 @@ class ItemService {
                     ),
                     it.title!!,
                     it.description!!,
-                    it.itemCondition!!,
+                    it.itemCondition,
                     it.location!!,
                     it.price!!,
                     CategoryDTO(
@@ -122,7 +122,7 @@ class ItemService {
                     ),
                     it.title!!,
                     it.description!!,
-                    it.itemCondition!!,
+                    it.itemCondition,
                     it.location!!,
                     it.price!!,
                     CategoryDTO(
@@ -153,7 +153,7 @@ class ItemService {
                     ),
                     it.title.toString(),
                     it.description.toString(),
-                    it.itemCondition!!,
+                    it.itemCondition,
                     it.location!!,
                     it.price!!,
                     CategoryDTO(
@@ -248,7 +248,7 @@ class ItemService {
 
             // Validar el valor de itemCondition
             val allowedConditions = listOf("nuevo", "como_nuevo", "bueno", "aceptable", "usado")
-            if (!allowedConditions.contains(itemDTO.itemCondition.lowercase())) {
+            if (!allowedConditions.contains(itemDTO.itemCondition?.lowercase())) {
                 // Retorna un error si el valor no es válido
                 return ResponseEntity(HttpStatus.BAD_REQUEST)
             }
@@ -289,7 +289,7 @@ class ItemService {
                     ),
                     it.title!!,
                     it.description!!,
-                    it.itemCondition!!,
+                    it.itemCondition,
                     it.location!!,
                     it.price!!,
                     CategoryDTO(
