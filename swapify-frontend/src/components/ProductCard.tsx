@@ -156,7 +156,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimatio
             </Badge>
           )}
         </div>
-        <Card.Title className="fw-bold text-dark mb-1" style={{ fontSize: "1rem" }}>
+        <Card.Title className="fw-bold text-dark mb-1" style={{ fontSize: "1rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
           {producto.title}
         </Card.Title>
         <Card.Text className="text-muted small mb-2" style={{ height: "40px", overflow: "hidden" }}>

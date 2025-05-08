@@ -131,6 +131,19 @@ export const PaginaInicio = () => {
         ? productos.filter(p => p.category?.name === categoriaActiva && p.user?.id !== user.id)
         : productos.filter(p => p.category?.name === categoriaActiva));
 
+  // Función para obtener hasta 20 productos aleatorios
+  const obtenerProductosAleatorios = (productos: Producto[], cantidad: number = 20) => {
+    // Crear una copia del array para no modificar el original
+    const productosCopia = [...productos];
+    // Mezclar el array de forma aleatoria
+    const productosAleatorios = productosCopia.sort(() => Math.random() - 0.5);
+    // Devolver solo la cantidad especificada
+    return productosAleatorios.slice(0, cantidad);
+  }
+
+  // Obtener hasta 20 productos aleatorios de los productos filtrados
+  const productosAleatorios = obtenerProductosAleatorios(productosMostrados);
+
   if (error)
     return (
       <Container className="text-center py-5">
@@ -393,13 +406,13 @@ export const PaginaInicio = () => {
         <Container className="mb-5">
           <h3 className="fw-bold mb-4">Productos y Servicios</h3>
           <Row xs={2} sm={2} md={3} lg={4} className="g-4">
-            {productosMostrados.map((producto) => (
+            {productosAleatorios.map((producto) => (
               <Col key={producto.id}>
                 <ProductCard producto={producto} />
               </Col>
             ))}
           </Row>
-          {productosMostrados.length === 0 && (
+          {productosAleatorios.length === 0 && (
             <div className="text-center py-5">
               <p className="text-muted">No hay productos disponibles en esta categoría.</p>
             </div>
