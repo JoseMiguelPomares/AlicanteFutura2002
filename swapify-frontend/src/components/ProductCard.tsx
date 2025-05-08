@@ -37,9 +37,12 @@ interface ProductCardProps {
 export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimation = true }) => {
   const navigate = useNavigate();
   const { isFavorite, addFavorite, removeFavorite, getFavoritesCount, refreshFavoritesCount, loading } = useFavorites();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const favoriteCount = getFavoritesCount(producto.id);
+  
+  // Verificar si el producto pertenece al usuario actual
+  const isOwnProduct = user && producto.user && user.id === producto.user.id;
 
   // Función para obtener el color de la categoría
   const getCategoryColor = (categoryName?: string): string => {
@@ -115,7 +118,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimatio
           className="img-fluid h-100"
           style={{ objectFit: "cover" }}
         />
-        {isAuthenticated && (
+        {isAuthenticated && !isOwnProduct && (
           <Button
             variant={isFavorite(producto.id) ? "danger" : "light"}
             size="sm"
