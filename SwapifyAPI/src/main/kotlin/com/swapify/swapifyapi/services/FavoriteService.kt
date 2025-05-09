@@ -29,20 +29,18 @@ class FavoriteService {
 
     //Función para añadir favoritos
     fun addFavorite(userId: Int, itemId: Int): Favorite {
-        val favorite = Favorite()
-        val optionalUser = userDAO.findById(userId)
-        val optionalItem = itemDAO.findById(itemId)
-        if (optionalUser.isPresent && optionalItem.isPresent) {
-            val user = optionalUser.get()
-            val item = optionalItem.get()
-            favorite.user = user
-            favorite.item = item
-            return favoriteDAO.save(favorite)
-        }
-        else {
-            throw Exception("User or Item not found")
-        }
+        val existing = favoriteDAO.findByUserIdAndItemId(userId, itemId)
+        if (existing != null) return existing
+    
+        val user = userDAO.findById(userId).orElseThrow { Exception("User not found") }
+        val item = itemDAO.findById(itemId).orElseThrow { Exception("Item not found") }
+    
+        return favoriteDAO.save(Favorite().apply {
+            this.user = user
+            this.item = item
+        })
     }
+    
 
     //Función para eliminar favoritos
     fun deleteFavorite(userId: Int, itemId: Int): Boolean {
@@ -54,4 +52,24 @@ class FavoriteService {
             false
         }
     }
+    
+    //Función para contar los favoritos de un item
+    fun countFavoritesByItemId(itemId: Int): Int {
+        return favoriteDAO.countByItemId(itemId)
+    }
+    
+    //Función para contar los favoritos de múltiples items
+    fun countAllFavorites(): Map<Int, Int> {
+        val results = favoriteDAO.countAllFavorites()
+        val countMap = mutableMapOf<Int, Int>()
+    
+        results.forEach { result ->
+            val itemId = (result["itemId"] as Number).toInt()
+            val count = (result["count"] as Number).toInt()
+            countMap[itemId] = count
+        }
+    
+        return countMap
+    }
+    
 }

@@ -9,7 +9,7 @@ class NewItemDTO (
     val categoryId: Int,
     val imageUrl: String?,
     val price: BigDecimal,
-    val itemCondition: String,
+    val itemCondition: String?,
     val location: String?
 ){
 }

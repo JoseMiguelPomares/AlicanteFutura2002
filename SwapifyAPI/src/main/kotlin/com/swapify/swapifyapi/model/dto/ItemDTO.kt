@@ -8,7 +8,7 @@ class ItemDTO (
     val user: UserDTO,
     val title: String,
     val description: String,
-    val itemCondition: String,
+    val itemCondition: String?,
     val location: String,
     val price: BigDecimal,
     val category: CategoryDTO?,

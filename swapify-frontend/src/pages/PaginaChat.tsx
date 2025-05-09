@@ -806,7 +806,7 @@ export const PaginaChat = () => {
               {/* Mensajes */}
               <div
                 className="chat-messages p-3 overflow-auto"
-                style={{ height: showOfferForm ? "calc(75vh - 400px)" : "calc(75vh - 300px)" }}
+                style={{ height: showOfferForm ? "calc(75vh - 400px)" : "calc(100vh - 300px)" }}
               >
                 {loadingMessages ? (
                   <div className="text-center py-5">

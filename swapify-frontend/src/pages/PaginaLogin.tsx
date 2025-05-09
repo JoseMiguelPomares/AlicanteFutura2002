@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { Container, Card, Button, Form, Row, Col, Alert } from "react-bootstrap"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { ArrowLeft, EnvelopeFill, LockFill, EyeFill, EyeSlashFill } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 import ReCAPTCHA from 'react-google-recaptcha';
@@ -16,6 +16,8 @@ import { Google, Facebook } from "react-bootstrap-icons"
 // Reemplazar la función PaginaLogin por esta versión actualizada
 export const PaginaLogin = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams();
+  const redirectPath = searchParams.get("redirect");
   const [email, setEmail] = useState<string>("")
   const [password, setPassword] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
@@ -24,8 +26,7 @@ export const PaginaLogin = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [validated, setValidated] = useState<boolean>(false)
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-  // Añade esta línea cerca del inicio de la función PaginaLogin
-  const { login, loginWithGoogle, loginWithFacebook, error: authError } = useAuth()
+  const { login, loginWithGoogle, loginWithFacebook, error: authError, user } = useAuth()
 
   useEffect(() => {
     if (authError) {
@@ -33,7 +34,17 @@ export const PaginaLogin = () => {
     }
   }, [authError])
 
-  // Reemplaza la función handleEmailLogin con:
+  // Redireccionar al usuario después de iniciar sesión
+  useEffect(() => {
+    if (user) {
+      if (redirectPath === "perfil") {
+        navigate(`/perfil/${user.id}`);
+      } else {
+        navigate(`/${redirectPath || ""}`);
+      }
+    }
+  }, [user, redirectPath, navigate]);
+
   const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = e.currentTarget
@@ -55,7 +66,7 @@ export const PaginaLogin = () => {
 
     try {
       await login(email, password)
-      navigate("/")
+      // Usar la nueva función de redirección
     } catch (error) {
       setError("Credenciales inválidas. Por favor, verifica tu email y contraseña.")
     } finally {
@@ -63,13 +74,12 @@ export const PaginaLogin = () => {
     }
   }
 
-  // Agregar estas funciones para manejar el login con Google
+  // Actualizar las funciones de login social para usar la nueva función de redirección
   const handleGoogleLogin = async () => {
     try {
       setSocialAuthLoading(true)
       setError(null)
       await loginWithGoogle()
-      navigate("/")
     } catch (error) {
       // El error ya se establece en el contexto de autenticación
     } finally {
@@ -77,13 +87,11 @@ export const PaginaLogin = () => {
     }
   }
 
-  // Agregar esta función para manejar el login con Facebook
   const handleFacebookLogin = async () => {
     try {
       setSocialAuthLoading(true)
       setError(null)
       await loginWithFacebook()
-      navigate("/")
     } catch (error) {
       // El error ya se establece en el contexto de autenticación
     } finally {
@@ -125,7 +133,7 @@ export const PaginaLogin = () => {
                       <span className="input-group-text bg-light">
                         <EnvelopeFill />
                       </span>
-                      <Form.Control type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                      <Form.Control type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" />
                       <Form.Control.Feedback type="invalid">Please provide a valid email.</Form.Control.Feedback>
                     </div>
                   </Form.Group>
@@ -141,6 +149,7 @@ export const PaginaLogin = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        autoComplete="current-password"
                       />
                       <Button
                         variant="outline-secondary"
@@ -148,9 +157,9 @@ export const PaginaLogin = () => {
                       >
                         {showPassword ? <EyeSlashFill /> : <EyeFill />}
                       </Button>
-                    <Form.Control.Feedback type="invalid">
-                      Please provide a password.
-                    </Form.Control.Feedback>
+                      <Form.Control.Feedback type="invalid">
+                        Please provide a password.
+                      </Form.Control.Feedback>
                     </div>
                   </Form.Group>
                   <ReCAPTCHA
@@ -180,7 +189,7 @@ export const PaginaLogin = () => {
                       <Google size={20} />
                       <span>Continuar con Google</span>
                     </Button>
-                    
+
                     {/* Botón de Facebook */}
                     <Button
                       variant="outline-primary"

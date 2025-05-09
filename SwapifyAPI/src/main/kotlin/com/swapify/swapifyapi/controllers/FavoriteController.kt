@@ -29,4 +29,17 @@ class FavoriteController {
     fun deleteFavorite(@PathVariable userId: Int, @PathVariable itemId: Int): Boolean {
         return favoriteService.deleteFavorite(userId, itemId)
     }
+
+    // Función para contar los favoritos de un item
+    @GetMapping("/countByItemId/{itemId}")
+    fun countFavoritesByItemId(@PathVariable itemId: Int): Int {
+        return favoriteService.countFavoritesByItemId(itemId)
+    }
+    
+    // Función para contar los favoritos de múltiples items
+    @GetMapping("/count-all")
+fun countAllFavorites(): Map<Int, Int> {
+    return favoriteService.countAllFavorites()
+}
+
 }

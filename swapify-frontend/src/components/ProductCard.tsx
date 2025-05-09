@@ -1,9 +1,10 @@
-import React from "react"
-import { Card, Badge, Button } from "react-bootstrap"
-import { Link } from "react-router-dom"
-import { GeoAlt, Calendar3 } from "react-bootstrap-icons"
+import React, { useState } from "react"
+import { Card, Badge, Button, Spinner } from "react-bootstrap"
+import { Link, useNavigate } from "react-router-dom"
+import { GeoAlt, Calendar3, Heart, HeartFill } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
-import { useNavigate } from "react-router-dom"
+import { useFavorites } from "../contexts/FavoritesContext"
+import { useAuth } from "../contexts/AuthContext"
 
 // Definir la interfaz para el producto
 export interface Producto {
@@ -34,8 +35,14 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimation = true }) => {
-
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { isFavorite, addFavorite, removeFavorite, getFavoritesCount, refreshFavoritesCount, loading } = useFavorites();
+  const { isAuthenticated, user } = useAuth();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const favoriteCount = getFavoritesCount(producto.id);
+  
+  // Verificar si el producto pertenece al usuario actual
+  const isOwnProduct = user && producto.user && user.id === producto.user.id;
 
   // Función para obtener el color de la categoría
   const getCategoryColor = (categoryName?: string): string => {
@@ -72,10 +79,38 @@ export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimatio
     navigate(`/items/${producto.id}`)
   }
 
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    // Si el usuario no está autenticado, redirigir a la página de login
+    if (!isAuthenticated) {
+      navigate('/login?redirect=/favoritos');
+      return;
+    }
+
+    // Evitar múltiples clics mientras se procesa
+    if (isProcessing || loading) return;
+
+    setIsProcessing(true);
+    try {
+      if (isFavorite(producto.id)) {
+        await removeFavorite(producto.id);
+        await refreshFavoritesCount(producto.id);
+      } else {
+        await addFavorite(producto);
+        await refreshFavoritesCount(producto.id);
+      }
+    } catch (error) {
+      console.error("Error al gestionar favorito:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   // Componente de tarjeta
   const cardContent = (
     <Card className="h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-      <div style={{ height: "180px", overflow: "hidden" }}>
+      <div style={{ height: "180px", overflow: "hidden", position: "relative" }}>
         <Card.Img
           variant="top"
           src={producto.imageUrl?.split('|')[0] || "/placeholder.svg?height=180&width=300"}
@@ -83,6 +118,30 @@ export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimatio
           className="img-fluid h-100"
           style={{ objectFit: "cover" }}
         />
+        {isAuthenticated && !isOwnProduct && (
+          <Button
+            variant={isFavorite(producto.id) ? "danger" : "light"}
+            size="sm"
+            className="position-absolute top-0 end-0 m-2 rounded-circle p-1"
+            onClick={handleFavoriteClick}
+            disabled={isProcessing || loading}
+            style={{ width: "32px", height: "32px" }}
+          >
+            {isProcessing ? (
+              <Spinner animation="border" size="sm" />
+            ) : (
+              isFavorite(producto.id) ? <HeartFill size={16} /> : <Heart size={16} />
+            )}
+          </Button>
+        )}
+        {favoriteCount > 0 && (
+          <Badge
+            bg="danger"
+            className="position-absolute bottom-0 start-0 m-2 rounded-pill"
+          >
+            {favoriteCount} {favoriteCount === 1 ? 'favorito' : 'favoritos'}
+          </Badge>
+        )}
       </div>
       <Card.Body className="p-3">
         <div className="d-flex justify-content-between align-items-start mb-2">
@@ -97,7 +156,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimatio
             </Badge>
           )}
         </div>
-        <Card.Title className="fw-bold text-dark mb-1" style={{ fontSize: "1rem" }}>
+        <Card.Title className="fw-bold text-dark mb-1" style={{ fontSize: "1rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
           {producto.title}
         </Card.Title>
         <Card.Text className="text-muted small mb-2" style={{ height: "40px", overflow: "hidden" }}>

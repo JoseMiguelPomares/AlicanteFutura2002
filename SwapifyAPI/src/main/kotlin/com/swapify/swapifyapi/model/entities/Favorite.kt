@@ -6,7 +6,7 @@ import org.hibernate.annotations.*
 import java.time.Instant
 
 @Entity
-@Table(name = "favorites")
+@Table(name = "favorites", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "item_id"])])
 @DynamicInsert
 open class Favorite {
     @Id
