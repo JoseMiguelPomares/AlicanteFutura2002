@@ -42,6 +42,7 @@ import { ImageService } from "../services/imageService"
 import { useAuth } from "../contexts/AuthContext"
 import { useFavorites } from "../contexts/FavoritesContext"
 import { ProductCard } from "../components/ProductCard"
+import { ChatService } from "../services/chatService"
 
 interface Producto {
   id: number
@@ -79,11 +80,13 @@ export const PaginaProducto = () => {
   const [loading, setLoading] = useState(true)
   const [productosRelacionados, setProductosRelacionados] = useState<Producto[]>([])
   const itemService = useRef(new ItemService()).current
+  const chatService = useRef(new ChatService()).current
   const { user: currentUser } = useAuth() // Añadir esta línea para obtener el usuario actual
 
   const { isFavorite, addFavorite, removeFavorite, getFavoritesCount, refreshFavoritesCount, loading: favoritesLoading } = useFavorites();
 
   const favoriteCount = producto ? getFavoritesCount(producto.id) : 0
+
 
   // Añadir estados para las alertas
   const [alertaVisible, setAlertaVisible] = useState(false)
@@ -679,9 +682,11 @@ export const PaginaProducto = () => {
           <div className="d-grid gap-2">
             {!isOwner ? (
               <>
-                <Button variant="success" size="lg" className="rounded-pill"
-                  as={Link as any}
-                  to={`/chat/${user.id}/${currentUser?.id}`}> {/*En modificacion*/}
+
+                <Button variant="success" size="lg" className="rounded-pill" 
+                as={Link as any} 
+                to={`/chat/${chatService.getOrCreateChat(1,7,1)}`}> {/*En modificacion*/}
+
                   <ChatLeftText className="me-2" />
                   Contactar con el vendedor
                 </Button>

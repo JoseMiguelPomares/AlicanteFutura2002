@@ -1,6 +1,7 @@
 package com.swapify.swapifyapi.controllers
 
 import com.swapify.swapifyapi.model.dto.ChatMessageDTO
+import com.swapify.swapifyapi.model.entities.Chat
 import com.swapify.swapifyapi.model.entities.Message
 import com.swapify.swapifyapi.services.ChatService
 import jakarta.persistence.EntityNotFoundException
@@ -40,5 +41,14 @@ class ChatController {
         } catch (ex: EntityNotFoundException) {
             ResponseEntity.notFound().build()
         }
+    }
+
+    @GetMapping("/{transactionId}/{buyerId}/{sellerId}")
+    fun getOrCreateChat(
+        @PathVariable transactionId: Int,
+        @PathVariable buyerId: Int,
+        @PathVariable sellerId: Int
+    ): Chat {
+        return chatService.getOrCreateChat(transactionId, buyerId, sellerId)
     }
 }
