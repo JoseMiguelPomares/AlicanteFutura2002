@@ -23,6 +23,7 @@ import { useState, useEffect } from "react"
 import { Button, Form } from "react-bootstrap"
 import { FavoritesProvider } from "./contexts/FavoritesContext"
 import { PaginaFavoritos } from "./pages/PaginaFavoritos"
+import { PaginaComoFunciona } from "./pages/PaginaComoFunciona"
 
 // Componente principal de la aplicación
 export const App: React.FC = () => {
@@ -48,6 +49,7 @@ export const App: React.FC = () => {
                 <Route path="/chat" element={<PaginaChat />} />
                 <Route path="/chat/:chatId" element={<PaginaChat />} />
                 <Route path="/favoritos" element={<PaginaFavoritos />} />
+                <Route path="/como-funciona" element={<PaginaComoFunciona />} />
               </Routes>
             </main>
             <Footer />
