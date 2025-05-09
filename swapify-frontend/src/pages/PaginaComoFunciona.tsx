@@ -165,7 +165,7 @@ export const PaginaComoFunciona: React.FC = () => {
                   src="https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3"
                   alt="Intercambio sostenible"
                   className="img-fluid rounded-4 shadow-lg"
-                  style={{ width: "100%", height: "auto", objectFit: "cover" }}
+                  style={{ width: "100%", height: "80vh", objectFit: "cover" }}
                 />
               </motion.div>
             </Col>
