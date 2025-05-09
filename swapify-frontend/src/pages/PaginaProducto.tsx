@@ -40,6 +40,7 @@ import { ItemService } from "../services/itemService"
 import { ImageService } from "../services/imageService"
 import { useAuth } from "../contexts/AuthContext"
 import { ProductCard } from "../components/ProductCard"
+import { ChatService } from "../services/chatService"
 
 interface Producto {
   id: number
@@ -78,6 +79,7 @@ export const PaginaProducto = () => {
   const [isFavorite, setIsFavorite] = useState(false)
   const [productosRelacionados, setProductosRelacionados] = useState<Producto[]>([])
   const itemService = useRef(new ItemService()).current
+  const chatService = useRef(new ChatService()).current
 
   // Dentro de la función PaginaProducto, añadir estos estados para el lightbox y manejo de múltiples imágenes
   const [showLightbox, setShowLightbox] = useState(false)
@@ -581,7 +583,7 @@ export const PaginaProducto = () => {
               <>
                 <Button variant="success" size="lg" className="rounded-pill" 
                 as={Link as any} 
-                to={`/chat/${user.id}/${currentUser?.id}`}> {/*En modificacion*/}
+                to={`/chat/${chatService.getOrCreateChat(1,7,1)}`}> {/*En modificacion*/}
                   <ChatLeftText className="me-2" />
                   Contactar con el vendedor
                 </Button>

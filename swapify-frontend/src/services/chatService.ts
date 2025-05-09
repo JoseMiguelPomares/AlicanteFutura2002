@@ -25,6 +25,16 @@ export class ChatService {
       throw error
     }
   }
+
+  async getOrCreateChat(transactionId: number, requesterId: number, ownerId: number) {
+    try {
+      const response = await axios.get(`${this.baseUrl}${transactionId}/${requesterId}/${ownerId}`, )
+      return response.data
+    } catch (error) {
+      console.error("Error al obtener o crear chat:", error)
+      throw error
+    }
+  }
   /*
   async getChats(userId: number) {
     try {
