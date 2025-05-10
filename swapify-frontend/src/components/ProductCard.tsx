@@ -1,10 +1,11 @@
-import React, { useState } from "react"
+import React, { useState, useCallback } from "react"
 import { Card, Badge, Button, Spinner } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import { GeoAlt, Calendar3, Heart, HeartFill } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 import { useFavorites } from "../contexts/FavoritesContext"
 import { useAuth } from "../contexts/AuthContext"
+import OptimizedImage from "./OptimizedImage"
 
 // Definir la interfaz para el producto
 export interface Producto {
@@ -34,13 +35,14 @@ interface ProductCardProps {
   showAnimation?: boolean
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimation = true }) => {
+export const ProductCard = (props: ProductCardProps) => {
   const navigate = useNavigate();
   const { isFavorite, addFavorite, removeFavorite, getFavoritesCount, refreshFavoritesCount, loading } = useFavorites();
   const { isAuthenticated, user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
+  const { producto, showAnimation = true } = props;
   const favoriteCount = getFavoritesCount(producto.id);
-  
+
   // Verificar si el producto pertenece al usuario actual
   const isOwnProduct = user && producto.user && user.id === producto.user.id;
 
@@ -79,7 +81,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimatio
     navigate(`/items/${producto.id}`)
   }
 
-  const handleFavoriteClick = async (e: React.MouseEvent) => {
+  const handleFavoriteClick = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
 
     // Si el usuario no está autenticado, redirigir a la página de login
@@ -105,19 +107,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimatio
     } finally {
       setIsProcessing(false);
     }
-  };
+  }, [isAuthenticated, isFavorite, producto.id, removeFavorite, addFavorite, refreshFavoritesCount, isProcessing, loading, navigate]);
 
   // Componente de tarjeta
   const cardContent = (
     <Card className="h-100 shadow-sm border-0 rounded-4 overflow-hidden">
       <div style={{ height: "180px", overflow: "hidden", position: "relative" }}>
-        <Card.Img
-          variant="top"
+        <OptimizedImage
           src={producto.imageUrl?.split('|')[0] || "/placeholder.svg?height=180&width=300"}
           alt={producto.title}
+          width={600}
+          height={400}
           className="img-fluid h-100"
-          style={{ objectFit: "cover" }}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
+
         {isAuthenticated && !isOwnProduct && (
           <Button
             variant={isFavorite(producto.id) ? "danger" : "light"}
@@ -224,3 +228,5 @@ export const ProductCard: React.FC<ProductCardProps> = ({ producto, showAnimatio
     </div>
   )
 }
+
+export default React.memo(ProductCard);
