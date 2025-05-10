@@ -54,6 +54,7 @@ export const PaginaPorCategoria = () => {
   const { categoria } = useParams<{ categoria: string }>()
   const [productos, setProductos] = useState<Producto[]>([])
   const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [productosMostrar, setProductosMostrar] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true)
   const [filteredProductos, setFilteredProductos] = useState<Producto[]>([])
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000])
@@ -84,6 +85,8 @@ export const PaginaPorCategoria = () => {
         setLoading(true)
         setError(null)
 
+        setProductosMostrar([]);
+
         if (!categoria) {
           throw new Error("Categoría no especificada")
         }
@@ -95,6 +98,7 @@ export const PaginaPorCategoria = () => {
           const response = await itemService.getByCategory(categoria)
           console.log("Productos obtenidos:", response.data)
           setProductos(response.data || [])
+          setProductosMostrar(response.data || []);
         } catch (error) {
           console.error("Error al cargar productos por categoría desde API:", error)
 
@@ -106,12 +110,14 @@ export const PaginaPorCategoria = () => {
             (p: Producto) => p.category?.name?.toLowerCase() === categoria.toLowerCase(), // <-- Asegúrate de comparar en minúsculas
           )
           console.log("Productos filtrados por categoría:", filteredByCategory)
-          setProductos(filteredByCategory)
+          setProductos(filteredByCategory);
+          setProductosMostrar(filteredByCategory);
         }
       } catch (error) {
         console.error("Error al cargar productos:", error)
         setError("No se pudieron cargar los productos. Por favor, inténtalo de nuevo.")
-        setProductos([])
+        setProductos([]);
+        setProductosMostrar([]);
       } finally {
         setLoading(false)
       }
@@ -161,6 +167,7 @@ export const PaginaPorCategoria = () => {
       }
 
       setFilteredProductos(filtered)
+      setProductosMostrar(filtered)
     } else {
       setFilteredProductos([])
     }
@@ -320,7 +327,7 @@ export const PaginaPorCategoria = () => {
             <>
               <p className="mb-4">Se encontraron {filteredProductos.length} productos en esta categoría</p>
               <Row xs={1} sm={2} md={3} className="g-4">
-                {filteredProductos.map((producto) => (
+                {productosMostrar.map((producto) => (
                   <Col key={producto.id}>
                     <ProductCard producto={producto} />
                   </Col>
