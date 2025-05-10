@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
 import { CategoryService } from "../services/categoryService"
-import { ProductCard } from "../components/ProductCard"
+import React, { Suspense } from "react"
 import {
   ArrowRight,
   Star,
@@ -17,6 +17,8 @@ import {
 } from "react-bootstrap-icons"
 import { useNavigate } from "react-router-dom" // <-- Agrega esta línea
 import { useAuth } from "../contexts/AuthContext"
+
+const ProductCard = React.lazy(() => import("../components/ProductCard"))
 
 // Actualizar la interfaz Producto para reflejar la estructura de la base de datos
 interface Producto {
@@ -294,7 +296,9 @@ export const PaginaInicio = () => {
         <Row xs={1} sm={2} md={2} lg={4} className="g-4">
           {productosFiltrados.destacados.map((producto) => (
             <Col key={`destacado-${producto.id}`}>
-              <ProductCard producto={producto} />
+              <Suspense fallback={<div>Cargando tarjeta...</div>}>
+                <ProductCard producto={producto} />
+              </Suspense>
             </Col>
           ))}
         </Row>
@@ -315,7 +319,9 @@ export const PaginaInicio = () => {
           <Row xs={1} sm={2} md={2} lg={4} className="g-4">
             {productosFiltrados.recientes.map((producto) => (
               <Col key={`reciente-${producto.id}`}>
-                <ProductCard producto={producto} />
+                <Suspense fallback={<div>Cargando tarjeta...</div>}>
+                  <ProductCard producto={producto} />
+                </Suspense>
               </Col>
             ))}
           </Row>
@@ -408,7 +414,9 @@ export const PaginaInicio = () => {
           <Row xs={2} sm={2} md={3} lg={4} className="g-4">
             {productosAleatorios.map((producto) => (
               <Col key={producto.id}>
-                <ProductCard producto={producto} />
+                <Suspense fallback={<div>Cargando tarjeta...</div>}>
+                  <ProductCard producto={producto} />
+                </Suspense>
               </Col>
             ))}
           </Row>

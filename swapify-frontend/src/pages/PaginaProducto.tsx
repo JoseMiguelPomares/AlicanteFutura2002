@@ -43,6 +43,7 @@ import { useAuth } from "../contexts/AuthContext"
 import { useFavorites } from "../contexts/FavoritesContext"
 import { ProductCard } from "../components/ProductCard"
 import { ChatService } from "../services/chatService"
+import OptimizedImage from "../components/OptimizedImage"
 
 interface Producto {
   id: number
@@ -456,7 +457,7 @@ export const PaginaProducto = () => {
                 style={{ cursor: "pointer" }}
                 onClick={() => openLightbox(0)}
               >
-                <img
+                <OptimizedImage
                   src={productImages[0] || "/placeholder.svg?height=600&width=800"}
                   alt={producto.title}
                   className="img-fluid rounded-4 shadow-sm mb-3"
@@ -833,7 +834,7 @@ export const PaginaProducto = () => {
             {productImages.map((img, index) => (
               <Carousel.Item key={index}>
                 <div className="d-flex justify-content-center align-items-center bg-dark" style={{ height: "70vh" }}>
-                  <img
+                  <OptimizedImage
                     src={img || "/placeholder.svg"}
                     alt={`${producto.title} - Imagen ${index + 1}`}
                     style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }}
