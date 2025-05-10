@@ -164,9 +164,10 @@ export const BarraNavegacion = () => {
                     Acceso / Registro
                   </Button>
                 )}
+
                 <Button
                   as={Link as any}
-                  to={isAuthenticated ? "/vender" : "/login?redirect=/vender"}
+                  to={user ? "/vender" : "/login?redirect=vender"}
                   variant="light"
                   className="rounded-pill px-4"
                   onClick={() => setShowMenu(false)}
