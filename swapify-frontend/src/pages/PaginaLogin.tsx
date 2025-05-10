@@ -39,8 +39,8 @@ export const PaginaLogin = () => {
     if (user) {
       if (redirectPath === "perfil") {
         navigate(`/perfil/${user.id}`);
-      } else {
-        navigate(`/${redirectPath || ""}`);
+      } if (redirectPath === "vender") {
+        navigate(`/vender/`);
       }
     }
   }, [user, redirectPath, navigate]);

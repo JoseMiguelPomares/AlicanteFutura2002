@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Container, Row, Col, Form, Button, Card, Alert, ProgressBar, Badge } from "react-bootstrap"
 import { useNavigate } from "react-router-dom"
 import {
@@ -45,7 +45,7 @@ const CONDICIONES = [
 
 export const PaginaVender = () => {
   const navigate = useNavigate()
-  const { user, isAuthenticated } = useAuth()
+  const { user } = useAuth()
   const itemService = new ItemService()
   const imageService = new ImageService() // Añadir el servicio de imágenes
 
@@ -72,13 +72,6 @@ export const PaginaVender = () => {
   const [success, setSuccess] = useState(false)
   const [validated, setValidated] = useState(false)
   const [step, setStep] = useState(1)
-
-  // Comprobar si el usuario está autenticado
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login?redirect=/vender")
-    }
-  }, [isAuthenticated, navigate])
 
   // Manejar cambios en los campos del formulario
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
