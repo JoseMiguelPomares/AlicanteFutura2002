@@ -342,7 +342,7 @@ export const PaginaChat = () => {
   // Verificar autenticación
   useEffect(() => {
     if (!loading && !isAuthenticated) { // Ahora espera a que loading sea false antes de verificar isAuthenticated
-      navigate("/login?redirect=/chat")
+      navigate("/login?redirect=chat")
     }
   }, [isAuthenticated, loading, navigate])
 
