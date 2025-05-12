@@ -44,7 +44,7 @@ class ChatService(
     override fun findMessages(roomId: Int): List<Message> {
         val chat = roomRepo.findById(roomId)
             .orElseThrow { EntityNotFoundException("ChatRoom $roomId no encontrada") }
-        return messageRepo.findByChat(chat)
+        return messageRepo.findMessagesByChatId(roomId)
     }
 
     // Función para obtener o crear un chat

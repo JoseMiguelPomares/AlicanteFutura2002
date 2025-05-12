@@ -6,7 +6,10 @@ export class ChatService {
   async getMessages(chatId: number) {
     try {
       const response = await axios.get(`${this.baseUrl}${chatId}/messages`)
-      return response.data
+      return response.data.map((msg: any) => ({
+        ...msg,
+        sender: msg.sender || { id: 0, name: 'Usuario desconocido' }
+      }))
     } catch (error) {
       console.error("Error al obtener mensajes:", error)
       throw error
