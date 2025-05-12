@@ -394,13 +394,13 @@ export const PaginaChat = () => {
       if (!chatId) {
         (async () => {
           try {
-            const newChatId = await chatService.getOrCreateChat(
+            const newChat = await chatService.getOrCreateChat(
               Number(transactionId),
               Number(buyerId),
               Number(sellerId)
             );
             // Reemplazamos la URL para cargar el chat “normal”
-            navigate(`/chat/${newChatId.id}`, { replace: true });
+            navigate(`/chat/${newChat.id}`, { replace: true });
           } catch (err) {
             console.error("No se pudo crear/recuperar chat:", err);
           }
@@ -417,7 +417,7 @@ export const PaginaChat = () => {
       try {
         setLoadingChats(true)
         setError(null)
-        const chatsData = await chatService.getChats(user.id)
+        const chatsData = await chatService.getMessages(.id)
         setChats(chatsData)
 
         // Si hay un chatId en la URL, seleccionar ese chat
