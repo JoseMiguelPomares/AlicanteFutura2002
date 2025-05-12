@@ -53,12 +53,6 @@ class ChatService(
         return null
     }
 
-    //Función para encontrar por id de transaccion
-    fun findChatByTransactionId(transactionId: Int): Chat? {
-        roomRepo.findByTransactionId(transactionId)?.let { return it }
-        return null
-    }
-
     // Función para obtener o crear un chat
     fun getOrCreateChat(transactionId: Int, buyerId: Int, sellerId: Int): Chat {
         val optionalBuyer = userRepo.findById(buyerId)
