@@ -25,11 +25,18 @@ class TransactionService {
 
     //Función para obtener transacciones por la id del usuario
     fun getTransactionByUserId(userId: Long): ResponseEntity<List<Transaction>> {
-        val transaction: List<Transaction> = transactionDAO.findByOwnerIdWithAll(userId)
-        if (transaction.isNotEmpty()) {
-            return ResponseEntity.ok(transaction)
+        // Buscar transacciones donde el usuario es owner o requester
+        val ownerTransactions = transactionDAO.findByOwnerIdWithAll(userId)
+        val requesterTransactions = transactionDAO.findByRequesterIdWithAll(userId)
+        
+        // Combinar ambas listas
+        val allTransactions = ownerTransactions + requesterTransactions
+        
+        return if (allTransactions.isNotEmpty()) {
+            ResponseEntity.ok(allTransactions)
         } else {
-            return ResponseEntity.notFound().build()
+            // Mejor devolver una lista vacía que un 404
+            ResponseEntity.ok(emptyList())
         }
     }
 

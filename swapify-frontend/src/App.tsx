@@ -18,6 +18,7 @@ import { PaginaPorCategoria } from "./pages/PaginaPorCategoria"
 import { PaginaChat } from "./pages/PaginaChat"
 import { PaginaEditarPerfil } from "./pages/PaginaEditarPerfil"
 import { ScrollToTopButton } from "./components/ScrollToTopButton"
+import { NotificationProvider } from "./contexts/NotificationContext"
 
 import { useState, useEffect } from "react"
 import { Button, Form } from "react-bootstrap"
@@ -30,34 +31,35 @@ export const App: React.FC = () => {
   return (
     <AuthProvider>
       <FavoritesProvider>
-        <BrowserRouter>
-          <ScrollToTop />
-          <div className="d-flex flex-column min-vh-100">
-            <BarraNavegacion />
-            <main className="flex-grow-1">
-              <Routes>
-                <Route path="/" element={<PaginaInicio />} />
-                <Route path="/perfil/:id" element={<PaginaPerfil />} />
-                <Route path="/editar-perfil" element={<PaginaEditarPerfil />} />
-                <Route path="/vender" element={<PaginaVender />} />
-                <Route path="/registro" element={<PaginaRegistro />} />
-                <Route path="/login" element={<PaginaLogin />} />
-                <Route path="/items/:id" element={<PaginaProducto />} />
-                <Route path="/busqueda" element={<PaginaBusqueda />} />
-                <Route path="/contacto" element={<PaginaContacto />} />
-                <Route path="/categoria/:categoria" element={<PaginaPorCategoria />} />
-                <Route path="/chat" element={<PaginaChat />} />
-                <Route path="/chat/:chatId" element={<PaginaChat />} />
-                <Route path="/favoritos" element={<PaginaFavoritos />} />
-                <Route path="/como-funciona" element={<PaginaComoFunciona />} />
-                <Route path="/chat/:transactionId/:buyerId/:sellerId" element={<PaginaChat />} />
-              </Routes>
-            </main>
-            <Footer />
-          </div>
-          <ScrollToTopButton />
-          <CookieConsent />
-        </BrowserRouter>
+        <NotificationProvider>
+          <BrowserRouter>
+            <ScrollToTop />
+            <div className="d-flex flex-column min-vh-100">
+              <BarraNavegacion />
+              <main className="flex-grow-1">
+                <Routes>
+                  <Route path="/" element={<PaginaInicio />} />
+                  <Route path="/perfil/:id" element={<PaginaPerfil />} />
+                  <Route path="/editar-perfil" element={<PaginaEditarPerfil />} />
+                  <Route path="/vender" element={<PaginaVender />} />
+                  <Route path="/registro" element={<PaginaRegistro />} />
+                  <Route path="/login" element={<PaginaLogin />} />
+                  <Route path="/items/:id" element={<PaginaProducto />} />
+                  <Route path="/busqueda" element={<PaginaBusqueda />} />
+                  <Route path="/contacto" element={<PaginaContacto />} />
+                  <Route path="/categoria/:categoria" element={<PaginaPorCategoria />} />
+                  <Route path="/chat" element={<PaginaChat />} />
+                  <Route path="/chat/:chatId" element={<PaginaChat />} />
+                  <Route path="/favoritos" element={<PaginaFavoritos />} />
+                  <Route path="/como-funciona" element={<PaginaComoFunciona />} />
+                </Routes>
+              </main>
+              <Footer />
+            </div>
+            <ScrollToTopButton />
+            <CookieConsent />
+          </BrowserRouter>
+        </NotificationProvider>
       </FavoritesProvider>
     </AuthProvider>
   )

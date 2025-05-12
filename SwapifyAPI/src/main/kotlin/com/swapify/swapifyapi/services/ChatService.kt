@@ -44,7 +44,13 @@ class ChatService(
     override fun findMessages(roomId: Int): List<Message> {
         val chat = roomRepo.findById(roomId)
             .orElseThrow { EntityNotFoundException("ChatRoom $roomId no encontrada") }
-        return messageRepo.findByChat(chat)
+        return messageRepo.findMessagesByChatId(roomId)
+    }
+
+    //Función para encontrar por id de transaccion
+    fun findChatByTransactionId(transactionId: Int): Chat? {
+        roomRepo.findByTransactionId(transactionId)?.let { return it }
+        return null
     }
 
     //Función para encontrar por id de transaccion
