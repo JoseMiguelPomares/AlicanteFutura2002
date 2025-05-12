@@ -47,11 +47,14 @@ class ChatService(
         return messageRepo.findMessagesByChatId(roomId)
     }
 
+    //Función para encontrar por id de transaccion
+    fun findChatByTransactionId(transactionId: Int): Chat? {
+        roomRepo.findByTransactionId(transactionId)?.let { return it }
+        return null
+    }
+
     // Función para obtener o crear un chat
     fun getOrCreateChat(transactionId: Int, buyerId: Int, sellerId: Int): Chat {
-        // si ya existe
-        roomRepo.findByTransactionId(transactionId)?.let { return it }
-        // si no crear
         val optionalBuyer = userRepo.findById(buyerId)
         val optionalSeller = userRepo.findById(sellerId)
         if (optionalBuyer.isEmpty || optionalSeller.isEmpty) {
