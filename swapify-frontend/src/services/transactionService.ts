@@ -9,7 +9,7 @@ export class TransactionService{
     }
 
     getByUserId(userId: number){
-        return axios.get(this.baseUrl + `userTransactions/${userId}`).then(res => res.data)
+        return axios.get(this.baseUrl + `getByUserId/${userId}`).then(res => res.data)
     }
 
     addTransaction(requesterId: number, ownerId: number, itemId: number, finalPrice: number){
