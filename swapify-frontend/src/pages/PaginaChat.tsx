@@ -21,6 +21,7 @@ import {
 } from "react-bootstrap-icons"
 import { motion } from "framer-motion"
 import { useAuth } from "../contexts/AuthContext"
+import { ChatService } from "../services/chatService"
 
 // Interfaces para los tipos de datos
 interface Message {
@@ -28,33 +29,65 @@ interface Message {
   chatId: number
   senderId: number
   content: string
-  timestamp: string
+  timestamp: Date
   read: boolean
+}
+
+interface User {
+  id?: number
+  name?: string
+  email?: string
+  passwordHash?: string
+  location?: string
+  credits?: number
+  reputation?: number
+  createdAt?: Date
+  socialId?: string
+  imageUrl?: string
+  aboutMe?: string
+}
+
+interface Category {
+  id: number
+  name: string
+}
+
+interface Item {
+  id: number
+  user: User
+  title: string
+  description: string
+  category: Category
+  imageUrl: string
+  price: number
+  itemCondition: string
+  location: string
+  status: string
+  createdAt: Date
+}
+
+interface Transaction {
+  id: number
+  item: Item
+  requester: User
+  owner: User
+  status: string
+  createdAt: Date
+  completedAt: Date
+  finalPrice: number
 }
 
 interface Chat {
   id: number
-  transactionId: number
-  lastMessage?: string
-  lastMessageTime?: string
-  unreadCount: number
-  otherUser: {
-    id: number
-    name: string
-    imageUrl?: string
-    online?: boolean
-  }
-  item: {
-    id: number
-    title: string
-    imageUrl?: string
-    price: number
-  }
-  status: "pending" | "accepted" | "rejected" | "completed"
+  requester: User
+  owner: User
+  transaction: Transaction
+  createdAt: Date
+  lastMessageAt: Date
 }
 
 // Servicio simulado para chats y mensajes
-const chatService = {
+const chatServices = {
   getChats: async (userId: number): Promise<Chat[]> => {
     // Simulación de carga de datos
     await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -320,7 +353,17 @@ const chatService = {
 }
 
 export const PaginaChat = () => {
-  const { chatId } = useParams<{ chatId?: string }>()
+  const { 
+    chatId, 
+    transactionId, 
+    buyerId, 
+    sellerId 
+  } = useParams<{
+    chatId?: string;
+    transactionId?: string;
+    buyerId?: string;
+    sellerId?: string;
+  }>();
   const navigate = useNavigate()
   const { user, isAuthenticated, loading } = useAuth()
   const [chats, setChats] = useState<Chat[]>([])
@@ -338,11 +381,31 @@ export const PaginaChat = () => {
     itemDescription: "",
     credits: 0,
   })
+  const chatService = useRef(new ChatService()).current
+  
 
   // Verificar autenticación
   useEffect(() => {
     if (!loading && !isAuthenticated) { // Ahora espera a que loading sea false antes de verificar isAuthenticated
       navigate("/login?redirect=/chat")
+    }
+    if (transactionId && buyerId && sellerId) {
+      // Evito bucles—solo si no tengo ya un chatId en la URL
+      if (!chatId) {
+        (async () => {
+          try {
+            const newChatId = await chatService.getOrCreateChat(
+              Number(transactionId),
+              Number(buyerId),
+              Number(sellerId)
+            );
+            // Reemplazamos la URL para cargar el chat “normal”
+            navigate(`/chat/${newChatId.id}`, { replace: true });
+          } catch (err) {
+            console.error("No se pudo crear/recuperar chat:", err);
+          }
+        })();
+      }
     }
   }, [isAuthenticated, loading, navigate])
 

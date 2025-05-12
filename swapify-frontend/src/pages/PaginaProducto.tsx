@@ -686,7 +686,7 @@ export const PaginaProducto = () => {
 
                 <Button variant="success" size="lg" className="rounded-pill" 
                 as={Link as any} 
-                to={`/chat/${chatService.getOrCreateChat(1,7,1)}`}> {/*En modificacion*/}
+                to={`/chat/${1/7/1}`}> {/*{transactionId}/{buyerId}/{sellerId*/}
 
                   <ChatLeftText className="me-2" />
                   Contactar con el vendedor

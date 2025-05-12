@@ -50,6 +50,7 @@ export const App: React.FC = () => {
                 <Route path="/chat/:chatId" element={<PaginaChat />} />
                 <Route path="/favoritos" element={<PaginaFavoritos />} />
                 <Route path="/como-funciona" element={<PaginaComoFunciona />} />
+                <Route path="/chat/:transactionId/:buyerId/:sellerId" element={<PaginaChat />} />
               </Routes>
             </main>
             <Footer />
