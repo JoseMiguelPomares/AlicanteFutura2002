@@ -292,9 +292,6 @@ export const PaginaInicio = () => {
           <h2 className="fw-bold">
             <Star className="text-warning me-2" /> Productos Destacados
           </h2>
-          <Link to="/destacados" className="text-decoration-none text-success fw-bold">
-            Ver más <ArrowRight />
-          </Link>
         </div>
 
         <Row xs={1} sm={2} md={2} lg={4} className="g-4">
@@ -315,9 +312,6 @@ export const PaginaInicio = () => {
             <h2 className="fw-bold">
               <GraphUp className="text-primary me-2" /> Recién Añadidos
             </h2>
-            <Link to="/recientes" className="text-decoration-none text-success fw-bold">
-              Ver más <ArrowRight />
-            </Link>
           </div>
 
           <Row xs={1} sm={2} md={2} lg={4} className="g-4">
