@@ -1,6 +1,6 @@
 "use client"
 
-import { useParams, Link } from "react-router-dom"
+import { useParams, Link, useNavigate } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
 import {
   Container,
@@ -44,6 +44,7 @@ import { useFavorites } from "../contexts/FavoritesContext"
 import { ProductCard } from "../components/ProductCard"
 import { ChatService } from "../services/chatService"
 import OptimizedImage from "../components/OptimizedImage"
+import { TransactionService } from "../services/transactionService";
 
 interface Producto {
   id: number
@@ -83,6 +84,7 @@ export const PaginaProducto = () => {
   const itemService = useRef(new ItemService()).current
   const chatService = useRef(new ChatService()).current
   const { user: currentUser } = useAuth() // Añadir esta línea para obtener el usuario actual
+  const navigate = useNavigate()
 
   const { isFavorite, addFavorite, removeFavorite, getFavoritesCount, refreshFavoritesCount, loading: favoritesLoading } = useFavorites();
 
@@ -463,7 +465,7 @@ export const PaginaProducto = () => {
                   className="img-fluid rounded-4 shadow-sm mb-3"
                   style={{ width: "100%", height: "400px", objectFit: "contain" }}
                 />
-                 {/* Badge de favoritos */}
+                {/* Badge de favoritos */}
                 {favoriteCount > 0 && (
                   <Badge bg="danger" className="position-absolute bottom-0 start-0 m-2 rounded-pill">
                     <HeartFill size={12} className="me-1" />
@@ -683,12 +685,69 @@ export const PaginaProducto = () => {
           <div className="d-grid gap-2">
             {!isOwner ? (
               <>
+                <Button
+                  variant="success"
+                  size="lg"
+                  className="rounded-pill"
+                  onClick={async () => {
+                    if (!currentUser || !producto) return;
 
-                <Button variant="success" size="lg" className="rounded-pill" 
-                as={Link as any} 
-                to={`/chat/${chatService.getOrCreateChat(1,7,1)}`}> {/*En modificacion*/}
+                    try {
+                      setLoading(true);
 
-                  <ChatLeftText className="me-2" />
+                      // 1. Verificar si ya existe una transacción para este ítem y usuarios
+                      const transactionService = new TransactionService();
+                      const existingTransactions = await transactionService.getByUserId(currentUser.id);
+
+                      // Buscar transacción existente para este ítem
+                      const existingTransaction = existingTransactions.find(
+                        (t: any) =>
+                          t.item?.id === producto.id &&
+                          ((t.requester.id === currentUser.id && t.owner.id === producto.user.id) ||
+                            (t.requester.id === producto.user.id && t.owner.id === currentUser.id))
+                      );
+
+                      let transactionId;
+
+                      if (existingTransaction) {
+                        // Usar transacción existente
+                        transactionId = existingTransaction.id;
+                      } else {
+                        // Crear nueva transacción
+                        const transactionResponse = await transactionService.addTransaction(
+                          currentUser.id,
+                          producto.user.id,
+                          producto.id,
+                          producto.price || 0
+                        );
+                        transactionId = transactionResponse.data.id;
+                      }
+
+                      // 2. Obtener o crear el chat
+                      const chat = await chatService.getOrCreateChat(
+                        transactionId,
+                        currentUser.id,
+                        producto.user.id
+                      );
+
+                      // 3. Redirigir al chat existente o nuevo
+                      navigate(`/chat/${chat.id}`);
+
+                    } catch (error) {
+                      console.error("Error en flujo de contacto:", error);
+                      setMensajeAlerta("Error al iniciar la conversación. Inténtalo de nuevo.");
+                      setTipoAlerta("danger");
+                      setAlertaVisible(true);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                >
+                  {loading ? (
+                    <Spinner animation="border" size="sm" className="me-2" />
+                  ) : (
+                    <ChatLeftText className="me-2" />
+                  )}
                   Contactar con el vendedor
                 </Button>
                 <div className="d-flex gap-2">
