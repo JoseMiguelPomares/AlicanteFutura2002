@@ -85,6 +85,7 @@ interface Chat {
   transaction: Transaction
   createdAt: string
   lastMessageAt: string
+  unreadCount: number
 }
 
 export const PaginaChat = () => {
@@ -581,13 +582,13 @@ export const PaginaChat = () => {
 
                     <div className="position-relative me-3">
                       <Image
-                        src={selectedChat.otherUser.imageUrl || "/placeholder.svg?height=40&width=40"}
+                        src={selectedChat.owner.imageUrl || "/placeholder.svg?height=40&width=40"}
                         roundedCircle
                         width={40}
                         height={40}
                         className="object-fit-cover"
                       />
-                      {selectedChat.otherUser.online && (
+                      {selectedChat.owner.online && (
                         <div
                           className="position-absolute bottom-0 end-0 bg-success rounded-circle p-1"
                           style={{ width: "10px", height: "10px", border: "2px solid white" }}
@@ -597,12 +598,12 @@ export const PaginaChat = () => {
 
                     <div>
                       <h6 className="mb-0">
-                        <Link to={`/perfil/${selectedChat.otherUser.id}`} className="text-decoration-none text-dark">
-                          {selectedChat.otherUser.name}
+                        <Link to={`/perfil/${selectedChat.owner.id}`} className="text-decoration-none text-dark">
+                          {selectedChat.owner.name}
                         </Link>
                       </h6>
                       <small className="text-muted">
-                        {selectedChat.otherUser.online ? "En línea" : "Desconectado"}
+                        {selectedChat.owner.online ? "En línea" : "Desconectado"}
                       </small>
                     </div>
                   </div>
