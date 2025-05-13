@@ -16,6 +16,6 @@ class WebSocketConfig : WebSocketMessageBrokerConfigurer {
 
     override fun configureMessageBroker(reg: MessageBrokerRegistry) {
         reg.enableSimpleBroker("/topic") // broker en memoria
-        reg.setApplicationDestinationPrefixes("/app")
+        reg.setApplicationDestinationPrefixes("/swapify")
     }
 }

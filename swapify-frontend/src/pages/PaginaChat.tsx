@@ -90,6 +90,8 @@ interface Chat {
   createdAt: string
   lastMessageAt: string
   unreadCount: number
+  lastMessage?: string
+  lastMessageTime?: string
 }
 
 export const PaginaChat = () => {
@@ -275,7 +277,7 @@ export const PaginaChat = () => {
   
         // 3) Ahora sí, crea tu cliente STOMP
         stompClient = new Client({
-          webSocketFactory: () => new SockJS("http://localhost:8080/ws-chat"),
+          webSocketFactory: () => new SockJS("http://localhost:8080/swapify/ws-chat"),
           debug: (msg: string) => console.log("STOMP:", msg),
           onStompError: (frame: any) => console.error("STOMP ERR:", frame.body),
         })
@@ -394,10 +396,11 @@ export const PaginaChat = () => {
     const dto = { senderId: user.id, content: newMessage }
 
     // Enviar por STOMP al endpoint /app/chat/{roomId}
-    stompClient.publish({
-      destination: `/app/chat/${selectedChat.id}`,
-      body: JSON.stringify(dto)
-    })
+    stompClient.send(
+      `/swapify/chat/${selectedChat.id}`,
+      {},
+      JSON.stringify(dto)
+    )
 
     setNewMessage("")
   }

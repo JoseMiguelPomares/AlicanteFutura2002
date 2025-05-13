@@ -21,11 +21,13 @@ class ChatWebSocketController(
      */
     @MessageMapping("/chat/{roomId}")
     @SendTo("/topic/chat/{roomId}")
-    fun sendMessage(
+    fun onChatMessage(
         @DestinationVariable roomId: Int,
-        @Payload dto: ChatMessageDTO
-    ): Message {
-        // Guarda el mensaje en la base de datos
-        return chatService.saveMessage(roomId, dto)
+        payload: ChatMessageDTO
+    ): ChatMessageDTO {
+        // 1) Guarda en base de datos
+        chatService.saveMessage(roomId, payload)
+        // 2) Reenvía al topic
+        return payload
     }
 }
