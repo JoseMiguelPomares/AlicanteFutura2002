@@ -27,35 +27,64 @@ import { useNotifications } from "../contexts/NotificationContext"
 // Interfaces para los tipos de datos
 interface Message {
   id: number
-  sender: {
-    id: number
-    name: string
-    imageUrl?: string
-  }
+  chat: Chat
+  sender: User
   content: string
   createdAt: string
 }
 
+interface User {
+  id?: number
+  name?: string
+  email?: string
+  passwordHash?: string
+  location?: string
+  credits?: number
+  reputation?: number
+  createdAt?: string
+  socialId?: string
+  imageUrl?: string
+  aboutMe?: string
+  online?: boolean
+}
+
+interface Category {
+  id: number
+  name: string
+}
+
+interface Item {
+  id: number
+  user: User
+  title: string
+  description: string
+  category: Category
+  imageUrl: string
+  price: number
+  itemCondition: string
+  location: string
+  status: string
+  createdAt: string
+}
+
+interface Transaction {
+  id: number
+  item: Item
+  requester: User
+  owner: User
+  status: string
+  createdAt: string
+  completedAt: string
+  finalPrice: number
+}
+
 interface Chat {
   id: number
-  transaction: {
-    id: number
-    status: string
-    item: {
-      id: number
-      title: string
-      imageUrl?: string
-      price: number
-    }
-  }
-  otherUser: {
-    id: number
-    name: string
-    imageUrl?: string
-    online?: boolean
-  }
-  lastMessage?: string
-  lastMessageTime?: string
+  requester: User
+  owner: User
+  transaction: Transaction
+  createdAt: string
+  lastMessageAt: string
   unreadCount: number
 }
 
@@ -160,7 +189,7 @@ export const PaginaChat = () => {
                 price: transaction.item.price || 0,
               },
             },
-            otherUser: {
+            owner: {
               id: otherUser.id,
               name: otherUser.name,
               imageUrl: otherUser.imageUrl,
@@ -218,15 +247,15 @@ export const PaginaChat = () => {
         const formattedMessages = messagesData.map((msg: any) => {
           // Si el sender es null, usar información del chat
           const sender = msg.sender || {
-            id: msg.senderId || (user?.id === selectedChat.otherUser.id
-              ? selectedChat.otherUser.id
+            id: msg.senderId || (user?.id === selectedChat.owner.id
+              ? selectedChat.owner.id
               : user?.id),
-            name: msg.senderName || (user?.id === selectedChat.otherUser.id
+            name: msg.senderName || (user?.id === selectedChat.owner.id
               ? user?.name
-              : selectedChat.otherUser.name),
-            imageUrl: msg.senderImageUrl || (user?.id === selectedChat.otherUser.id
+              : selectedChat.owner.name),
+            imageUrl: msg.senderImageUrl || (user?.id === selectedChat.owner.id
               ? user?.imageUrl
-              : selectedChat.otherUser.imageUrl)
+              : selectedChat.owner.imageUrl)
           };
 
           return {
@@ -271,7 +300,7 @@ export const PaginaChat = () => {
   // Filtrar chats por término de búsqueda
   const filteredChats = chats.filter(
     (chat) =>
-      chat.otherUser.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      chat.owner.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       chat.transaction.item.title.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
@@ -285,6 +314,7 @@ export const PaginaChat = () => {
       // Optimistic update
       const optimisticMessage: Message = {
         id: -1, // ID temporal
+        chat: selectedChat,
         sender: {
           id: user.id,
           name: user.name,
@@ -303,6 +333,7 @@ export const PaginaChat = () => {
       // Transformar el mensaje recibido al formato esperado
       const formattedMessage = {
         id: sentMessage.id,
+        chat: selectedChat,
         sender: {
           id: sentMessage.sender.id,
           name: sentMessage.sender.name,
@@ -354,6 +385,7 @@ export const PaginaChat = () => {
         // Transformar el mensaje recibido al formato esperado
         const formattedMessage = {
           id: sentMessage.id,
+          chat: selectedChat,
           sender: {
             id: sentMessage.sender.id,
             name: sentMessage.sender.name,
@@ -487,13 +519,13 @@ export const PaginaChat = () => {
                     <div className="d-flex">
                       <div className="position-relative me-3">
                         <Image
-                          src={chat.otherUser.imageUrl || "/placeholder.svg?height=50&width=50"}
+                          src={chat.owner.imageUrl || "/placeholder.svg?height=50&width=50"}
                           roundedCircle
                           width={50}
                           height={50}
                           className="object-fit-cover"
                         />
-                        {chat.otherUser.online && (
+                        {chat.owner.online && (
                           <div
                             className="position-absolute bottom-0 end-0 bg-success rounded-circle p-1"
                             style={{ width: "12px", height: "12px", border: "2px solid white" }}
@@ -503,15 +535,15 @@ export const PaginaChat = () => {
 
                       <div className="flex-grow-1 min-width-0">
                         <div className="d-flex justify-content-between align-items-start">
-                          <h6 className="mb-0 text-truncate">{chat.otherUser.name}</h6>
+                          <h6 className="mb-0 text-truncate">{chat.owner.name}</h6>
                           <small className="text-muted ms-2">
-                            {chat.lastMessageTime && formatDate(chat.lastMessageTime)}
+                            {chat.lastMessageAt && formatDate(chat.lastMessageAt)}
                           </small>
                         </div>
 
                         <div className="d-flex justify-content-between align-items-center">
                           <p className="text-muted small mb-0 text-truncate">
-                            {chat.lastMessage || "Inicia una conversación"}
+                            {chat.lastMessageAt || "Inicia una conversación"}
                           </p>
                           {chat.unreadCount > 0 && (
                             <Badge bg="success" pill className="ms-2">
@@ -550,13 +582,13 @@ export const PaginaChat = () => {
 
                     <div className="position-relative me-3">
                       <Image
-                        src={selectedChat.otherUser.imageUrl || "/placeholder.svg?height=40&width=40"}
+                        src={selectedChat.owner.imageUrl || "/placeholder.svg?height=40&width=40"}
                         roundedCircle
                         width={40}
                         height={40}
                         className="object-fit-cover"
                       />
-                      {selectedChat.otherUser.online && (
+                      {selectedChat.owner.online && (
                         <div
                           className="position-absolute bottom-0 end-0 bg-success rounded-circle p-1"
                           style={{ width: "10px", height: "10px", border: "2px solid white" }}
@@ -566,12 +598,12 @@ export const PaginaChat = () => {
 
                     <div>
                       <h6 className="mb-0">
-                        <Link to={`/perfil/${selectedChat.otherUser.id}`} className="text-decoration-none text-dark">
-                          {selectedChat.otherUser.name}
+                        <Link to={`/perfil/${selectedChat.owner.id}`} className="text-decoration-none text-dark">
+                          {selectedChat.owner.name}
                         </Link>
                       </h6>
                       <small className="text-muted">
-                        {selectedChat.otherUser.online ? "En línea" : "Desconectado"}
+                        {selectedChat.owner.online ? "En línea" : "Desconectado"}
                       </small>
                     </div>
                   </div>
