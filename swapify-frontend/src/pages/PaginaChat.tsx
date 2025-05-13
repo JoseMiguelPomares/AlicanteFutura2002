@@ -45,6 +45,7 @@ interface User {
   socialId?: string
   imageUrl?: string
   aboutMe?: string
+  online?: boolean
 }
 
 interface Category {
@@ -533,15 +534,15 @@ export const PaginaChat = () => {
 
                       <div className="flex-grow-1 min-width-0">
                         <div className="d-flex justify-content-between align-items-start">
-                          <h6 className="mb-0 text-truncate">{chat.otherUser.name}</h6>
+                          <h6 className="mb-0 text-truncate">{chat.owner.name}</h6>
                           <small className="text-muted ms-2">
-                            {chat.lastMessageTime && formatDate(chat.lastMessageTime)}
+                            {chat.lastMessageAt && formatDate(chat.lastMessageAt)}
                           </small>
                         </div>
 
                         <div className="d-flex justify-content-between align-items-center">
                           <p className="text-muted small mb-0 text-truncate">
-                            {chat.lastMessage || "Inicia una conversación"}
+                            {chat.lastMessageAt || "Inicia una conversación"}
                           </p>
                           {chat.unreadCount > 0 && (
                             <Badge bg="success" pill className="ms-2">
