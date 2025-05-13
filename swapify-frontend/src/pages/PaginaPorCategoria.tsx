@@ -143,6 +143,9 @@ export const PaginaPorCategoria = () => {
     if (productos.length > 0) {
       let filtered = [...productos]
 
+      // Filtrar productos vendidos
+      filtered = filtered.filter(p => p.status !== "Sold")
+
       // Filtrar productos del usuario autenticado
       if (user) {
         filtered = filtered.filter(p => p.user?.id !== user.id);

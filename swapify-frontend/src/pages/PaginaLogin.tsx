@@ -39,13 +39,16 @@ export const PaginaLogin = () => {
     if (user) {
       if (redirectPath === "perfil") {
         navigate(`/perfil/${user.id}`);
-      } if (redirectPath === "vender") {
+      } else if (redirectPath === "vender") {
         navigate(`/vender/`);
-      } if (redirectPath === "chat") {
+      } else if (redirectPath === "chat") {
         navigate(`/chat/`);
-      } 
+      } else {
+        navigate('/');
+      }
     }
   }, [user, redirectPath, navigate]);
+
 
   const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

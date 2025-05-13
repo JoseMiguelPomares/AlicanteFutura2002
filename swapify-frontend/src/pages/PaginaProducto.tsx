@@ -83,7 +83,7 @@ export const PaginaProducto = () => {
   const [productosRelacionados, setProductosRelacionados] = useState<Producto[]>([])
   const itemService = useRef(new ItemService()).current
   const chatService = useRef(new ChatService()).current
-  const { user: currentUser } = useAuth() // Añadir esta línea para obtener el usuario actual
+  const { user: currentUser, refreshUserData } = useAuth() // Añadir esta línea para obtener el usuario actual
   const navigate = useNavigate()
 
 
@@ -210,8 +210,8 @@ export const PaginaProducto = () => {
   // Función para confirmar la compra
   const confirmarCompra = async () => {
     try {
-      // Verificar que currentUser y producto existan
-      if (!currentUser || !producto || !producto.user) {
+      // Verificaciones iniciales
+      if (!currentUser || !producto) {
         setErrorCompra("No se pudo completar la compra. Datos del usuario o producto no disponibles.");
         return;
       }
@@ -219,14 +219,13 @@ export const PaginaProducto = () => {
       setComprando(true);
       setErrorCompra(null);
 
-      // Llamar al servicio de transacciones usando addTransaction
-      await transactionService.addTransaction(
-        currentUser.id,        // requesterId (comprador)
-        producto.user.id,      // ownerId (vendedor)
-        producto.id,           // itemId
-        producto.price         // finalPrice
-      );
+      // Llamar al servicio de compra completa
+      await transactionService.completePurchase(currentUser.id, producto.id);
 
+      // Actualizar los datos del usuario para reflejar el nuevo saldo de créditos
+      await refreshUserData();
+
+      // Actualizar el estado
       setCompraExitosa(true);
       setShowCompraModal(false);
 
@@ -245,6 +244,7 @@ export const PaginaProducto = () => {
       setTimeout(() => {
         setAlertaVisible(false);
       }, 5000);
+
     } catch (error: any) {
       console.error("Error al realizar la compra:", error);
       setErrorCompra(error.response?.data?.message || "No se pudo completar la compra. Por favor, inténtalo de nuevo.");
@@ -769,7 +769,7 @@ export const PaginaProducto = () => {
                     size="lg"
                     className="rounded-pill mb-2"
                     onClick={handleCompraDirecta}
-                    disabled={comprando}
+                    disabled={comprando || (currentUser?.credits || 0) < producto.price}
                   >
                     {comprando ? (
                       <>
