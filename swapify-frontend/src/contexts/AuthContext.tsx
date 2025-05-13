@@ -19,6 +19,7 @@ interface User {
   name: string
   email: string
   imageUrl?: string
+  credits: number
 }
 
 interface AuthContextType {

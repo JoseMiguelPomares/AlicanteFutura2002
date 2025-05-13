@@ -91,6 +91,13 @@ export const PaginaProducto = () => {
 
   const favoriteCount = producto ? getFavoritesCount(producto.id) : 0
 
+  const transactionService = useRef(new TransactionService()).current
+
+  // Añadir estos estados para la compra directa
+  const [comprando, setComprando] = useState(false)
+  const [compraExitosa, setCompraExitosa] = useState(false)
+  const [errorCompra, setErrorCompra] = useState<string | null>(null)
+  const [showCompraModal, setShowCompraModal] = useState(false)
 
   // Añadir estados para las alertas
   const [alertaVisible, setAlertaVisible] = useState(false)
@@ -176,6 +183,75 @@ export const PaginaProducto = () => {
     setCurrentImageIndex(index)
     setShowLightbox(true)
   }
+
+  const handleCompraDirecta = async () => {
+    if (!currentUser) {
+      navigate("/login?redirect=/items/" + id);
+      return;
+    }
+
+    if (!producto) {
+      setErrorCompra("El producto no está disponible.");
+      return;
+    }
+
+    // Verificar si el usuario tiene suficientes créditos
+    if ((currentUser.credits || 0) < producto.price) {
+      setErrorCompra("No tienes suficientes créditos para realizar esta compra.");
+      setShowCompraModal(true);
+      return;
+    }
+
+    setShowCompraModal(true);
+    setCompraExitosa(false);
+    setErrorCompra(null);
+  };
+
+  // Función para confirmar la compra
+  const confirmarCompra = async () => {
+    try {
+      // Verificar que currentUser y producto existan
+      if (!currentUser || !producto || !producto.user) {
+        setErrorCompra("No se pudo completar la compra. Datos del usuario o producto no disponibles.");
+        return;
+      }
+
+      setComprando(true);
+      setErrorCompra(null);
+
+      // Llamar al servicio de transacciones usando addTransaction
+      await transactionService.addTransaction(
+        currentUser.id,        // requesterId (comprador)
+        producto.user.id,      // ownerId (vendedor)
+        producto.id,           // itemId
+        producto.price         // finalPrice
+      );
+
+      setCompraExitosa(true);
+      setShowCompraModal(false);
+
+      // Actualizar el estado del producto
+      setProducto(prev => {
+        if (!prev) return null;
+        return { ...prev, status: "Sold" };
+      });
+
+      // Mostrar mensaje de éxito
+      setMensajeAlerta("¡Compra realizada con éxito! El producto ahora es tuyo.");
+      setTipoAlerta("success");
+      setAlertaVisible(true);
+
+      // Ocultar la alerta después de 5 segundos
+      setTimeout(() => {
+        setAlertaVisible(false);
+      }, 5000);
+    } catch (error: any) {
+      console.error("Error al realizar la compra:", error);
+      setErrorCompra(error.response?.data?.message || "No se pudo completar la compra. Por favor, inténtalo de nuevo.");
+    } finally {
+      setComprando(false);
+    }
+  };
 
   // Función para añadir una imagen (implementación real)
   const handleAddImage = () => {
@@ -686,7 +762,25 @@ export const PaginaProducto = () => {
           <div className="d-grid gap-2">
             {!isOwner ? (
               <>
-
+                {/* Botón de compra directa - SOLO si el producto está disponible */}
+                {!isOwner && producto.status === "Available" && (
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="rounded-pill mb-2"
+                    onClick={handleCompraDirecta}
+                    disabled={comprando}
+                  >
+                    {comprando ? (
+                      <>
+                        <Spinner animation="border" size="sm" className="me-2" />
+                        Procesando compra...
+                      </>
+                    ) : (
+                      "Comprar ahora"
+                    )}
+                  </Button>
+                )}
                 <Button
                   variant="success"
                   size="lg"
@@ -695,34 +789,61 @@ export const PaginaProducto = () => {
                     if (!currentUser || !producto) return;
 
                     try {
-                      // 1. Crear la transacción primero
-                      const transactionResponse = await new TransactionService().addTransaction(
-                        currentUser.id, // requesterId (usuario actual)
-                        producto.user.id, // ownerId (dueño del producto)
-                        producto.id, // itemId
-                        0 // finalPrice (puedes poner 0 o el precio del producto)
+                      setLoading(true);
+
+                      // 1. Verificar si ya existe una transacción para este ítem y usuarios
+                      const transactionService = new TransactionService();
+                      const existingTransactions = await transactionService.getByUserId(currentUser.id);
+
+                      // Buscar transacción existente para este ítem
+                      const existingTransaction = existingTransactions.find(
+                        (t: any) =>
+                          t.item?.id === producto.id &&
+                          ((t.requester.id === currentUser.id && t.owner.id === producto.user.id) ||
+                            (t.requester.id === producto.user.id && t.owner.id === currentUser.id))
                       );
 
-                      const transaction = transactionResponse.data;
+                      let transactionId;
 
-                      // 2. Crear el chat usando el transactionId
+                      if (existingTransaction) {
+                        // Usar transacción existente
+                        transactionId = existingTransaction.id;
+                      } else {
+                        // Crear nueva transacción
+                        const transactionResponse = await transactionService.addTransaction(
+                          currentUser.id,
+                          producto.user.id,
+                          producto.id,
+                          producto.price || 0
+                        );
+                        transactionId = transactionResponse.data.id;
+                      }
+
+                      // 2. Obtener o crear el chat
                       const chat = await chatService.getOrCreateChat(
-                        transaction.id, // transactionId real
-                        currentUser.id, // buyerId
-                        producto.user.id // sellerId
+                        transactionId,
+                        currentUser.id,
+                        producto.user.id
                       );
 
-                      // 3. Navegar al chat
+                      // 3. Redirigir al chat existente o nuevo
                       navigate(`/chat/${chat.id}`);
+
                     } catch (error) {
-                      console.error("Error al iniciar chat:", error);
-                      setMensajeAlerta("No se pudo iniciar el chat. Inténtalo de nuevo.");
+                      console.error("Error en flujo de contacto:", error);
+                      setMensajeAlerta("Error al iniciar la conversación. Inténtalo de nuevo.");
                       setTipoAlerta("danger");
                       setAlertaVisible(true);
+                    } finally {
+                      setLoading(false);
                     }
                   }}
                 >
-                  <ChatLeftText className="me-2" />
+                  {loading ? (
+                    <Spinner animation="border" size="sm" className="me-2" />
+                  ) : (
+                    <ChatLeftText className="me-2" />
+                  )}
                   Contactar con el vendedor
                 </Button>
                 <div className="d-flex gap-2">
@@ -921,6 +1042,81 @@ export const PaginaProducto = () => {
           >
             Confirmar
           </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal show={showCompraModal} onHide={() => setShowCompraModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar compra</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {errorCompra && (
+            <Alert variant="danger" className="mb-3">
+              {errorCompra}
+            </Alert>
+          )}
+          {compraExitosa ? (
+            <Alert variant="success">
+              ¡Compra realizada con éxito! El producto ahora es tuyo.
+            </Alert>
+          ) : (
+            <>
+              <p>
+                Estás a punto de comprar <strong>{producto.title}</strong> por{" "}
+                <strong>{producto.price} créditos</strong>.
+              </p>
+
+              <div className="mb-3">
+                <h5>Resumen de la transacción:</h5>
+                <ul>
+                  <li>Precio: {producto.price} créditos</li>
+                  <li>Tus créditos actuales: {currentUser?.credits || 0}</li>
+                  <li>Créditos después de la compra: {(currentUser?.credits || 0) - producto.price}</li>
+                </ul>
+              </div>
+
+              <p>¿Deseas continuar con la compra?</p>
+
+              {currentUser && producto.price > (currentUser.credits || 0) && (
+                <Alert variant="warning">
+                  No tienes suficientes créditos para esta compra. Por favor, recarga tu saldo.
+                </Alert>
+              )}
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          {!compraExitosa && (
+            <>
+              <Button variant="secondary" onClick={() => setShowCompraModal(false)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                onClick={confirmarCompra}
+                disabled={comprando || (currentUser?.credits || 0) < producto.price}
+              >
+                {comprando ? (
+                  <>
+                    <Spinner animation="border" size="sm" className="me-2" />
+                    Procesando...
+                  </>
+                ) : (
+                  "Confirmar compra"
+                )}
+              </Button>
+            </>
+          )}
+          {compraExitosa && (
+            <Button
+              variant="success"
+              onClick={() => {
+                setShowCompraModal(false);
+                navigate("/mis-compras"); // O redirige a donde prefieras
+              }}
+            >
+              Ver mis compras
+            </Button>
+          )}
         </Modal.Footer>
       </Modal>
     </Container>

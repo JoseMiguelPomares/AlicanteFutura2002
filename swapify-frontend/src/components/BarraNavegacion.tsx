@@ -225,10 +225,16 @@ export const BarraNavegacion = () => {
 
               {/* Sección de perfil y créditos */}
               <div className="d-flex justify-content-between align-items-center mt-2">
-                <Button variant="success" className="d-flex align-items-center gap-2 rounded-pill">
-                  <Cart size={18} />
-                  <span className="fw-bold">150 Créditos</span>
-                </Button>
+                {isAuthenticated && user?.credits !== undefined && (
+                  <Button 
+                    variant="success" 
+                    size="sm"
+                    className="d-flex align-items-center gap-2 rounded-pill py-1"
+                  >
+                    <Cart size={16} />
+                    <span className="fw-bold small">{user.credits} Créditos</span>
+                  </Button>
+                )}
               </div>
             </Offcanvas.Body>
           </Navbar.Offcanvas>
@@ -272,10 +278,12 @@ export const BarraNavegacion = () => {
                       <Person size={22} />
                     )}
                   </Nav.Link>
-                  <Button variant="outline-light" className="d-flex align-items-center gap-2 rounded-pill">
-                    <Cart size={18} />
-                    <span className="fw-bold">150 Créditos</span>
-                  </Button>
+                  {user?.credits !== undefined && (
+                    <Button variant="outline-light" className="d-flex align-items-center gap-2 rounded-pill py-1">
+                      <Cart size={18} />
+                      <span className="fw-bold small">{user.credits} Créditos</span>
+                    </Button>
+                  )}
                   <Button
                     variant="danger"
                     size="sm"
