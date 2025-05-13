@@ -23,6 +23,11 @@ import { ChatService } from "../services/chatService"
 import { TransactionService } from "../services/transactionService"
 import { UserService } from "../services/userService"
 import { useNotifications } from "../contexts/NotificationContext"
+import SockJS from "sockjs-client/dist/sockjs.js"
+import { Client, Frame, Message as StompMessage } from "@stomp/stompjs"
+
+
+let stompClient: any = null
 
 // Interfaces para los tipos de datos
 interface Message {
@@ -120,6 +125,45 @@ export const PaginaChat = () => {
       navigate("/login?redirect=chat")
     }
   }, [isAuthenticated, loading, navigate])
+
+  useEffect(() => {
+    if (!selectedChat) return
+  
+    // 1) Instancia el cliente STOMP
+    stompClient = new Client({
+      // Creamos un WebSocket usando SockJS
+      webSocketFactory: () => new SockJS("http://localhost:8080/ws-chat"),
+      connectHeaders: {},
+      debug: (str: string) => {
+        console.log("STOMP:", str)
+      },
+      onStompError: (frame: Frame) => {
+        console.error("STOMP error:", frame.headers["message"], frame.body)
+      }
+    })
+  
+    // 2) Cuando conecte, suscríbete
+    stompClient.onConnect = (frame: Frame) => {
+      stompClient.subscribe(
+        `/topic/chat/${selectedChat.id}`,
+        (stompMsg: StompMessage) => {
+          const msg: Message = JSON.parse(stompMsg.body)
+          setMessages((prev) => [...prev, msg])
+        }
+      )
+    }
+  
+    // 3) Activa la conexión
+    stompClient.activate()
+  
+    // 4) Cleanup al desmontar / cambiar chat
+    return () => {
+      stompClient.deactivate()
+      stompClient = null
+    }
+  }, [selectedChat])
+  
+  
 
   // Cargar transacciones y convertirlas en chats
   useEffect(() => {
@@ -305,7 +349,7 @@ export const PaginaChat = () => {
   )
 
   // Manejar envío de mensaje
-  const handleSendMessage = async (e: React.FormEvent) => {
+  {/* const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!newMessage.trim() || !selectedChat || !user) return
@@ -364,7 +408,24 @@ export const PaginaChat = () => {
       setMessages((prev) => prev.filter((msg) => msg.id !== -1))
       setError("No se pudo enviar el mensaje. Por favor, inténtalo de nuevo.")
     }
+  } */}
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newMessage.trim() || !selectedChat || !user || !stompClient) return
+  
+    const dto = { senderId: user.id, content: newMessage }
+  
+    // Enviar por STOMP al endpoint /app/chat/{roomId}
+    stompClient.publish({
+      destination: `/app/chat/${selectedChat.id}`,
+      body: JSON.stringify(dto)
+    })
+  
+    setNewMessage("")
   }
+  
+
 
   // Manejar selección de chat
   const handleSelectChat = (chat: Chat) => {
