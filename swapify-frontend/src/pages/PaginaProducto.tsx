@@ -1,6 +1,6 @@
 "use client"
 
-import { useParams, Link } from "react-router-dom"
+import { useParams, Link, useNavigate } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
 import {
   Container,
@@ -44,6 +44,7 @@ import { useFavorites } from "../contexts/FavoritesContext"
 import { ProductCard } from "../components/ProductCard"
 import { ChatService } from "../services/chatService"
 import OptimizedImage from "../components/OptimizedImage"
+import { TransactionService } from "../services/transactionService";
 
 interface Producto {
   id: number
@@ -83,6 +84,8 @@ export const PaginaProducto = () => {
   const itemService = useRef(new ItemService()).current
   const chatService = useRef(new ChatService()).current
   const { user: currentUser } = useAuth() // Añadir esta línea para obtener el usuario actual
+  const navigate = useNavigate()
+
 
   const { isFavorite, addFavorite, removeFavorite, getFavoritesCount, refreshFavoritesCount, loading: favoritesLoading } = useFavorites();
 
@@ -463,7 +466,7 @@ export const PaginaProducto = () => {
                   className="img-fluid rounded-4 shadow-sm mb-3"
                   style={{ width: "100%", height: "400px", objectFit: "contain" }}
                 />
-                 {/* Badge de favoritos */}
+                {/* Badge de favoritos */}
                 {favoriteCount > 0 && (
                   <Badge bg="danger" className="position-absolute bottom-0 start-0 m-2 rounded-pill">
                     <HeartFill size={12} className="me-1" />
@@ -684,10 +687,41 @@ export const PaginaProducto = () => {
             {!isOwner ? (
               <>
 
-                <Button variant="success" size="lg" className="rounded-pill" 
-                as={Link as any} 
-                to={`/chat/${1/7/1}`}> {/*{transactionId}/{buyerId}/{sellerId*/}
+                <Button
+                  variant="success"
+                  size="lg"
+                  className="rounded-pill"
+                  onClick={async () => {
+                    if (!currentUser || !producto) return;
 
+                    try {
+                      // 1. Crear la transacción primero
+                      const transactionResponse = await new TransactionService().addTransaction(
+                        currentUser.id, // requesterId (usuario actual)
+                        producto.user.id, // ownerId (dueño del producto)
+                        producto.id, // itemId
+                        0 // finalPrice (puedes poner 0 o el precio del producto)
+                      );
+
+                      const transaction = transactionResponse.data;
+
+                      // 2. Crear el chat usando el transactionId
+                      const chat = await chatService.getOrCreateChat(
+                        transaction.id, // transactionId real
+                        currentUser.id, // buyerId
+                        producto.user.id // sellerId
+                      );
+
+                      // 3. Navegar al chat
+                      navigate(`/chat/${chat.id}`);
+                    } catch (error) {
+                      console.error("Error al iniciar chat:", error);
+                      setMensajeAlerta("No se pudo iniciar el chat. Inténtalo de nuevo.");
+                      setTipoAlerta("danger");
+                      setAlertaVisible(true);
+                    }
+                  }}
+                >
                   <ChatLeftText className="me-2" />
                   Contactar con el vendedor
                 </Button>
