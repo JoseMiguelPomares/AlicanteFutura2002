@@ -19,6 +19,7 @@ interface User {
   name: string
   email: string
   imageUrl?: string
+  credits: number
 }
 
 interface AuthContextType {
@@ -30,6 +31,7 @@ interface AuthContextType {
   loginWithFacebook: () => Promise<void>
   logout: () => void
   isAuthenticated: boolean
+  refreshUserData: () => Promise<void> // Nueva función
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -93,6 +95,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw err
     }
   }
+
+  // Añadir esta nueva función para actualizar los datos del usuario
+  const refreshUserData = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      const response = await userService.getUserById(user.id);
+      if (response && response.data) {
+        // Actualizar el usuario en el estado y en localStorage
+        localStorage.setItem("user", JSON.stringify(response.data));
+        setUser(response.data);
+      }
+    } catch (err) {
+      console.error("Error al actualizar datos del usuario:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = async (email: string, password: string) => {
     setLoading(true)
@@ -183,6 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithFacebook,
         logout,
         isAuthenticated: !!user,
+        refreshUserData, // Añadir la nueva función al contexto
       }}
     >
       {children}

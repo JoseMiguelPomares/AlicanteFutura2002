@@ -19,4 +19,15 @@ interface ITransactionDAO: CrudRepository<Transaction, Int> {
         """
     )
     fun findByOwnerIdWithAll(@Param("userId") userId: Long): List<Transaction>
+    
+    @Query(
+        """
+        SELECT t FROM Transaction t
+        LEFT JOIN FETCH t.item
+        LEFT JOIN FETCH t.requester
+        LEFT JOIN FETCH t.owner
+        WHERE t.requester.id = :userId
+        """
+    )
+    fun findByRequesterIdWithAll(@Param("userId") userId: Long): List<Transaction>
 }
