@@ -277,7 +277,13 @@ export const PaginaChat = () => {
   
         // 3) Ahora sí, crea tu cliente STOMP
         stompClient = new Client({
-          webSocketFactory: () => new SockJS("http://localhost:8080/swapify/ws-chat"),
+          // en vez de pasar simplemente `new SockJS(url)`, 
+          // damos el tercer parámetro con { withCredentials: false }
+          webSocketFactory: () =>
+            new SockJS("http://localhost:8080/swapify/ws-chat", undefined, {
+              withCredentials: false,
+            }),
+          reconnectDelay: 5000,
           debug: (msg: string) => console.log("STOMP:", msg),
           onStompError: (frame: any) => console.error("STOMP ERR:", frame.body),
         })
