@@ -12,21 +12,20 @@ class WebConfig {
     @Bean
     fun corsFilter(): CorsFilter {
         val config = CorsConfiguration().apply {
-            // tu front
             allowedOrigins = listOf("http://localhost:5173")
-            // métodos que vas a usar (incluye OPTIONS para el preflight)
             allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
-            // habilita el envío de cookies/credenciales
-            allowCredentials = true
-            // headers permitidos en la petición
             allowedHeaders = listOf("*")
-            // cuánto cachear preflight
+            allowCredentials = true
             maxAge = 3600
         }
-        // Aplica a TODO: REST y SockJS fallback “/swapify/**”
+
         val source = UrlBasedCorsConfigurationSource().apply {
+            // Para tu API REST
             registerCorsConfiguration("/swapify/**", config)
+            // Para todas las sub‑rutas de SockJS (/ws-chat/info, /ws-chat/xhr, etc)
+            registerCorsConfiguration("/swapify/ws-chat/**", config)
         }
         return CorsFilter(source)
     }
+
 }
