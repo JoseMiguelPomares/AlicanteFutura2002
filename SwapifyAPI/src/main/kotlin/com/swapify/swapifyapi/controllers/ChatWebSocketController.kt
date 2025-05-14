@@ -24,10 +24,10 @@ class ChatWebSocketController(
     fun onChatMessage(
         @DestinationVariable roomId: Int,
         payload: ChatMessageDTO
-    ): ChatMessageDTO {
-        // 1) Guarda en base de datos
-        chatService.saveMessage(roomId, payload)
-        // 2) Reenvía al topic
-        return payload
+    ): Message {
+        // 1) Guarda en base de datos y recupera la entidad completa
+        val savedEntity = chatService.saveMessage(roomId, payload)
+        // 2) Reenvía la entidad completa al topic
+        return savedEntity
     }
 }

@@ -390,20 +390,17 @@ export const PaginaChat = () => {
   } */}
 
   const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newMessage.trim() || !selectedChat || !user || !stompClient) return
-
-    const dto = { senderId: user.id, content: newMessage }
-
-    // Enviar por STOMP al endpoint /app/chat/{roomId}
-    stompClient.send(
-      `/swapify/chat/${selectedChat.id}`,
-      {},
-      JSON.stringify(dto)
-    )
-
-    setNewMessage("")
-  }
+    e.preventDefault();
+    if (!newMessage.trim() || !selectedChat || !user || !stompClient) return;
+  
+    const dto = { senderId: user.id, content: newMessage };
+    stompClient.publish({
+      destination: `/app/chat/${selectedChat.id}`,
+      body: JSON.stringify(dto),
+    });
+    setNewMessage("");
+  };
+  
 
 
 
