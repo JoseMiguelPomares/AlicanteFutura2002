@@ -17,13 +17,16 @@ import {
   Bicycle,
   InfoCircle,
   Envelope,
-  Heart } from "react-bootstrap-icons"
+  Heart,
+} from "react-bootstrap-icons"
 import { useMediaQuery } from "react-responsive"
 import logo from "../assets/images/logosSwapify/logoNegroLargoFondoTransp.png"
 import logoPequeno from "../assets/images/logosSwapify/logoNegroTransp.png" // Logo para móviles
 import { BarraLateral } from "./BarraLateral"
 import { useAuth } from "../contexts/AuthContext"
 import { useFavorites } from "../contexts/FavoritesContext"
+import { useNotifications } from "../contexts/NotificationContext"
+import { NotificationDropdown } from "./NotificationDropDown"
 
 export const BarraNavegacion = () => {
   const [showSidebar, setShowSidebar] = useState(false)
@@ -31,7 +34,8 @@ export const BarraNavegacion = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const isMobile = useMediaQuery({ maxWidth: 640 }) // Pantallas pequeñas
   const navigate = useNavigate()
-  const { favorites } = useFavorites();
+  const { favorites } = useFavorites()
+  const { unreadCount } = useNotifications()
 
   // Añadir dentro de la función BarraNavegacion
   const { user, isAuthenticated, logout } = useAuth()
@@ -164,10 +168,9 @@ export const BarraNavegacion = () => {
                     Acceso / Registro
                   </Button>
                 )}
-
                 <Button
                   as={Link as any}
-                  to={user ? "/vender" : "/login?redirect=vender"}
+                  to={isAuthenticated ? "/vender" : "/login?redirect=/vender"}
                   variant="light"
                   className="rounded-pill px-4"
                   onClick={() => setShowMenu(false)}
@@ -178,7 +181,12 @@ export const BarraNavegacion = () => {
 
               {/* Enlaces de navegación */}
               <div className="border-top border-bottom py-3 my-2">
-                <Nav.Link as={Link} to="/favoritos" className="py-2 d-flex align-items-center" onClick={() => setShowMenu(false)}>
+                <Nav.Link
+                  as={Link}
+                  to="/favoritos"
+                  className="py-2 d-flex align-items-center"
+                  onClick={() => setShowMenu(false)}
+                >
                   <Heart className="me-2" size={18} />
                   Favoritos
                   {favorites.length > 0 && (
@@ -187,6 +195,23 @@ export const BarraNavegacion = () => {
                     </Badge>
                   )}
                 </Nav.Link>
+                {/* Notificaciones en el menú móvil */}
+                {isAuthenticated && (
+                  <Nav.Link
+                    as={Link}
+                    to="/chat"
+                    className="py-2 d-flex align-items-center"
+                    onClick={() => setShowMenu(false)}
+                  >
+                    <Bell className="me-2" size={18} />
+                    Notificaciones
+                    {unreadCount > 0 && (
+                      <Badge bg="danger" pill className="ms-2">
+                        {unreadCount}
+                      </Badge>
+                    )}
+                  </Nav.Link>
+                )}
                 <Nav.Link as={Link} to="/contacto" className="py-2" onClick={() => setShowMenu(false)}>
                   Contacto
                 </Nav.Link>
@@ -200,10 +225,16 @@ export const BarraNavegacion = () => {
 
               {/* Sección de perfil y créditos */}
               <div className="d-flex justify-content-between align-items-center mt-2">
-                <Button variant="success" className="d-flex align-items-center gap-2 rounded-pill">
-                  <Cart size={18} />
-                  <span className="fw-bold">150 Créditos</span>
-                </Button>
+                {isAuthenticated && user?.credits !== undefined && (
+                  <Button 
+                    variant="success" 
+                    size="sm"
+                    className="d-flex align-items-center gap-2 rounded-pill py-1"
+                  >
+                    <Cart size={16} />
+                    <span className="fw-bold small">{user.credits} Créditos</span>
+                  </Button>
+                )}
               </div>
             </Offcanvas.Body>
           </Navbar.Offcanvas>
@@ -229,12 +260,10 @@ export const BarraNavegacion = () => {
                   </span>
                 )}
               </Nav.Link>
-              <Nav.Link as={Link} to="/notificaciones" className="text-white position-relative">
-                <Bell size={22} />
-                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                  2
-                </span>
-              </Nav.Link>
+
+              {/* Reemplazamos el icono de notificaciones con nuestro componente NotificationDropdown */}
+              {isAuthenticated && <NotificationDropdown />}
+
               {isAuthenticated ? (
                 <>
                   <Nav.Link as={Link} to={`/perfil/${user?.id}`} className="text-white d-flex align-items-center">
@@ -249,10 +278,12 @@ export const BarraNavegacion = () => {
                       <Person size={22} />
                     )}
                   </Nav.Link>
-                  <Button variant="outline-light" className="d-flex align-items-center gap-2 rounded-pill">
-                    <Cart size={18} />
-                    <span className="fw-bold">150 Créditos</span>
-                  </Button>
+                  {user?.credits !== undefined && (
+                    <Button variant="outline-light" className="d-flex align-items-center gap-2 rounded-pill py-1">
+                      <Cart size={18} />
+                      <span className="fw-bold small">{user.credits} Créditos</span>
+                    </Button>
+                  )}
                   <Button
                     variant="danger"
                     size="sm"

@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.RequestBody
+
 import java.math.BigDecimal
 
 @RestController
@@ -34,6 +36,16 @@ class TransactionController {
                        @PathVariable finalPrice: BigDecimal): ResponseEntity<Transaction> {
         return transactionService.addTransaction(requesterId, ownerId, itemId, finalPrice)
     }
+
+    @PostMapping("/completePurchase")
+    fun completePurchase(@RequestBody request: CompletePurchaseRequest): ResponseEntity<Transaction> {
+        return transactionService.completePurchase(request.buyerId, request.itemId)
+    }
+
+    data class CompletePurchaseRequest(
+        val buyerId: Int,
+        val itemId: Int
+    )
 
     //Función para modificar una transacción a cancelada
     @PutMapping("/cancelTransaction/{transactionId}")

@@ -508,6 +508,16 @@ export const PaginaPerfil = () => {
                 </Badge>
               </div>
 
+              {isOwnProfile && user?.credits !== undefined && (
+                <div className="mb-3">
+                  <Badge bg="success" className="rounded-pill px-3 py-2">
+                    <span className="fw-bold">
+                      {user.credits} Créditos
+                    </span>
+                  </Badge>
+                </div>
+              )}
+
               {userProfile.location && (
                 <p className="text-muted mb-3">
                   <GeoAlt className="me-1" />

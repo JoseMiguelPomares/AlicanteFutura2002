@@ -103,8 +103,8 @@ export const PaginaInicio = () => {
         }
 
         // Filtrar productos para diferentes secciones
-        // Filtrar productos del usuario actual si está autenticado
-        let filtered = data;
+        // Filtrar productos del usuario actual si está autenticado y productos vendidos
+        let filtered = data.filter((p: Producto) => p.status !== "Sold");
         
         if (user) {
           filtered = filtered.filter((p: { user: { id: number } }) => p.user?.id !== user.id);
@@ -112,7 +112,9 @@ export const PaginaInicio = () => {
         
         setProductosFiltrados({
           destacados: filtered.slice(0, 4),
-          recientes: recentProducts.data.filter((p: Producto) => !user || p.user?.id !== user.id).slice(0, 4),
+          recientes: recentProducts.data
+            .filter((p: Producto) => (p.status !== "Sold" && (!user || p.user?.id !== user.id)))
+            .slice(0, 4),
           populares: filtered.slice(8, 12),
         })
 
@@ -128,10 +130,12 @@ export const PaginaInicio = () => {
   }, [user])
 
   const productosMostrados = categoriaActiva === "Todos" 
-    ? (user ? productos.filter(p => p.user?.id !== user.id) : productos) 
+    ? (user 
+        ? productos.filter(p => p.status !== "Sold" && p.user?.id !== user.id) 
+        : productos.filter(p => p.status !== "Sold")) 
     : (user 
-        ? productos.filter(p => p.category?.name === categoriaActiva && p.user?.id !== user.id)
-        : productos.filter(p => p.category?.name === categoriaActiva));
+        ? productos.filter(p => p.status !== "Sold" && p.category?.name === categoriaActiva && p.user?.id !== user.id)
+        : productos.filter(p => p.status !== "Sold" && p.category?.name === categoriaActiva));
 
   // Función para obtener hasta 20 productos aleatorios
   const obtenerProductosAleatorios = (productos: Producto[], cantidad: number = 20) => {
@@ -288,9 +292,6 @@ export const PaginaInicio = () => {
           <h2 className="fw-bold">
             <Star className="text-warning me-2" /> Productos Destacados
           </h2>
-          <Link to="/destacados" className="text-decoration-none text-success fw-bold">
-            Ver más <ArrowRight />
-          </Link>
         </div>
 
         <Row xs={1} sm={2} md={2} lg={4} className="g-4">
@@ -311,9 +312,6 @@ export const PaginaInicio = () => {
             <h2 className="fw-bold">
               <GraphUp className="text-primary me-2" /> Recién Añadidos
             </h2>
-            <Link to="/recientes" className="text-decoration-none text-success fw-bold">
-              Ver más <ArrowRight />
-            </Link>
           </div>
 
           <Row xs={1} sm={2} md={2} lg={4} className="g-4">
