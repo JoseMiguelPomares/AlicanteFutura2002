@@ -170,7 +170,7 @@ export const BarraNavegacion = () => {
                 )}
                 <Button
                   as={Link as any}
-                  to={isAuthenticated ? "/vender" : "/login?redirect=/vender"}
+                  to={isAuthenticated ? "/vender" : "/login?redirect=vender"}
                   variant="light"
                   className="rounded-pill px-4"
                   onClick={() => setShowMenu(false)}
@@ -244,7 +244,7 @@ export const BarraNavegacion = () => {
             {/* Botones y secciones adicionales */}
             <Button
               as={Link as any}
-              to={isAuthenticated ? "/vender" : "/login?redirect=/vender"}
+              to={isAuthenticated ? "/vender" : "/login?redirect=vender"}
               variant="light"
               className="py-2 rounded-pill px-4 fw-bold"
               onClick={() => setShowMenu(false)}
