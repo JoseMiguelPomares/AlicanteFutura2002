@@ -25,6 +25,7 @@ import { Button, Form } from "react-bootstrap"
 import { FavoritesProvider } from "./contexts/FavoritesContext"
 import { PaginaFavoritos } from "./pages/PaginaFavoritos"
 import { PaginaComoFunciona } from "./pages/PaginaComoFunciona"
+import { PaginaEditarProducto } from "./pages/PaginaEditarProducto"
 
 // Componente principal de la aplicación
 export const App: React.FC = () => {
@@ -45,6 +46,7 @@ export const App: React.FC = () => {
                   <Route path="/registro" element={<PaginaRegistro />} />
                   <Route path="/login" element={<PaginaLogin />} />
                   <Route path="/items/:id" element={<PaginaProducto />} />
+                  <Route path="/editar-producto/:id" element={<PaginaEditarProducto />} />
                   <Route path="/busqueda" element={<PaginaBusqueda />} />
                   <Route path="/contacto" element={<PaginaContacto />} />
                   <Route path="/categoria/:categoria" element={<PaginaPorCategoria />} />
