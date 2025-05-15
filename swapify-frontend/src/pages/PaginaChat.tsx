@@ -192,6 +192,7 @@ export const PaginaChat = () => {
               },
               createdAt: chat.createdAt,
               lastMessageAt: last ? last.createdAt : "",
+              lastMessage: last ? last.content : "",
               unreadCount: 0,
             }
           })
@@ -588,7 +589,7 @@ export const PaginaChat = () => {
 
                         <div className="d-flex justify-content-between align-items-center">
                           <p className="text-muted small mb-0 text-truncate">
-                            {chat.lastMessageAt || "Inicia una conversación"}
+                            {chat.lastMessage || "Inicia una conversación"}
                           </p>
                           {chat.unreadCount > 0 && (
                             <Badge bg="success" pill className="ms-2">
