@@ -670,7 +670,7 @@ export const PaginaChat = () => {
               <div className="bg-light p-3 border-bottom">
                 <div className="d-flex align-items-center">
                   <Image
-                    src={selectedChat.transaction.item.imageUrl || "/placeholder.svg?height=60&width=60"}
+                    src={selectedChat.transaction.item.imageUrl.split('|')[0] || "/placeholder.svg?height=60&width=60"}
                     width={60}
                     height={60}
                     className="rounded me-3 object-fit-cover"
