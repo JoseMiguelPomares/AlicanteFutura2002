@@ -77,4 +77,10 @@ class UserController {
     fun updateUserProfile(@PathVariable id: Int, @RequestBody userProfileDTO: UserProfileDTO): ResponseEntity<UserProfileDTO> {
         return userService.updateUserProfile(id, userProfileDTO)
     }
+
+    //Función para añadir créditos a un usuario
+    @PostMapping("/addCredits/{id}/{credits}")
+    fun addCreditsToUser(@PathVariable id: Int, @PathVariable credits: Int): ResponseEntity<CreditsUserDTO> {
+        return userService.addCreditsToUser(id, credits)
+    }
 }

@@ -187,4 +187,23 @@ class UserService {
             ResponseEntity.notFound().build()
         }
     }
+
+    //Función para añadir créditos a un usuario
+    fun addCreditsToUser(id: Int, credits: Int): ResponseEntity<CreditsUserDTO> {
+        val userOptional: Optional<User> = userDAO.findById(id)
+        return if (userOptional.isPresent) {
+            val user = userOptional.get()
+            user.credits = user.credits!! + credits
+            userDAO.save(user)
+            
+            val creditsDTO = CreditsUserDTO(
+                user.id!!,
+                user.name,
+                user.credits!!.toInt()
+            )
+            ResponseEntity.ok(creditsDTO)
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
 }
