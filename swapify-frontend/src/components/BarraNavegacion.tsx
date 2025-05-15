@@ -2,7 +2,19 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Navbar, Container, Form, InputGroup, Button, Nav, Offcanvas, Image, Badge } from "react-bootstrap"
+import {
+  Navbar,
+  Container,
+  Form,
+  InputGroup,
+  Button,
+  Nav,
+  Offcanvas,
+  Image,
+  Badge,
+  OverlayTrigger,
+  Tooltip,
+} from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import {
   Search,
@@ -18,6 +30,9 @@ import {
   InfoCircle,
   Envelope,
   Heart,
+  Power,
+  PencilSquare,
+  Upload,
 } from "react-bootstrap-icons"
 import { useMediaQuery } from "react-responsive"
 import logo from "../assets/images/logosSwapify/logoNegroLargoFondoTransp.png"
@@ -56,6 +71,38 @@ export const BarraNavegacion = () => {
     { name: "Hogar", icon: <House className="me-1" />, path: "/categoria/hogar" },
     { name: "Deporte", icon: <Bicycle className="me-1" />, path: "/categoria/deporte" },
   ]
+
+  const dropdownStyles = `
+  .profile-dropdown-container {
+    position: relative;
+  }
+  
+  .profile-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 200px;
+    background-color: white;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 5px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .profile-dropdown-container:hover .profile-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .profile-dropdown-content {
+    padding: 10px;
+    background-color: white;
+  }
+`
 
   return (
     <>
@@ -226,11 +273,7 @@ export const BarraNavegacion = () => {
               {/* Sección de perfil y créditos */}
               <div className="d-flex justify-content-between align-items-center mt-2">
                 {isAuthenticated && user?.credits !== undefined && (
-                  <Button 
-                    variant="success" 
-                    size="sm"
-                    className="d-flex align-items-center gap-2 rounded-pill py-1"
-                  >
+                  <Button variant="success" size="sm" className="d-flex align-items-center gap-2 rounded-pill py-1">
                     <Cart size={16} />
                     <span className="fw-bold small">{user.credits} Créditos</span>
                   </Button>
@@ -266,35 +309,74 @@ export const BarraNavegacion = () => {
 
               {isAuthenticated ? (
                 <>
-                  <Nav.Link as={Link} to={`/perfil/${user?.id}`} className="text-white d-flex align-items-center">
-                    {user?.imageUrl ? (
-                      <img
-                        src={user.imageUrl || "/placeholder.svg"}
-                        alt={user.name}
-                        className="rounded-circle"
-                        style={{ width: "24px", height: "24px", objectFit: "cover" }}
-                      />
-                    ) : (
-                      <Person size={22} />
-                    )}
-                  </Nav.Link>
                   {user?.credits !== undefined && (
-                    <Button variant="outline-light" className="d-flex align-items-center gap-2 rounded-pill py-1">
-                      <Cart size={18} />
-                      <span className="fw-bold small">{user.credits} Créditos</span>
+                    <Button variant="outline-light" className="d-flex align-items-center gap-1 rounded-pill py-0 px-2" size="sm">
+                      <Cart size={16} />
+                      <span className="small">{user.credits} Créditos</span>
                     </Button>
                   )}
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    className="rounded-pill"
-                    onClick={() => {
-                      logout()
-                      navigate("/") // Redirect to home page after logout
-                    }}
-                  >
-                    Salir
-                  </Button>
+                  <div className="position-relative profile-dropdown-container">
+                    <Nav.Link as={Link} to={`/perfil/${user?.id}`} className="text-white d-flex align-items-center">
+                      {user?.imageUrl ? (
+                        <img
+                          src={user.imageUrl || "/placeholder.svg"}
+                          alt={user.name}
+                          className="rounded-circle"
+                          style={{ width: "24px", height: "24px", objectFit: "cover" }}
+                        />
+                      ) : (
+                        <Person size={22} />
+                      )}
+                    </Nav.Link>
+                    <div className="profile-dropdown-menu">
+                      <div className="profile-dropdown-content shadow rounded">
+                        <Button
+                          as={Link as any}
+                          to="/vender"
+                          variant="light"
+                          size="sm"
+                          className="d-flex align-items-center gap-2 w-100 mb-2 text-start"
+                        >
+                          <Upload size={16} />
+                          Subir un producto
+                        </Button>
+                        <Button
+                          as={Link as any}
+                          to={`/editar-perfil`}
+                          variant="light"
+                          size="sm"
+                          className="d-flex align-items-center gap-2 w-100 mb-2 text-start"
+                        >
+                          <PencilSquare size={16} />
+                          Editar perfil
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          className="d-flex align-items-center gap-2 w-100 text-start"
+                          onClick={() => {
+                            logout()
+                            navigate("/")
+                          }}
+                        >
+                          <Power size={16} />
+                          Cerrar sesión
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip-logout">Cerrar sesión</Tooltip>}>
+                    <Button
+                      variant="link"
+                      className="text-white p-0 d-flex align-items-center"
+                      onClick={() => {
+                        logout()
+                        navigate("/") // Redirect to home page after logout
+                      }}
+                    >
+                      <Power size={20} />
+                    </Button>
+                  </OverlayTrigger>
                 </>
               ) : (
                 <Button
@@ -351,31 +433,12 @@ export const BarraNavegacion = () => {
                 <Envelope className="me-1" /> Contacto
               </Nav.Link>
             </div>
-
-            {isAuthenticated && (
-              <Button
-                as={Link as any}
-                to={`/perfil/${user?.id}`}
-                variant="success"
-                size="sm"
-                className="d-none d-md-flex align-items-center gap-2 rounded-pill px-3"
-              >
-                {user?.imageUrl ? (
-                  <img
-                    src={user.imageUrl || "/placeholder.svg"}
-                    alt={user.name}
-                    className="rounded-circle"
-                    style={{ width: "16px", height: "16px", objectFit: "cover" }}
-                  />
-                ) : (
-                  <Person size={16} />
-                )}
-                Mi Perfil
-              </Button>
-            )}
           </div>
         </Container>
       </div>
+
+      {/* Add the style tag for dropdown */}
+      <style>{dropdownStyles}</style>
 
       {/* Barra Lateral */}
       <BarraLateral mostrar={showSidebar} alCerrar={() => setShowSidebar(false)} />

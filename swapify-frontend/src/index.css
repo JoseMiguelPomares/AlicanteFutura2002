@@ -297,3 +297,50 @@ body {
 .non-resizable-textarea {
   resize: none;
 }
+
+/* Estilos para el menú desplegable del perfil */
+.profile-dropdown-container {
+  position: relative;
+}
+
+.profile-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 200px;
+  background-color: white;
+  border-radius: 8px;
+  padding: 0;
+  margin-top: 5px;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profile-dropdown-container:hover .profile-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+}
+
+.profile-dropdown-content {
+  padding: 10px;
+  background-color: white;
+  border-radius: 8px;
+}
+
+/* Estilo para el botón de apagado */
+.power-button {
+  transition: color 0.3s ease;
+}
+
+.power-button:hover {
+  color: #dc3545 !important;
+}
+
+/* Ajuste para el menú desplegable en la barra superior */
+.navbar .profile-dropdown-menu {
+  right: 0;
+  left: auto;
+}
