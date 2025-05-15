@@ -10,7 +10,7 @@ export class ChatService {
   async getMessages(chatId: number) {
     try {
       // const response = await axios.get(`${this.baseUrl}${chatId}/messages`)
-      const response = await axios.get(`${API_URL}/chat${chatId}/messages`, {
+      const response = await axios.get(`${API_URL}${chatId}/messages`, {
         headers: { 'Ngrok-Skip-Browser-Warning': 'true' }
       })
       return response.data.map((msg: any) => ({
