@@ -13,8 +13,6 @@ import {
   Offcanvas,
   Image,
   Badge,
-  OverlayTrigger,
-  Tooltip,
   Modal,
   Row,
   Col,
@@ -207,7 +205,7 @@ export const BarraNavegacion = () => {
       {/* Barra Navegación PRINCIPAL con diseño mejorado */}
       <Navbar
         expand="lg"
-        className="shadow py-3"
+        className="shadow py-1"
         style={{
           background: "linear-gradient(90deg, #1a3c34 0%, #20b03d 100%)",
         }}

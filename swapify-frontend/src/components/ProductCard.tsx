@@ -80,6 +80,13 @@ export const ProductCard = (props: ProductCardProps) => {
     }
   }
 
+  // Función para obtener el nombre de la categoría
+  const getCategoryDisplayName = (categoryName?: string): string => {
+    if (!categoryName) return "";
+    
+    return categoryName.toLowerCase() === "otros" ? "Servicios u Otros Productos" : categoryName;
+  }
+
   const handleClick = () => {
     navigate(`/items/${producto.id}`)
   }
@@ -154,7 +161,7 @@ export const ProductCard = (props: ProductCardProps) => {
         <div className="d-flex justify-content-between align-items-start mb-2">
           {producto.category && (
             <Badge bg={getCategoryColor(producto.category.name)} className="rounded-pill">
-              {producto.category.name}
+              {getCategoryDisplayName(producto.category.name)}
             </Badge>
           )}
           {producto.status && (
