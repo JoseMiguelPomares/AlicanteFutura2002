@@ -1,7 +1,11 @@
 import axios from 'axios';
+const BASE = import.meta.env.VITE_API_BASE_URL;
+const API_URL = `${BASE}/images/`;
+
+axios.defaults.headers.common['ngrok-skip-browser-warning'] = '69420'
 
 export class ImageService {
-  baseUrl = 'http://localhost:8080/swapify/images/';
+  //baseUrl = 'http://localhost:8080/swapify/images/';
 
   /**
    * Sube una imagen al servidor
@@ -14,7 +18,7 @@ export class ImageService {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await axios.post(`${this.baseUrl}upload`, formData, {
+      const response = await axios.post(`${API_URL}upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

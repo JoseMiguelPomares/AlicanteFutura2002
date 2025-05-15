@@ -36,7 +36,7 @@ class ReviewController {
     }
 
     //Modificar una review
-    @PutMapping("/modify/")
+    @PutMapping("/modify")
     fun modifyReview(@RequestBody review: Review): Review {
         return reviewService.updateReview(review)
     }

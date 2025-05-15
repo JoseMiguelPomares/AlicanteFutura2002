@@ -1,4 +1,5 @@
 "use client"
+;(window as any).global = window
 
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
@@ -23,8 +24,7 @@ import { ChatService } from "../services/chatService"
 import { TransactionService } from "../services/transactionService"
 import { UserService } from "../services/userService"
 import { useNotifications } from "../contexts/NotificationContext"
-import SockJS from "sockjs-client/dist/sockjs.js"
-import { Client, Frame, Message as StompMessage } from "@stomp/stompjs"
+const API_URL = import.meta.env.VITE_API_BASE_URL
 
 
 let stompClient: any = null
@@ -91,6 +91,8 @@ interface Chat {
   createdAt: string
   lastMessageAt: string
   unreadCount: number
+  lastMessage?: string
+  lastMessageTime?: string
 }
 
 export const PaginaChat = () => {
@@ -119,215 +121,199 @@ export const PaginaChat = () => {
   const transactionService = new TransactionService()
   const userService = new UserService()
 
-  // Verificar autenticación
+  // 1) Auth: espera a que termine la comprobación antes de redirigir
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
+    if (loading) return
+    if (!isAuthenticated) {
       navigate("/login?redirect=chat")
     }
-  }, [isAuthenticated, loading, navigate])
+  }, [loading, isAuthenticated, navigate])
 
-  useEffect(() => {
-    if (!selectedChat) return
-  
-    // 1) Instancia el cliente STOMP
-    stompClient = new Client({
-      // Creamos un WebSocket usando SockJS
-      webSocketFactory: () => new SockJS("http://localhost:8080/ws-chat"),
-      connectHeaders: {},
-      debug: (str: string) => {
-        console.log("STOMP:", str)
-      },
-      onStompError: (frame: Frame) => {
-        console.error("STOMP error:", frame.headers["message"], frame.body)
-      }
-    })
-  
-    // 2) Cuando conecte, suscríbete
-    stompClient.onConnect = (frame: Frame) => {
-      stompClient.subscribe(
-        `/topic/chat/${selectedChat.id}`,
-        (stompMsg: StompMessage) => {
-          const msg: Message = JSON.parse(stompMsg.body)
-          setMessages((prev) => [...prev, msg])
-        }
-      )
-    }
-  
-    // 3) Activa la conexión
-    stompClient.activate()
-  
-    // 4) Cleanup al desmontar / cambiar chat
-    return () => {
-      stompClient.deactivate()
-      stompClient = null
-    }
-  }, [selectedChat])
-  
-  
 
-  // Cargar transacciones y convertirlas en chats
+  // 2) Carga tus chats / transacciones y fija el primer selectedChat
   useEffect(() => {
-    const fetchTransactions = async () => {
-      if (!user) return
+    if (!user) return
+
+    const fetchChats = async () => {
+      setLoadingChats(true)
+      setError(null)
 
       try {
-        setLoadingChats(true)
-        setError(null)
+        const transactions: any[] = await transactionService.getByUserId(user.id)
 
-        // Obtener todas las transacciones del usuario
-        const transactions = await transactionService.getByUserId(user.id)
+        // mapea cada transacción a tu objeto Chat
+        const chatsData: Chat[] = await Promise.all(
+          transactions.map(async (tx: any) => {
+            const isRequester = tx.requester.id === user.id
+            const otherUserId = isRequester ? tx.owner.id : tx.requester.id
 
-        // Convertir transacciones a formato de chat
-        const chatPromises = transactions.map(async (transaction: any) => {
-          // Determinar quién es el otro usuario (requester u owner)
-          const isRequester = transaction.requester.id === user.id
-          const otherUserId = isRequester ? transaction.owner.id : transaction.requester.id
-
-          // Obtener información del otro usuario
-          let otherUser
-          try {
-            const userResponse = await userService.getUserById(otherUserId)
-            otherUser = userResponse.data
-          } catch (error) {
-            console.error(`Error al obtener usuario ${otherUserId}:`, error)
-            otherUser = {
-              id: otherUserId,
-              name: isRequester ? "Vendedor" : "Comprador",
-              imageUrl: undefined,
+            // obtén datos del otro usuario
+            let otherUser: User
+            try {
+              const { data } = await userService.getUserById(otherUserId)
+              otherUser = data
+            } catch {
+              otherUser = { id: otherUserId, name: isRequester ? "Vendedor" : "Comprador" }
             }
-          }
 
-          // Obtener o crear el chat para esta transacción
-          let chat
-          try {
-            chat = await chatService.getOrCreateChat(transaction.id, transaction.requester.id, transaction.owner.id)
-          } catch (error) {
-            console.error(`Error al obtener chat para transacción ${transaction.id}:`, error)
-            return null
-          }
+            // crea o recupera el chat
+            const chat = await chatService
+              .getOrCreateChat(tx.id, tx.requester.id, tx.owner.id)
 
-          // Obtener mensajes para determinar el último mensaje
-          let lastMessage = ""
-          let lastMessageTime = ""
-          try {
-            const messagesResponse = await chatService.getMessages(chat.id)
-            if (messagesResponse && messagesResponse.length > 0) {
-              const lastMsg = messagesResponse[messagesResponse.length - 1]
-              lastMessage = lastMsg.content || ""
-              lastMessageTime = lastMsg.createdAt || ""
-            }
-          } catch (error) {
-            console.error(`Error al obtener mensajes para chat ${chat.id}:`, error)
-          }
+            // últimos mensajes
+            const msgs = await chatService.getMessages(chat.id)
+            const last = msgs.length ? msgs[msgs.length - 1] : null
 
-          // Crear objeto de chat con formato adecuado
-          return {
-            id: chat.id,
-            transaction: {
-              id: transaction.id,
-              status: transaction.status || "Pending",
-              item: {
-                id: transaction.item.id,
-                title: transaction.item.title,
-                imageUrl: transaction.item.imageUrl?.split("|")[0] || undefined,
-                price: transaction.item.price || 0,
+            return {
+              id: chat.id,
+              requester: chat.requester,
+              owner: otherUser,
+              transaction: {
+                id: tx.id,
+                item: {
+                  id: tx.item.id,
+                  user: tx.item.user,
+                  title: tx.item.title,
+                  description: tx.item.description,
+                  category: tx.item.category,
+                  imageUrl: tx.item.imageUrl,
+                  price: tx.item.price,
+                  itemCondition: tx.item.itemCondition,
+                  location: tx.item.location,
+                  status: tx.item.status,
+                  createdAt: tx.item.createdAt,
+                },
+                requester: tx.requester,
+                owner: tx.owner,
+                status: tx.status,
+                createdAt: tx.createdAt,
+                completedAt: tx.completedAt,
+                finalPrice: tx.finalPrice,
               },
-            },
-            owner: {
-              id: otherUser.id,
-              name: otherUser.name,
-              imageUrl: otherUser.imageUrl,
-              online: false, // No tenemos forma de saber si está online
-            },
-            lastMessage,
-            lastMessageTime,
-            unreadCount: 0, // No tenemos forma de saber cuántos mensajes no leídos hay
-          }
-        })
+              createdAt: chat.createdAt,
+              lastMessageAt: last ? last.createdAt : "",
+              unreadCount: 0,
+            }
+          })
+        )
 
-        // Esperar a que todas las promesas se resuelvan
-        const chatResults = await Promise.all(chatPromises)
-        const validChats = chatResults.filter((chat) => chat !== null) as Chat[]
+        // filtramos sólo los válidos (no hay nulls)
+        const validChats: Chat[] = chatsData.filter((c: Chat) => !!c)
 
         setChats(validChats)
 
-        // Si hay un chatId en la URL, seleccionar ese chat
+        // selecciona por URL o el primero
         if (chatId) {
-          const chatIdNum = Number.parseInt(chatId)
-          const chat = validChats.find((c) => c.id === chatIdNum)
-          if (chat) {
-            setSelectedChat(chat)
-          } else {
-            // Si el chat no existe, redirigir a la página de chats
-            navigate("/chat")
-          }
-        } else if (validChats.length > 0) {
-          // Si no hay chatId en la URL, seleccionar el primer chat
+          const idNum = Number(chatId)
+          const found = validChats.find((c: Chat) => c.id === idNum)
+          if (found) setSelectedChat(found)
+          else navigate("/chat")
+        } else if (validChats.length) {
           setSelectedChat(validChats[0])
         }
-      } catch (error) {
-        console.error("Error al cargar transacciones:", error)
-        setError("No se pudieron cargar las conversaciones. Por favor, inténtalo de nuevo.")
+      } catch (err) {
+        console.error(err)
+        setError("No se pudieron cargar las conversaciones.")
       } finally {
         setLoadingChats(false)
       }
     }
 
-    fetchTransactions()
+    fetchChats()
   }, [user, chatId, navigate])
 
-  // Cargar mensajes cuando se selecciona un chat
+
+  // 3) Carga el histórico de mensajes cuando cambie selectedChat
+  const [messagesLoaded, setMessagesLoaded] = useState(false)
+
   useEffect(() => {
+    if (!selectedChat) return
+
+    setMessagesLoaded(false)
+    setLoadingMessages(true)
+
     const fetchMessages = async () => {
-      if (!selectedChat) return
-
       try {
-        setLoadingMessages(true)
-        const messagesData = await chatService.getMessages(selectedChat.id)
-
-        console.log("Mensajes recibidos:", messagesData) // Para depuración
-
-        // Transformar los mensajes al formato esperado
-        const formattedMessages = messagesData.map((msg: any) => {
-          // Si el sender es null, usar información del chat
-          const sender = msg.sender || {
-            id: msg.senderId || (user?.id === selectedChat.owner.id
-              ? selectedChat.owner.id
-              : user?.id),
-            name: msg.senderName || (user?.id === selectedChat.owner.id
-              ? user?.name
-              : selectedChat.owner.name),
-            imageUrl: msg.senderImageUrl || (user?.id === selectedChat.owner.id
-              ? user?.imageUrl
-              : selectedChat.owner.imageUrl)
-          };
-
-          return {
-            id: msg.id,
-            sender: {
-              id: sender.id,
-              name: sender.name || 'Usuario desconocido',
-              imageUrl: sender.imageUrl
-            },
-            content: msg.content,
-            createdAt: msg.createdAt
-          };
-        });
-
-        console.log("Mensajes formateados:", formattedMessages); // Para depuración
-        setMessages(formattedMessages);
-      } catch (error) {
-        console.error("Error al cargar mensajes:", error);
-        setError("No se pudieron cargar los mensajes. Por favor, inténtalo de nuevo.");
+        const raw: any[] = await chatService.getMessages(selectedChat.id)
+        const formatted = raw.map((m: any) => ({
+          id: m.id,
+          chat: selectedChat,
+          sender: {
+            id: m.sender.id,
+            name: m.sender.name,
+            imageUrl: m.sender.imageUrl,
+          },
+          content: m.content,
+          createdAt: m.createdAt,
+        }))
+        setMessages(formatted)
+        setMessagesLoaded(true)
+      } catch (err) {
+        console.error(err)
+        setError("No se pudieron cargar los mensajes.")
       } finally {
-        setLoadingMessages(false);
+        setLoadingMessages(false)
       }
-    };
+    }
 
-    fetchMessages();
+    fetchMessages()
+  }, [selectedChat])
 
-    // Resto del código para marcar mensajes como leídos...
-  }, [selectedChat, user, refreshNotifications]);
+
+  // 4) Sólo cuando selectedChat y messagesLoaded, arranca STOMP
+  useEffect(() => {
+    if (!selectedChat || !messagesLoaded) return
+  
+    // 1) Define global aquí de forma forzada
+    ;(window as any).global = window
+  
+    // 2) Carga SockJS y StompJS *dinámicamente*
+    Promise.all([
+      import("sockjs-client"),
+      import("@stomp/stompjs")
+    ])
+      .then(([SockJSmod, StompMod]) => {
+        const SockJS = (SockJSmod as any).default
+        const { Client } = StompMod as any
+  
+        // 3) Ahora sí, crea tu cliente STOMP
+        stompClient = new Client({
+          // en vez de pasar simplemente `new SockJS(url)`, 
+          // damos el tercer parámetro con { withCredentials: false }
+          webSocketFactory: () =>
+            new SockJS(API_URL + "/ws-chat", undefined, {
+              withCredentials: false,
+            }),
+          reconnectDelay: 5000,
+          debug: (msg: string) => console.log("STOMP:", msg),
+          onStompError: (frame: any) => console.error("STOMP ERR:", frame.body),
+        })
+  
+        stompClient.onConnect = () => {
+          console.log("STOMP conectado en room", selectedChat.id)
+          stompClient.subscribe(
+            `/topic/chat/${selectedChat.id}`,
+            (frame: any) => {
+              const newMsg: Message = JSON.parse(frame.body)
+              setMessages((prev) => [...prev, newMsg])
+            }
+          )
+        }
+  
+        stompClient.activate()
+      })
+      .catch((err) => {
+        console.error("Error cargando SockJS/STOMP:", err)
+        setError("No se pudo inicializar el chat en tiempo real.")
+      })
+  
+    return () => {
+      stompClient?.deactivate()
+      stompClient = null
+      setMessagesLoaded(false)
+    }
+  }, [selectedChat, messagesLoaded])
+
 
   // Scroll al último mensaje cuando se cargan nuevos mensajes
   useEffect(() => {
@@ -411,20 +397,18 @@ export const PaginaChat = () => {
   } */}
 
   const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newMessage.trim() || !selectedChat || !user || !stompClient) return
+    e.preventDefault();
+    if (!newMessage.trim() || !selectedChat || !user || !stompClient) return;
   
-    const dto = { senderId: user.id, content: newMessage }
-  
-    // Enviar por STOMP al endpoint /app/chat/{roomId}
+    const dto = { senderId: user.id, content: newMessage };
     stompClient.publish({
       destination: `/app/chat/${selectedChat.id}`,
-      body: JSON.stringify(dto)
-    })
+      body: JSON.stringify(dto),
+    });
+    setNewMessage("");
+  };
   
-    setNewMessage("")
-  }
-  
+
 
 
   // Manejar selección de chat
