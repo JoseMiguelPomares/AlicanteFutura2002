@@ -269,7 +269,7 @@ export const PaginaEditarProducto = () => {
   if (loading) {
     return (
       <Container className="py-5 text-center">
-        <Spinner animation="border" variant="primary" />
+        <Spinner animation="border" variant="success" />
         <p className="mt-3">Cargando datos del producto...</p>
       </Container>
     )
