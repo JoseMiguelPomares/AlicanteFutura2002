@@ -1,15 +1,17 @@
 import axios from "axios"
-const API_URL = import.meta.env.VITE_API_BASE_URL + /items/
+const BASE = import.meta.env.VITE_API_BASE_URL;
+const API_URL = `${BASE}/items`;
 
 export class ItemService {
-  API_URL = "http://localhost:8080/swapify/items/"
+  //baseUrl = "http://localhost:8080/swapify/items/"
 // 
   private _cachedItems: any[] | null = null
 
   // Método para obtener todos los items y actualizar la caché
   async getAll() {
     try {
-      const response = await axios.get(API_URL + "getAll")
+      const response = await axios.get(API_URL + "/getAll")
+      console.log("📦 Productos recibidos:", response.data)
       this._cachedItems = response.data
       return response.data
     } catch (error) {
@@ -28,27 +30,27 @@ export class ItemService {
   }
 
   getByUserId(userId: number) {
-    return axios.get(API_URL + `userItems/${userId}`).then((res) => res.data)
+    return axios.get(API_URL + `/userItems/${userId}`).then((res) => res.data)
   }
 
   getAllDTO(itemDTO: any) {
-    return axios.post(API_URL + "getAllDTO", itemDTO)
+    return axios.post(API_URL + "/getAllDTO", itemDTO)
   }
 
   getByCategory(category: string) {
-    return axios.get(API_URL + `getByCategory/${category}`)
+    return axios.get(API_URL + `/getByCategory/${category}`)
   }
 
   getByCategoryAndId(category: string, userId: number) {
-    return axios.get(API_URL + `getByCategoryAndId/${category}/${userId}`)
+    return axios.get(API_URL + `/getByCategoryAndId/${category}/${userId}`)
   }
 
   getByTitle(title: string) {
-    return axios.get(API_URL + `getByTitle/${title}`)
+    return axios.get(API_URL + `/getByTitle/${title}`)
   }
 
   addItem(item: any) {
-    return axios.post(API_URL + "addItem", item)
+    return axios.post(API_URL + "/addItem", item)
   }
 
   // Método simplificado para obtener un item por ID
@@ -62,8 +64,8 @@ export class ItemService {
       }
       
       // Si no lo encontramos en la caché, intentamos obtenerlo directamente
-      const response = await axios.get(API_URL + `getItemById/${itemId}`)
-      return response
+      const response = await axios.get(API_URL + `/getItemById/${itemId}`)
+      return response.data
     } catch (error) {
       console.error("Error al obtener el item:", error)
       throw error
@@ -86,26 +88,26 @@ export class ItemService {
   }
 
   getItemByLowerPrice() {
-    return axios.get(API_URL + `getByLowerPrice`)
+    return axios.get(API_URL + `/getByLowerPrice`)
   }
 
   getItemByHigherPrice() {
-    return axios.get(API_URL + `getByHigherPrice`)
+    return axios.get(API_URL + `/getByHigherPrice`)
   }
 
   getItemByPriceRange(min: number, max: number) {
-    return axios.get(API_URL + `getByPriceRange/${min}/${max}`)
+    return axios.get(API_URL + `/getByPriceRange/${min}/${max}`)
   }
 
   deleteItem(itemId: number) {
-    return axios.delete(API_URL + `deleteItem/${itemId}`)
+    return axios.delete(API_URL + `/deleteItem/${itemId}`)
   }
 
   modifyItem(itemId: number, itemData: any) {
-    return axios.put(API_URL + `modifyItem/${itemId}`, itemData)
+    return axios.put(API_URL + `/modifyItem/${itemId}`, itemData)
   }
 
   getRecentItems() {
-      return axios.get(API_URL + "getRecentlyAdded")
+      return axios.get(API_URL + "/getRecentlyAdded")
   }
 }

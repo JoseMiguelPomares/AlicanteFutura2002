@@ -1,5 +1,6 @@
 import axios from "axios"
-const API_URL = import.meta.env.VITE_API_BASE_URL + /users/
+const BASE = import.meta.env.VITE_API_BASE_URL;
+const API_URL = `${BASE}/users/`;
 
 // Actualizar la interfaz SocialAuthUser para incluir el token
 interface SocialAuthUser {
@@ -11,7 +12,7 @@ interface SocialAuthUser {
 }
 
 export class UserService {
-  baseUrl = "http://localhost:8080/swapify/users/"
+  //baseUrl = "http://localhost:8080/swapify/users/"
 
   async getAll() {
     return axios.get(API_URL + "getAll").then((res) => res.data)

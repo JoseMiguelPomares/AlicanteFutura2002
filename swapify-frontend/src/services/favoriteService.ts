@@ -1,9 +1,10 @@
 import axios from 'axios';
-const API_URL = import.meta.env.VITE_API_BASE_URL + /favorite/
+const BASE = import.meta.env.VITE_API_BASE_URL;
+const API_URL = `${BASE}/favorite/`;
 
 export class FavoriteService{
 
-    baseUrl = "http://localhost:8080/swapify/favorite/";
+    //baseUrl = "http://localhost:8080/swapify/favorite/";
     
     getByUserId(userId: number){
         //return axios.get(this.baseUrl + `getByUserId/${userId}`).then(res => res.data)

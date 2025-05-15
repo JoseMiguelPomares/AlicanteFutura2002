@@ -1,8 +1,9 @@
 import axios from "axios"
-const API_URL = import.meta.env.VITE_API_BASE_URL + /chat/
+const BASE = import.meta.env.VITE_API_BASE_URL;
+const API_URL = `${BASE}/chat/`;
 
 export class ChatService {
-  baseUrl = "http://localhost:8080/swapify/chat/"
+  //baseUrl = "http://localhost:8080/swapify/chat/"
 
   async getMessages(chatId: number) {
     try {

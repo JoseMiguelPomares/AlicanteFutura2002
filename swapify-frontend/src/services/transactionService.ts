@@ -1,9 +1,10 @@
 import axios from 'axios';
-const API_URL = import.meta.env.VITE_API_BASE_URL + /transactions/
+const BASE = import.meta.env.VITE_API_BASE_URL;
+const API_URL = `${BASE}/transactions/`;
 
 export class TransactionService{
 
-    baseUrl = "http://localhost:8080/swapify/transactions/";
+    //baseUrl = "http://localhost:8080/swapify/transactions/";
 
     async getAll() {
         return axios.get(API_URL + "getAll").then(res => res.data)
