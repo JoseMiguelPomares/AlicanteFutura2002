@@ -7,5 +7,5 @@
     "compilerOptions": {
       "allowJs": true, // Permite usar archivos .js en el proyecto
       "checkJs": false // Opcional: evita que TypeScript intente comprobar tipos en archivos .js
-    }
+    },
 }
