@@ -161,6 +161,18 @@ export const BarraNavegacion = () => {
     background-color: white;
   }
 
+  .user-nav-link {
+    transition: all 0.3s ease;
+    border-radius: 20px;
+    padding: 5px 10px !important;
+  }
+  
+  .user-nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
   .credits-display {
     display: flex;
     align-items: center;
@@ -431,7 +443,7 @@ export const BarraNavegacion = () => {
                 <>
                   <div className="invisible" style={{ width: "80px" }}></div>
                   <div className="position-relative profile-dropdown-container">
-                    <Nav.Link as={Link} to={`/perfil/${user?.id}`} className="text-white d-flex align-items-center">
+                    <Nav.Link as={Link} to={`/perfil/${user?.id}`} className="user-nav-link text-white d-flex align-items-center">
                       {user?.imageUrl ? (
                         <img
                           src={user.imageUrl || "/placeholder.svg"}
