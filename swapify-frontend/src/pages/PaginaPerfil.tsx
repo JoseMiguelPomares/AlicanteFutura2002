@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import { Container, Row, Col, Card, Button, Badge, Tabs, Tab, ListGroup, Image, Form, Alert, ProgressBar, Modal, Carousel } from "react-bootstrap"
-import { CheckCircle, GeoAlt, Calendar3, StarFill, Star, Plus, Chat, Pencil, XCircle, PlusCircle, Image as ImageIcon } from "react-bootstrap-icons"
+import { CheckCircle, GeoAlt, Calendar3, StarFill, Star, Plus, Pencil, XCircle, PlusCircle, Image as ImageIcon } from "react-bootstrap-icons"
 import { ItemService } from "../services/itemService"
 import { UserService } from "../services/userService"
 import { useAuth } from "../contexts/AuthContext"
@@ -526,12 +526,7 @@ export const PaginaPerfil = () => {
               )}
 
               <div className="d-grid gap-2">
-                {!isOwnProfile ? (
-                  <Button variant="outline-success" className="rounded-pill px-4 me-2">
-                    <Chat className="me-2" />
-                    Contactar
-                  </Button>
-                ) : (
+                {isOwnProfile && (
                   <Button
                     variant="outline-primary"
                     className="rounded-pill px-4 me-2"
