@@ -24,6 +24,7 @@ import { ChatService } from "../services/chatService"
 import { TransactionService } from "../services/transactionService"
 import { UserService } from "../services/userService"
 import { useNotifications } from "../contexts/NotificationContext"
+const API_URL = import.meta.env.VITE_API_BASE_URL
 
 
 let stompClient: any = null
@@ -280,7 +281,7 @@ export const PaginaChat = () => {
           // en vez de pasar simplemente `new SockJS(url)`, 
           // damos el tercer parámetro con { withCredentials: false }
           webSocketFactory: () =>
-            new SockJS("http://localhost:8080/swapify/ws-chat", undefined, {
+            new SockJS(API_URL + "/ws-chat", undefined, {
               withCredentials: false,
             }),
           reconnectDelay: 5000,

@@ -1,12 +1,13 @@
 import axios from "axios"
+const API_URL = import.meta.env.VITE_API_BASE_URL + /reviews/
 
 export class ReviewService {
-  baseUrl = "http://localhost:8080/swapify/reviews/"
+  API_URL = "http://localhost:8080/swapify/reviews/"
 
   // Obtener reviews por usuario (el que recibe la review)
   async getReviewsByUserId(userId: number) {
     try {
-      const res = await axios.get(`${this.baseUrl}userReviews/${userId}`)
+      const res = await axios.get(`${API_URL}userReviews/${userId}`)
 
       // Transform backend DTO to frontend Review format
       return res.data.map((item: any) => ({
@@ -37,7 +38,7 @@ export class ReviewService {
   // Obtener reviews por item
   async getReviewsByItem(itemId: number) {
     try {
-      const res = await axios.get(`${this.baseUrl}item/${itemId}`)
+      const res = await axios.get(`${API_URL}item/${itemId}`)
 
       // Transform backend DTO to frontend Review format
       return res.data.map((item: any) => ({
@@ -77,7 +78,7 @@ export class ReviewService {
       }
 
       console.log('Enviando datos al backend:', backendData);
-      const res = await axios.post(`${this.baseUrl}create`, backendData)
+      const res = await axios.post(`${API_URL}create`, backendData)
       const item = res.data
       console.log('Respuesta del backend:', item);
 
@@ -104,7 +105,7 @@ export class ReviewService {
   // Obtener estadísticas de reviews para un usuario
   async getUserReviewStats(userId: number) {
     try {
-      const res = await axios.get(`${this.baseUrl}stats/${userId}`)
+      const res = await axios.get(`${API_URL}stats/${userId}`)
       return res.data
     } catch (error) {
       console.error("Error al obtener estadísticas:", error)
@@ -128,7 +129,7 @@ export class ReviewService {
         imageUrl: reviewData.images && reviewData.images.length > 0 ? reviewData.images.join("|") : null,
       }
 
-      const res = await axios.put(`${this.baseUrl}modify/`, backendData)
+      const res = await axios.put(`${API_URL}modify/`, backendData)
       return {
         ...res.data,
         images: res.data.imageUrl ? res.data.imageUrl.split("|") : [],
@@ -142,7 +143,7 @@ export class ReviewService {
   async deleteReview(reviewId: number) {
     try {
       console.log(`Intentando eliminar review con ID: ${reviewId}`)
-      const response = await axios.delete(`${this.baseUrl}delete/${reviewId}`)
+      const response = await axios.delete(`${API_URL}delete/${reviewId}`)
       console.log("Respuesta del servidor:", response)
       return response.data
     } catch (error) {

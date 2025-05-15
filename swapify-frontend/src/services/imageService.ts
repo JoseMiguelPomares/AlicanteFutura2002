@@ -1,4 +1,5 @@
 import axios from 'axios';
+const API_URL = import.meta.env.VITE_API_BASE_URL + /images/
 
 export class ImageService {
   baseUrl = 'http://localhost:8080/swapify/images/';
@@ -14,7 +15,7 @@ export class ImageService {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await axios.post(`${this.baseUrl}upload`, formData, {
+      const response = await axios.post(`${API_URL}upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
