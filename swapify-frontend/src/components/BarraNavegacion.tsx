@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { UserService } from "../services/userService"
 import { useState } from "react"
 import {
   Navbar,
@@ -14,6 +15,11 @@ import {
   Badge,
   OverlayTrigger,
   Tooltip,
+  Modal,
+  Row,
+  Col,
+  Card,
+  Alert
 } from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import {
@@ -33,6 +39,9 @@ import {
   Power,
   PencilSquare,
   Upload,
+  CreditCard,
+  CheckCircle,
+  CurrencyEuro
 } from "react-bootstrap-icons"
 import { useMediaQuery } from "react-responsive"
 import logo from "../assets/images/logosSwapify/logoNegroLargoFondoTransp.png"
@@ -53,7 +62,21 @@ export const BarraNavegacion = () => {
   const { unreadCount } = useNotifications()
 
   // Añadir dentro de la función BarraNavegacion
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, logout, refreshUserData } = useAuth()
+  
+  // Estado para controlar la visibilidad del modal de compra de créditos
+  const [showCreditModal, setShowCreditModal] = useState(false)
+  const [selectedCreditPack, setSelectedCreditPack] = useState<number | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [purchaseSuccess, setPurchaseSuccess] = useState(false)
+  
+  // Paquetes de créditos disponibles
+  const creditPacks = [
+    { id: 1, amount: 50, price: 5, popular: false },
+    { id: 2, amount: 100, price: 9, popular: true },
+    { id: 3, amount: 200, price: 15, popular: false },
+    { id: 4, amount: 500, price: 30, popular: false },
+  ]
 
   // Manejar la búsqueda
   const handleSearch = (e: React.FormEvent) => {
@@ -61,6 +84,42 @@ export const BarraNavegacion = () => {
     if (searchTerm.trim()) {
       navigate(`/busqueda?q=${encodeURIComponent(searchTerm.trim())}`)
       setSearchTerm("")
+    }
+  }
+  
+  // Función para simular la compra de créditos
+  const handlePurchaseCredits = async () => {
+    if (!selectedCreditPack || !user) return
+    
+    setIsProcessing(true)
+    
+    try {
+      // Obtener el paquete seleccionado
+      const pack = creditPacks.find(p => p.id === selectedCreditPack);
+      if (!pack) throw new Error("Paquete de créditos no encontrado");
+      
+      // Llamar a la API para añadir los créditos
+      const userService = new UserService();
+      await userService.addCredits(user.id, pack.amount);
+      
+      // Actualizar el estado local
+      setPurchaseSuccess(true);
+      
+      // Refrescar los datos del usuario para mostrar los nuevos créditos
+      await refreshUserData();
+      
+      // Cerrar el modal después de una compra exitosa
+      setShowCreditModal(false);
+      
+      // Resetear los estados después de 3 segundos
+      setTimeout(() => {
+        setPurchaseSuccess(false);
+        setSelectedCreditPack(null);
+        setIsProcessing(false);
+      }, 3000);
+    } catch (error) {
+      console.error("Error al procesar la compra:", error);
+      setIsProcessing(false);
     }
   }
 
@@ -251,9 +310,17 @@ export const BarraNavegacion = () => {
                 
                 {/* Mostrar créditos justo debajo de Notificaciones */}
                 {isAuthenticated && user?.credits !== undefined && (
-                  <div className="py-2 d-flex align-items-center">
+                  <div 
+                    className="py-2 d-flex align-items-center"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      setShowMenu(false);
+                      setShowCreditModal(true);
+                    }}
+                  >
                     <Cart className="me-2" size={18} />
                     <span className="fw-bold">{user.credits} Créditos</span>
+                    <Badge bg="success" pill className="ms-2">+</Badge>
                   </div>
                 )}
               </div>
@@ -326,9 +393,15 @@ export const BarraNavegacion = () => {
               {isAuthenticated ? (
                 <>
                   {user?.credits !== undefined && (
-                    <Button variant="outline-light" className="d-flex align-items-center gap-1 rounded-pill py-0 px-2" size="sm">
+                    <Button 
+                      variant="outline-light" 
+                      className="d-flex align-items-center gap-1 rounded-pill py-0 px-2" 
+                      size="sm"
+                      onClick={() => setShowCreditModal(true)}
+                    >
                       <Cart size={16} />
                       <span className="small">{user.credits} Créditos</span>
+                      <Badge bg="success" pill className="ms-1" style={{ fontSize: '0.6rem' }}>+</Badge>
                     </Button>
                   )}
                   <div className="position-relative profile-dropdown-container">
@@ -452,6 +525,139 @@ export const BarraNavegacion = () => {
           </div>
         </Container>
       </div>
+
+      {/* Modal para comprar créditos */}
+      <Modal 
+        show={showCreditModal} 
+        onHide={() => {
+          if (!isProcessing) {
+            setShowCreditModal(false);
+            setPurchaseSuccess(false);
+            setSelectedCreditPack(null);
+          }
+        }} 
+        centered
+        size="lg"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <CreditCard className="me-2 text-success" />
+            Comprar Créditos
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {purchaseSuccess ? (
+            <Alert variant="success" className="d-flex align-items-center">
+              <CheckCircle size={24} className="me-2" />
+              <div>
+                <strong>¡Compra realizada con éxito!</strong>
+                <p className="mb-0">Los créditos han sido añadidos a tu cuenta.</p>
+              </div>
+            </Alert>
+          ) : (
+            <>
+              <p className="mb-4">
+                Los créditos te permiten adquirir productos y servicios en Swapify. Elige el paquete que mejor se adapte a tus necesidades.
+              </p>
+              
+              <Row xs={1} md={2} className="g-4 mb-4">
+                {creditPacks.map(pack => (
+                  <Col key={pack.id}>
+                    <Card 
+                      className={`h-100 ${selectedCreditPack === pack.id ? 'border-success' : ''}`}
+                      onClick={() => setSelectedCreditPack(pack.id)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <Card.Body className="d-flex flex-column">
+                        {pack.popular && (
+                          <Badge bg="success" className="position-absolute top-0 end-0 m-2">
+                            Popular
+                          </Badge>
+                        )}
+                        <div className="d-flex align-items-center mb-3">
+                          <div 
+                            className="rounded-circle bg-success bg-opacity-10 p-3 me-3 d-flex align-items-center justify-content-center"
+                          >
+                            <CurrencyEuro size={24} className="text-success" />
+                          </div>
+                          <div>
+                            <h4 className="mb-0">{pack.amount} Créditos</h4>
+                            <p className="text-muted mb-0">Valor: {pack.price}€</p>
+                          </div>
+                        </div>
+                        <div className="mt-auto">
+                          <Button 
+                            variant={selectedCreditPack === pack.id ? "success" : "outline-success"} 
+                            className="w-100"
+                            onClick={() => setSelectedCreditPack(pack.id)}
+                          >
+                            {selectedCreditPack === pack.id ? (
+                              <>
+                                <CheckCircle className="me-2" />
+                                Seleccionado
+                              </>
+                            ) : (
+                              'Seleccionar'
+                            )}
+                          </Button>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+              
+              <div className="border-top pt-3">
+                <h5>Métodos de pago</h5>
+                <p className="text-muted small">
+                  <strong>Nota:</strong> Esta es una simulación. No se realizará ningún cargo real.
+                </p>
+                <div className="d-flex gap-3 mb-3">
+                  <Button variant="outline-secondary" size="sm" active>
+                    <CreditCard className="me-1" /> Tarjeta
+                  </Button>
+                  <Button variant="outline-secondary" size="sm" disabled>
+                    PayPal
+                  </Button>
+                  <Button variant="outline-secondary" size="sm" disabled>
+                    Transferencia
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          {!purchaseSuccess && (
+            <>
+              <Button 
+                variant="secondary" 
+                onClick={() => {
+                  setShowCreditModal(false);
+                  setSelectedCreditPack(null);
+                }}
+                disabled={isProcessing}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                variant="success" 
+                onClick={handlePurchaseCredits}
+                disabled={!selectedCreditPack || isProcessing}
+              >
+                {isProcessing ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Procesando...
+                  </>
+                ) : (
+                  'Comprar Créditos'
+                )}
+              </Button>
+            </>
+          )}
+        </Modal.Footer>
+      </Modal>
 
       {/* Add the style tag for dropdown */}
       <style>{dropdownStyles}</style>

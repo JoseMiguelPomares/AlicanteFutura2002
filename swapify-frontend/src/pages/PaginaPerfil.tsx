@@ -81,7 +81,7 @@ export const PaginaPerfil = () => {
   const [submittingReview, setSubmittingReview] = useState(false)
   const [reviewError, setReviewError] = useState<string | null>(null)
 
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, refreshUserData } = useAuth()
   const isOwnProfile = isAuthenticated && user?.id === Number(id)
   const [canReview, setCanReview] = useState<boolean>(true)
 
@@ -97,6 +97,20 @@ export const PaginaPerfil = () => {
   const [showLightbox, setShowLightbox] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [lightboxImages, setLightboxImages] = useState<string[]>([])
+  
+  // Estados para la compra de créditos
+  const [showCreditModal, setShowCreditModal] = useState(false)
+  const [selectedCreditPack, setSelectedCreditPack] = useState<number | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [purchaseSuccess, setPurchaseSuccess] = useState(false)
+  
+  // Paquetes de créditos disponibles
+  const creditPacks = [
+    { id: 1, amount: 50, price: 5, popular: false },
+    { id: 2, amount: 100, price: 9, popular: true },
+    { id: 3, amount: 200, price: 15, popular: false },
+    { id: 4, amount: 500, price: 30, popular: false },
+  ]
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -448,6 +462,43 @@ export const PaginaPerfil = () => {
       console.error("Error al eliminar la valoración:", error)
     }
   }
+  
+  // Función para simular la compra de créditos
+  const handlePurchaseCredits = async () => {
+    if (!selectedCreditPack || !user) return
+    
+    setIsProcessing(true)
+    
+    try {
+      // Obtener el paquete seleccionado
+      const pack = creditPacks.find(p => p.id === selectedCreditPack);
+      if (!pack) throw new Error("Paquete de créditos no encontrado");
+      
+      // Llamar a la API para añadir los créditos
+      await userService.addCredits(user.id, pack.amount);
+      
+      // Actualizar el estado local
+      setPurchaseSuccess(true);
+
+      // Refrescar los datos del usuario para mostrar los nuevos créditos
+      await refreshUserData();
+      
+      // Cerrar el modal después de una compra exitosa
+      setTimeout(() => {
+        setShowCreditModal(false);
+        
+        // Resetear los estados después de 3 segundos
+        setTimeout(() => {
+          setPurchaseSuccess(false);
+          setSelectedCreditPack(null);
+          setIsProcessing(false);
+        }, 3000);
+      }, 1500);
+    } catch (error) {
+      console.error("Error al procesar la compra:", error);
+      setIsProcessing(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -510,9 +561,14 @@ export const PaginaPerfil = () => {
 
               {isOwnProfile && user?.credits !== undefined && (
                 <div className="mb-3">
-                  <Badge bg="success" className="rounded-pill px-3 py-2">
+                  <Badge 
+                    bg="success" 
+                    className="rounded-pill px-3 py-2"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setShowCreditModal(true)}
+                  >
                     <span className="fw-bold">
-                      {user.credits} Créditos
+                      {user.credits} Créditos <Plus size={14} className="ms-1" />
                     </span>
                   </Badge>
                 </div>
@@ -1004,6 +1060,86 @@ export const PaginaPerfil = () => {
               </Carousel.Item>
             ))}
           </Carousel>
+        </Modal.Body>
+      </Modal>
+      
+      {/* Modal para comprar créditos */}
+      <Modal
+        show={showCreditModal}
+        onHide={() => !isProcessing && setShowCreditModal(false)}
+        centered
+        backdrop="static"
+      >
+        <Modal.Header closeButton={!isProcessing}>
+          <Modal.Title>Comprar Créditos</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {purchaseSuccess ? (
+            <Alert variant="success" className="mb-0">
+              <div className="text-center">
+                <CheckCircle size={48} className="text-success mb-3" />
+                <h5>¡Compra realizada con éxito!</h5>
+                <p className="mb-0">Tus créditos han sido añadidos a tu cuenta.</p>
+              </div>
+            </Alert>
+          ) : (
+            <>
+              <p className="text-muted mb-4">Los créditos te permiten destacar tus productos y acceder a funciones premium.</p>
+              
+              <Row xs={1} md={2} className="g-3 mb-4">
+                {creditPacks.map((pack) => (
+                  <Col key={pack.id}>
+                    <Card 
+                      className={`h-100 ${selectedCreditPack === pack.id ? 'border-success' : ''} ${pack.popular ? 'border-primary' : ''}`}
+                      onClick={() => !isProcessing && setSelectedCreditPack(pack.id)}
+                      style={{ cursor: isProcessing ? 'default' : 'pointer' }}
+                    >
+                      {pack.popular && (
+                        <div className="bg-primary text-white text-center py-1 small fw-bold">
+                          Más popular
+                        </div>
+                      )}
+                      <Card.Body className="text-center">
+                        <h5 className="fw-bold mb-1">{pack.amount} Créditos</h5>
+                        <h6 className="text-success mb-3">{pack.price} €</h6>
+                        <div className="d-flex justify-content-center">
+                          {selectedCreditPack === pack.id ? (
+                            <CheckCircle size={24} className="text-success" />
+                          ) : (
+                            <div className="border rounded-circle" style={{ width: '24px', height: '24px' }}></div>
+                          )}
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+              
+              <div className="d-grid gap-2">
+                <Button 
+                  variant="success" 
+                  onClick={handlePurchaseCredits} 
+                  disabled={!selectedCreditPack || isProcessing}
+                >
+                  {isProcessing ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Procesando...
+                    </>
+                  ) : (
+                    'Comprar Ahora'
+                  )}
+                </Button>
+                <Button 
+                  variant="outline-secondary" 
+                  onClick={() => !isProcessing && setShowCreditModal(false)}
+                  disabled={isProcessing}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </>
+          )}
         </Modal.Body>
       </Modal>
     </Container>
