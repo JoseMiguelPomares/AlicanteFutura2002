@@ -285,7 +285,7 @@ export const BarraNavegacion = () => {
                       ) : (
                         <Person className="me-2" size={18} />
                       )}
-                      Mi Perfil
+                      {user?.name || "Mi Perfil"}
                     </Button>
                   </>
                 ) : (
@@ -436,12 +436,13 @@ export const BarraNavegacion = () => {
                         <img
                           src={user.imageUrl || "/placeholder.svg"}
                           alt={user.name}
-                          className="rounded-circle"
+                          className="rounded-circle me-2"
                           style={{ width: "24px", height: "24px", objectFit: "cover" }}
                         />
                       ) : (
-                        <Person size={22} />
+                        <Person size={22} className="me-2" />
                       )}
+                      <span className="d-none d-md-inline">{user?.name}</span>
                     </Nav.Link>
                     <div className="profile-dropdown-menu">
                       <div className="profile-dropdown-content shadow rounded">
