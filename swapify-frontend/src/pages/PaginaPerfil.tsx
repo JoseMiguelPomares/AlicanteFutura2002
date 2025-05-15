@@ -527,15 +527,26 @@ export const PaginaPerfil = () => {
 
               <div className="d-grid gap-2">
                 {isOwnProfile && (
-                  <Button
-                    variant="outline-primary"
-                    className="rounded-pill px-4 me-2"
-                    as={Link as any}
-                    to="/editar-perfil"
-                  >
-                    <Pencil className="me-2" />
-                    Editar Perfil
-                  </Button>
+                  <>
+                    <Button
+                      variant="outline-primary"
+                      className="rounded-pill px-4 me-2"
+                      as={Link as any}
+                      to="/editar-perfil"
+                    >
+                      <Pencil className="me-2" />
+                      Editar Perfil
+                    </Button>
+                    <Button
+                      variant="success"
+                      className="rounded-pill px-4 mt-2"
+                      as={Link as any}
+                      to="/vender"
+                    >
+                      <Plus className="me-2" />
+                      Vender Producto
+                    </Button>
+                  </>
                 )}
               </div>
             </Card.Body>
