@@ -20,10 +20,8 @@ class WebConfig {
         }
 
         val source = UrlBasedCorsConfigurationSource().apply {
-            // Para tu API REST
-            registerCorsConfiguration("/swapify/**", config)
-            // Para todas las sub‑rutas de SockJS (/ws-chat/info, /ws-chat/xhr, etc)
-            registerCorsConfiguration("/swapify/ws-chat/**", config)
+            // Aplica a TODO el API
+            registerCorsConfiguration("/**", config)
         }
         return CorsFilter(source)
     }

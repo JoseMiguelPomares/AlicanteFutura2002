@@ -2,6 +2,8 @@ import axios from 'axios';
 const BASE = import.meta.env.VITE_API_BASE_URL;
 const API_URL = `${BASE}/images/`;
 
+axios.defaults.headers.common['ngrok-skip-browser-warning'] = '69420'
+
 export class ImageService {
   //baseUrl = 'http://localhost:8080/swapify/images/';
 

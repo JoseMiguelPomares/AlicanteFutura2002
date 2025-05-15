@@ -2,13 +2,18 @@ import axios from 'axios';
 const BASE = import.meta.env.VITE_API_BASE_URL;
 const API_URL = `${BASE}/favorite/`;
 
+axios.defaults.headers.common['ngrok-skip-browser-warning'] = '69420'
+
 export class FavoriteService{
 
     //baseUrl = "http://localhost:8080/swapify/favorite/";
     
+    
     getByUserId(userId: number){
         //return axios.get(this.baseUrl + `getByUserId/${userId}`).then(res => res.data)
-        return axios.get(API_URL + `getByUserId/${userId}`).then(res => res.data)
+        return axios.get(API_URL + `getByUserId/${userId}`, {
+            headers: { 'Ngrok-Skip-Browser-Warning': 'true' }
+          }).then(res => res.data)
     }
 
     addFavorite(userId: number, itemId: number){

@@ -2,6 +2,8 @@ import axios from "axios"
 const BASE = import.meta.env.VITE_API_BASE_URL;
 const API_URL = `${BASE}/users/`;
 
+axios.defaults.headers.common['ngrok-skip-browser-warning'] = '69420'
+
 // Actualizar la interfaz SocialAuthUser para incluir el token
 interface SocialAuthUser {
   socialId: string
