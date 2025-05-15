@@ -906,7 +906,7 @@ export const PaginaProducto = () => {
                 variant="outline-primary"
                 className="rounded-pill px-4 py-2 d-flex align-items-center"
                 as={Link as any}
-                to={`/editar/${producto.id}`}
+                to={`/editar-producto/${producto.id}`}
               >
                 <Pencil className="me-2" />
                 Editar producto
