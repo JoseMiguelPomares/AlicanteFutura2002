@@ -304,8 +304,8 @@ export const BarraNavegacion = () => {
             <Button
               as={Link as any}
               to={isAuthenticated ? "/vender" : "/login?redirect=vender"}
-              variant="light"
-              className="py-2 rounded-pill px-4 fw-bold"
+              variant="outline-light"
+              className="py-1 rounded-pill px-3 fw-bold btn-sm"
               onClick={() => setShowMenu(false)}
             >
               Vender
