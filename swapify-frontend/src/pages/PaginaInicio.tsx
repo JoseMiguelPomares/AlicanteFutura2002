@@ -2,7 +2,7 @@
 
 import { Link } from "react-router-dom"
 import { Container, Row, Col, Button } from "react-bootstrap"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
 import { CategoryService } from "../services/categoryService"
@@ -17,6 +17,7 @@ import {
 } from "react-bootstrap-icons"
 import { useNavigate } from "react-router-dom" // <-- Agrega esta línea
 import { useAuth } from "../contexts/AuthContext"
+import { useFavorites } from "../contexts/FavoritesContext"
 
 const ProductCard = React.lazy(() => import("../components/ProductCard"))
 
@@ -45,106 +46,105 @@ interface Producto {
 
 export const PaginaInicio = () => {
   const [productos, setProductos] = useState<Producto[]>([])
-  const [productosFiltrados, setProductosFiltrados] = useState<Record<string, Producto[]>>({
-    destacados: [],
-    recientes: [],
-    populares: [],
-  })
   const [categorias, setCategorias] = useState<string[]>([])
   const [categoriaActiva, setCategoriaActiva] = useState<string>("Todos")
   const [error, setError] = useState<string | null>(null)
   const [cargando, setCargando] = useState<boolean>(true)
   const [esPantallaPequena, setEsPantallaPequena] = useState<boolean>(window.innerWidth < 768)
   const [mostrarTodasCategorias, setMostrarTodasCategorias] = useState<boolean>(false)
+
+  const { getFavoritesCount, loading: favoritesLoading } = useFavorites()
   const itemService = useRef(new ItemService()).current
   const navigate = useNavigate()
   const { user } = useAuth();
+
+  // Función para obtener productos más favoritos con memoización
+  const getProductosMasFavoritos = useCallback((productos: Producto[]) => {
+    return [...productos]
+      .map(p => ({
+        ...p,
+        favoritos: getFavoritesCount(p.id)
+      }))
+      .sort((a, b) => b.favoritos - a.favoritos)
+      .slice(0, 4)
+  }, [getFavoritesCount])
+
+  // Productos filtrados con memoización
+  const productosFiltrados = useMemo(() => {
+    if (productos.length === 0) return {
+      destacados: [],
+      recientes: [],
+      populares: [],
+      servicios: []
+    }
+
+    const productosDisponibles = productos.filter(p => p.status !== "Sold" && (!user || p.user?.id !== user.id))
+    const servicios = productosDisponibles.filter(p => p.category?.name?.toLowerCase() === "otros")
+
+    return {
+      destacados: getProductosMasFavoritos(productosDisponibles),
+      recientes: [...productosDisponibles]
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 4),
+      populares: productosDisponibles
+        .filter(p => p.category?.name?.toLowerCase() !== "otros")
+        .slice(8, 12),
+      servicios: servicios.slice(0, 4)
+    }
+  }, [productos, user, getProductosMasFavoritos])
+
+  // Productos mostrados según categoría activa
+  const productosMostrados = useMemo(() => {
+    return categoriaActiva === "Todos"
+      ? productos.filter(p => p.status !== "Sold" && (!user || p.user?.id !== user.id))
+      : productos.filter(p => p.status !== "Sold" && p.category?.name === categoriaActiva && (!user || p.user?.id !== user.id))
+  }, [categoriaActiva, productos, user])
+
+  // Productos aleatorios
+  const productosAleatorios = useMemo(() => {
+    const shuffled = [...productosMostrados].sort(() => 0.5 - Math.random())
+    return shuffled.slice(0, 20)
+  }, [productosMostrados])
 
   // Detectar cambios en el tamaño de la ventana
   useEffect(() => {
     const handleResize = () => {
       setEsPantallaPequena(window.innerWidth < 768)
     }
-    
+
     window.addEventListener('resize', handleResize)
     return () => {
       window.removeEventListener('resize', handleResize)
     }
   }, [])
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setCargando(true)
-
-        // Cargar productos
         const data = await itemService.getAll()
-        console.log("Productos cargados:", data)
         setProductos(data)
 
-        // Cargar productos recientes
-        const recentProducts = await itemService.getRecentItems()
-        console.log("Productos recientes:", recentProducts)
-
-        // Cargar categorías desde el servicio
+        // Cargar categorías
         const categoryService = new CategoryService()
         try {
           const categoriasData = await categoryService.getAll()
-          console.log("Categorías cargadas:", categoriasData)
-          // Añadir "Todos" al inicio del array de categorías
-          const categoriasUnicas = ["Todos", ...categoriasData.map((cat: any) => cat.name)]
-          setCategorias(categoriasUnicas)
+          setCategorias(["Todos", ...categoriasData.map((cat: any) => cat.name)])
         } catch (error) {
           console.error("Error al cargar categorías:", error)
-          // Fallback: extraer categorías de los productos si falla la API
           const categoriasSet = new Set(data.map((p: Producto) => p.category?.name || "otros"))
-          const categoriasUnicas = ["Todos", ...Array.from(categoriasSet)] as string[]
-          setCategorias(categoriasUnicas)
+          setCategorias(["Todos", ...Array.from(categoriasSet) as string[]])
         }
-
-        // Filtrar productos para diferentes secciones
-        // Filtrar productos del usuario actual si está autenticado
-        let filtered = data;
-        
-        if (user) {
-          filtered = filtered.filter((p: { user: { id: number } }) => p.user?.id !== user.id);
-        }
-        
-        setProductosFiltrados({
-          destacados: filtered.slice(0, 4),
-          recientes: recentProducts.data.filter((p: Producto) => !user || p.user?.id !== user.id).slice(0, 4),
-          populares: filtered.slice(8, 12),
-        })
-
-        setCargando(false)
       } catch (error: any) {
         setError("No se pudieron cargar los productos")
-        setCargando(false)
         console.error(error)
+      } finally {
+        setCargando(false)
       }
     }
 
     fetchData()
-  }, [user])
-
-  const productosMostrados = categoriaActiva === "Todos" 
-    ? (user ? productos.filter(p => p.user?.id !== user.id) : productos) 
-    : (user 
-        ? productos.filter(p => p.category?.name === categoriaActiva && p.user?.id !== user.id)
-        : productos.filter(p => p.category?.name === categoriaActiva));
-
-  // Función para obtener hasta 20 productos aleatorios
-  const obtenerProductosAleatorios = (productos: Producto[], cantidad: number = 20) => {
-    // Crear una copia del array para no modificar el original
-    const productosCopia = [...productos];
-    // Mezclar el array de forma aleatoria
-    const productosAleatorios = productosCopia.sort(() => Math.random() - 0.5);
-    // Devolver solo la cantidad especificada
-    return productosAleatorios.slice(0, cantidad);
-  }
-
-  // Obtener hasta 20 productos aleatorios de los productos filtrados
-  const productosAleatorios = obtenerProductosAleatorios(productosMostrados);
+  }, [itemService, user])
 
   if (error)
     return (
@@ -159,7 +159,7 @@ export const PaginaInicio = () => {
       </Container>
     )
 
-  if (cargando)
+  if (cargando || favoritesLoading)
     return (
       <Container className="text-center py-5">
         <div className="spinner-border text-success" role="status">
@@ -288,9 +288,6 @@ export const PaginaInicio = () => {
           <h2 className="fw-bold">
             <Star className="text-warning me-2" /> Productos Destacados
           </h2>
-          <Link to="/destacados" className="text-decoration-none text-success fw-bold">
-            Ver más <ArrowRight />
-          </Link>
         </div>
 
         <Row xs={1} sm={2} md={2} lg={4} className="g-4">
@@ -311,9 +308,6 @@ export const PaginaInicio = () => {
             <h2 className="fw-bold">
               <GraphUp className="text-primary me-2" /> Recién Añadidos
             </h2>
-            <Link to="/recientes" className="text-decoration-none text-success fw-bold">
-              Ver más <ArrowRight />
-            </Link>
           </div>
 
           <Row xs={1} sm={2} md={2} lg={4} className="g-4">
@@ -328,7 +322,32 @@ export const PaginaInicio = () => {
         </Container>
       </div>
 
-      {/* Sección de Beneficios */}
+      {/* Sección: Servicios disponibles */}
+      {productosFiltrados.servicios.length > 0 && (
+        <Container className="py-5">
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h2 className="h3 fw-bold mb-0">Servicios disponibles</h2>
+            <Button
+              as={Link as any}
+              to="/categoria/otros"
+              variant="link"
+              className="text-decoration-none text-success"
+            >
+              Ver todos <ArrowRight />
+            </Button>
+          </div>
+
+          <Row xs={1} sm={2} md={3} lg={4} className="g-4">
+            {productosFiltrados.servicios.map((producto) => (
+              <Col key={producto.id}>
+                <Suspense fallback={<div className="card shadow-sm" style={{ height: "300px" }}></div>}>
+                  <ProductCard producto={producto} />
+                </Suspense>
+              </Col>
+            ))}
+          </Row>
+        </Container>
+      )}
       <Container className="mb-5 py-5">
         <h2 className="text-center fw-bold mb-5">¿Por qué elegir Swapify?</h2>
         <Row xs={1} md={3} className="g-4 text-center">
@@ -397,8 +416,8 @@ export const PaginaInicio = () => {
                 </Button>
               ))}
             {esPantallaPequena && categorias.length > 4 && (
-              <Button 
-                variant="outline-primary" 
+              <Button
+                variant="outline-primary"
                 className="rounded-pill btn-sm btn-fixed"
                 onClick={() => setMostrarTodasCategorias(!mostrarTodasCategorias)}
               >

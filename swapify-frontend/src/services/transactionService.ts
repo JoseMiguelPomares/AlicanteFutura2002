@@ -4,7 +4,7 @@ const API_URL = `${BASE}/transactions/`;
 
 axios.defaults.headers.common['ngrok-skip-browser-warning'] = '69420'
 
-export class TransactionService{
+export class TransactionService {
 
     //baseUrl = "http://localhost:8080/swapify/transactions/";
 
@@ -22,5 +22,13 @@ export class TransactionService{
 
     cancelTransaction(transactionId: number){
         return axios.put(API_URL + `cancelTransaction/${transactionId}`)
+
+    }
+
+    async completePurchase(buyerId: number, itemId: number) {
+        return axios.post(this.baseUrl + "completePurchase", {
+            buyerId,
+            itemId
+        }).then(res => res.data);
     }
 }

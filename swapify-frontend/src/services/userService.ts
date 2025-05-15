@@ -49,4 +49,9 @@ export class UserService {
   updateUser(userData: any) {
     return axios.put(API_URL + `updateProfile/${userData.id}`, userData)
   }
+
+  // Método para añadir créditos a un usuario
+  addCredits(userId: number, credits: number) {
+    return axios.post(this.baseUrl + `addCredits/${userId}/${credits}`)
+  }
 }

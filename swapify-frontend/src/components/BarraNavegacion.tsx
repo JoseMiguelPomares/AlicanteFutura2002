@@ -1,8 +1,24 @@
 "use client"
 
 import type React from "react"
+import { UserService } from "../services/userService"
 import { useState } from "react"
-import { Navbar, Container, Form, InputGroup, Button, Nav, Offcanvas, Image, Badge } from "react-bootstrap"
+import {
+  Navbar,
+  Container,
+  Form,
+  InputGroup,
+  Button,
+  Nav,
+  Offcanvas,
+  Image,
+  Badge,
+  Modal,
+  Row,
+  Col,
+  Card,
+  Alert
+} from "react-bootstrap"
 import { Link, useNavigate } from "react-router-dom"
 import {
   Search,
@@ -18,6 +34,13 @@ import {
   InfoCircle,
   Envelope,
   Heart,
+  Power,
+  PencilSquare,
+  Upload,
+  CreditCard,
+  CheckCircle,
+  CurrencyEuro,
+  Plus
 } from "react-bootstrap-icons"
 import { useMediaQuery } from "react-responsive"
 import logo from "../assets/images/logosSwapify/logoNegroLargoFondoTransp.png"
@@ -38,7 +61,21 @@ export const BarraNavegacion = () => {
   const { unreadCount } = useNotifications()
 
   // Añadir dentro de la función BarraNavegacion
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, logout, refreshUserData } = useAuth()
+
+  // Estado para controlar la visibilidad del modal de compra de créditos
+  const [showCreditModal, setShowCreditModal] = useState(false)
+  const [selectedCreditPack, setSelectedCreditPack] = useState<number | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [purchaseSuccess, setPurchaseSuccess] = useState(false)
+
+  // Paquetes de créditos disponibles
+  const creditPacks = [
+    { id: 1, amount: 50, price: 5, popular: false },
+    { id: 2, amount: 100, price: 9, popular: true },
+    { id: 3, amount: 200, price: 15, popular: false },
+    { id: 4, amount: 500, price: 30, popular: false },
+  ]
 
   // Manejar la búsqueda
   const handleSearch = (e: React.FormEvent) => {
@@ -46,6 +83,42 @@ export const BarraNavegacion = () => {
     if (searchTerm.trim()) {
       navigate(`/busqueda?q=${encodeURIComponent(searchTerm.trim())}`)
       setSearchTerm("")
+    }
+  }
+
+  // Función para simular la compra de créditos
+  const handlePurchaseCredits = async () => {
+    if (!selectedCreditPack || !user) return
+
+    setIsProcessing(true)
+
+    try {
+      // Obtener el paquete seleccionado
+      const pack = creditPacks.find(p => p.id === selectedCreditPack);
+      if (!pack) throw new Error("Paquete de créditos no encontrado");
+
+      // Llamar a la API para añadir los créditos
+      const userService = new UserService();
+      await userService.addCredits(user.id, pack.amount);
+
+      // Actualizar el estado local
+      setPurchaseSuccess(true);
+
+      // Refrescar los datos del usuario para mostrar los nuevos créditos
+      await refreshUserData();
+
+      // Cerrar el modal después de una compra exitosa
+      setShowCreditModal(false);
+
+      // Resetear los estados después de 3 segundos
+      setTimeout(() => {
+        setPurchaseSuccess(false);
+        setSelectedCreditPack(null);
+        setIsProcessing(false);
+      }, 3000);
+    } catch (error) {
+      console.error("Error al procesar la compra:", error);
+      setIsProcessing(false);
     }
   }
 
@@ -57,12 +130,82 @@ export const BarraNavegacion = () => {
     { name: "Deporte", icon: <Bicycle className="me-1" />, path: "/categoria/deporte" },
   ]
 
+  const dropdownStyles = `
+  .profile-dropdown-container {
+    position: relative;
+  }
+  
+  .profile-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 220px;
+    background-color: white;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 5px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .profile-dropdown-container:hover .profile-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .profile-dropdown-content {
+    padding: 10px;
+    background-color: white;
+  }
+
+  .credits-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    border: 1px solid #e9ecef;
+  }
+  
+  .credits-display:hover {
+    background-color: #e9f7ef;
+    cursor: pointer;
+  }
+  
+  .credits-display .credits-amount {
+    font-weight: 500;
+    color: #198754;
+  }
+  
+  .credits-display .add-credits {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #198754;
+    color: white;
+    font-size: 12px;
+    transition: transform 0.2s ease;
+  }
+  
+  .credits-display:hover .add-credits {
+    transform: scale(1.1);
+  }
+`
+
   return (
     <>
       {/* Barra Navegación PRINCIPAL con diseño mejorado */}
       <Navbar
         expand="lg"
-        className="shadow py-3"
+        className="shadow py-1"
         style={{
           background: "linear-gradient(90deg, #1a3c34 0%, #20b03d 100%)",
         }}
@@ -144,17 +287,6 @@ export const BarraNavegacion = () => {
                       )}
                       Mi Perfil
                     </Button>
-                    <Button
-                      variant="outline-danger"
-                      className="w-100 py-2 rounded-pill"
-                      onClick={() => {
-                        logout()
-                        navigate("/") // Redirect to home page after logout
-                        setShowMenu(false)
-                      }}
-                    >
-                      Cerrar Sesión
-                    </Button>
                   </>
                 ) : (
                   <Button
@@ -170,7 +302,7 @@ export const BarraNavegacion = () => {
                 )}
                 <Button
                   as={Link as any}
-                  to={isAuthenticated ? "/vender" : "/login?redirect=/vender"}
+                  to={isAuthenticated ? "/vender" : "/login?redirect=vender"}
                   variant="light"
                   className="rounded-pill px-4"
                   onClick={() => setShowMenu(false)}
@@ -212,24 +344,61 @@ export const BarraNavegacion = () => {
                     )}
                   </Nav.Link>
                 )}
+
+                {/* Mostrar créditos justo debajo de Notificaciones */}
+                {isAuthenticated && user?.credits !== undefined && (
+                  <div
+                    className="py-2 d-flex align-items-center"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      setShowMenu(false);
+                      setShowCreditModal(true);
+                    }}
+                  >
+                    <Cart className="me-2" size={18} />
+                    <span className="fw-bold">{user.credits} Créditos</span>
+                    <Badge bg="success" pill className="ms-2">+</Badge>
+                  </div>
+                )}
+              </div>
+
+              {/* Sección de enlaces secundarios */}
+              <div className="border-bottom py-2">
                 <Nav.Link as={Link} to="/contacto" className="py-2" onClick={() => setShowMenu(false)}>
+                  <Envelope className="me-2" size={18} />
                   Contacto
                 </Nav.Link>
-                <Nav.Link as={Link} to="/como-funciona" className="py-2" onClick={() => setShowMenu(false)}>
+              </div>
+
+              {/* Sección de Cómo funciona y Ayuda con separación */}
+              <div className="py-2 mt-2">
+                <Nav.Link as={Link} to="/como-funciona" className="py-2 mb-2" onClick={() => setShowMenu(false)}>
+                  <InfoCircle className="me-2" size={18} />
                   Cómo Funciona
                 </Nav.Link>
                 <Nav.Link as={Link} to="/ayuda" className="py-2" onClick={() => setShowMenu(false)}>
+                  <InfoCircle className="me-2" size={18} />
                   Ayuda
                 </Nav.Link>
               </div>
 
-              {/* Sección de perfil y créditos */}
-              <div className="d-flex justify-content-between align-items-center mt-2">
-                <Button variant="success" className="d-flex align-items-center gap-2 rounded-pill">
-                  <Cart size={18} />
-                  <span className="fw-bold">150 Créditos</span>
-                </Button>
-              </div>
+              {/* Botón de cerrar sesión al final */}
+              {isAuthenticated && (
+                <div className="mt-auto pt-3">
+                  <Button
+                    variant="outline-danger"
+                    className="w-100 py-2 rounded-pill"
+                    onClick={() => {
+                      logout()
+                      navigate("/") // Redirect to home page after logout
+                      setShowMenu(false)
+                    }}
+                  >
+                    <Power className="me-2" size={18} />
+                    Cerrar Sesión
+                  </Button>
+                </div>
+              )}
             </Offcanvas.Body>
           </Navbar.Offcanvas>
 
@@ -238,9 +407,9 @@ export const BarraNavegacion = () => {
             {/* Botones y secciones adicionales */}
             <Button
               as={Link as any}
-              to={isAuthenticated ? "/vender" : "/login?redirect=/vender"}
-              variant="light"
-              className="py-2 rounded-pill px-4 fw-bold"
+              to={isAuthenticated ? "/vender" : "/login?redirect=vender"}
+              variant="outline-light"
+              className="py-1 rounded-pill px-3 fw-bold btn-sm"
               onClick={() => setShowMenu(false)}
             >
               Vender
@@ -260,32 +429,79 @@ export const BarraNavegacion = () => {
 
               {isAuthenticated ? (
                 <>
-                  <Nav.Link as={Link} to={`/perfil/${user?.id}`} className="text-white d-flex align-items-center">
-                    {user?.imageUrl ? (
-                      <img
-                        src={user.imageUrl || "/placeholder.svg"}
-                        alt={user.name}
-                        className="rounded-circle"
-                        style={{ width: "24px", height: "24px", objectFit: "cover" }}
-                      />
-                    ) : (
-                      <Person size={22} />
-                    )}
-                  </Nav.Link>
-                  <Button variant="outline-light" className="d-flex align-items-center gap-2 rounded-pill">
-                    <Cart size={18} />
-                    <span className="fw-bold">150 Créditos</span>
-                  </Button>
+                  <div className="invisible" style={{ width: "80px" }}></div>
+                  <div className="position-relative profile-dropdown-container">
+                    <Nav.Link as={Link} to={`/perfil/${user?.id}`} className="text-white d-flex align-items-center">
+                      {user?.imageUrl ? (
+                        <img
+                          src={user.imageUrl || "/placeholder.svg"}
+                          alt={user.name}
+                          className="rounded-circle"
+                          style={{ width: "24px", height: "24px", objectFit: "cover" }}
+                        />
+                      ) : (
+                        <Person size={22} />
+                      )}
+                    </Nav.Link>
+                    <div className="profile-dropdown-menu">
+                      <div className="profile-dropdown-content shadow rounded">
+                        {user?.credits !== undefined && (
+                          <div className="credits-display mb-2" onClick={() => setShowCreditModal(true)}>
+                            <div className="d-flex align-items-center">
+                              <Cart size={16} className="me-2 text-success" />
+                              <span className="credits-amount">{user.credits} Créditos</span>
+                            </div>
+                            <div className="add-credits">
+                              <Plus size={14} />
+                            </div>
+                          </div>
+                        )}
+                        <Button
+                          as={Link as any}
+                          to="/vender"
+                          variant="light"
+                          size="sm"
+                          className="d-flex align-items-center gap-2 w-100 mb-2 text-start"
+                        >
+                          <Upload size={16} />
+                          Subir un producto
+                        </Button>
+                        <Button
+                          as={Link as any}
+                          to={`/editar-perfil`}
+                          variant="light"
+                          size="sm"
+                          className="d-flex align-items-center gap-2 w-100 mb-2 text-start"
+                        >
+                          <PencilSquare size={16} />
+                          Editar perfil
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          className="d-flex align-items-center gap-2 w-100 text-start"
+                          onClick={() => {
+                            logout()
+                            navigate("/")
+                          }}
+                        >
+                          <Power size={16} />
+                          Cerrar sesión
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                   <Button
-                    variant="danger"
-                    size="sm"
-                    className="rounded-pill"
+                    variant="link"
+                    className="text-white p-0 d-flex align-items-center"
+                    style={{ transition: 'color 0.3s ease' }}
                     onClick={() => {
                       logout()
                       navigate("/") // Redirect to home page after logout
                     }}
                   >
-                    Salir
+                    <Power size={20} onMouseOver={(e) => e.currentTarget.style.color = '#dc3545'}
+                    onMouseOut={(e) => e.currentTarget.style.color = 'white'} />
                   </Button>
                 </>
               ) : (
@@ -343,31 +559,145 @@ export const BarraNavegacion = () => {
                 <Envelope className="me-1" /> Contacto
               </Nav.Link>
             </div>
-
-            {isAuthenticated && (
-              <Button
-                as={Link as any}
-                to={`/perfil/${user?.id}`}
-                variant="success"
-                size="sm"
-                className="d-none d-md-flex align-items-center gap-2 rounded-pill px-3"
-              >
-                {user?.imageUrl ? (
-                  <img
-                    src={user.imageUrl || "/placeholder.svg"}
-                    alt={user.name}
-                    className="rounded-circle"
-                    style={{ width: "16px", height: "16px", objectFit: "cover" }}
-                  />
-                ) : (
-                  <Person size={16} />
-                )}
-                Mi Perfil
-              </Button>
-            )}
           </div>
         </Container>
       </div>
+
+      {/* Modal para comprar créditos */}
+      <Modal
+        show={showCreditModal}
+        onHide={() => {
+          if (!isProcessing) {
+            setShowCreditModal(false);
+            setPurchaseSuccess(false);
+            setSelectedCreditPack(null);
+          }
+        }}
+        centered
+        size="lg"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <CreditCard className="me-2 text-success" />
+            Comprar Créditos
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {purchaseSuccess ? (
+            <Alert variant="success" className="d-flex align-items-center">
+              <CheckCircle size={24} className="me-2" />
+              <div>
+                <strong>¡Compra realizada con éxito!</strong>
+                <p className="mb-0">Los créditos han sido añadidos a tu cuenta.</p>
+              </div>
+            </Alert>
+          ) : (
+            <>
+              <p className="mb-4">
+                Los créditos te permiten adquirir productos y servicios en Swapify. Elige el paquete que mejor se adapte a tus necesidades.
+              </p>
+
+              <Row xs={1} md={2} className="g-4 mb-4">
+                {creditPacks.map(pack => (
+                  <Col key={pack.id}>
+                    <Card
+                      className={`h-100 ${selectedCreditPack === pack.id ? 'border-success' : ''}`}
+                      onClick={() => setSelectedCreditPack(pack.id)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <Card.Body className="d-flex flex-column">
+                        {pack.popular && (
+                          <Badge bg="success" className="position-absolute top-0 end-0 m-2">
+                            Popular
+                          </Badge>
+                        )}
+                        <div className="d-flex align-items-center mb-3">
+                          <div
+                            className="rounded-circle bg-success bg-opacity-10 p-3 me-3 d-flex align-items-center justify-content-center"
+                          >
+                            <CurrencyEuro size={24} className="text-success" />
+                          </div>
+                          <div>
+                            <h4 className="mb-0">{pack.amount} Créditos</h4>
+                            <p className="text-muted mb-0">Valor: {pack.price}€</p>
+                          </div>
+                        </div>
+                        <div className="mt-auto">
+                          <Button
+                            variant={selectedCreditPack === pack.id ? "success" : "outline-success"}
+                            className="w-100"
+                            onClick={() => setSelectedCreditPack(pack.id)}
+                          >
+                            {selectedCreditPack === pack.id ? (
+                              <>
+                                <CheckCircle className="me-2" />
+                                Seleccionado
+                              </>
+                            ) : (
+                              'Seleccionar'
+                            )}
+                          </Button>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+
+              <div className="border-top pt-3">
+                <h5>Métodos de pago</h5>
+                <p className="text-muted small">
+                  <strong>Nota:</strong> Esta es una simulación. No se realizará ningún cargo real.
+                </p>
+                <div className="d-flex gap-3 mb-3">
+                  <Button variant="outline-secondary" size="sm" active>
+                    <CreditCard className="me-1" /> Tarjeta
+                  </Button>
+                  <Button variant="outline-secondary" size="sm" disabled>
+                    PayPal
+                  </Button>
+                  <Button variant="outline-secondary" size="sm" disabled>
+                    Transferencia
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          {!purchaseSuccess && (
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowCreditModal(false);
+                  setSelectedCreditPack(null);
+                }}
+                disabled={isProcessing}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="success"
+                onClick={handlePurchaseCredits}
+                disabled={!selectedCreditPack || isProcessing}
+              >
+                {isProcessing ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Procesando...
+                  </>
+                ) : (
+                  'Comprar Créditos'
+                )}
+              </Button>
+            </>
+          )}
+        </Modal.Footer>
+      </Modal>
+
+      {/* Add the style tag for dropdown */}
+      <style>{dropdownStyles}</style>
 
       {/* Barra Lateral */}
       <BarraLateral mostrar={showSidebar} alCerrar={() => setShowSidebar(false)} />

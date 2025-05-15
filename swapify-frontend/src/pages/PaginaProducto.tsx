@@ -23,7 +23,6 @@ import {
   StarFill,
   Calendar3,
   GeoAlt,
-  ArrowClockwise,
   ChatLeftText,
   Share,
   Heart,
@@ -83,7 +82,7 @@ export const PaginaProducto = () => {
   const [productosRelacionados, setProductosRelacionados] = useState<Producto[]>([])
   const itemService = useRef(new ItemService()).current
   const chatService = useRef(new ChatService()).current
-  const { user: currentUser } = useAuth() // Añadir esta línea para obtener el usuario actual
+  const { user: currentUser, refreshUserData } = useAuth() // Añadir esta línea para obtener el usuario actual
   const navigate = useNavigate()
 
 
@@ -91,6 +90,13 @@ export const PaginaProducto = () => {
 
   const favoriteCount = producto ? getFavoritesCount(producto.id) : 0
 
+  const transactionService = useRef(new TransactionService()).current
+
+  // Añadir estos estados para la compra directa
+  const [comprando, setComprando] = useState(false)
+  const [compraExitosa, setCompraExitosa] = useState(false)
+  const [errorCompra, setErrorCompra] = useState<string | null>(null)
+  const [showCompraModal, setShowCompraModal] = useState(false)
 
   // Añadir estados para las alertas
   const [alertaVisible, setAlertaVisible] = useState(false)
@@ -176,6 +182,75 @@ export const PaginaProducto = () => {
     setCurrentImageIndex(index)
     setShowLightbox(true)
   }
+
+  const handleCompraDirecta = async () => {
+    if (!currentUser) {
+      navigate("/login?redirect=/items/" + id);
+      return;
+    }
+
+    if (!producto) {
+      setErrorCompra("El producto no está disponible.");
+      return;
+    }
+
+    // Verificar si el usuario tiene suficientes créditos
+    if ((currentUser.credits || 0) < producto.price) {
+      setErrorCompra("No tienes suficientes créditos para realizar esta compra.");
+      setShowCompraModal(true);
+      return;
+    }
+
+    setShowCompraModal(true);
+    setCompraExitosa(false);
+    setErrorCompra(null);
+  };
+
+  // Función para confirmar la compra
+  const confirmarCompra = async () => {
+    try {
+      // Verificaciones iniciales
+      if (!currentUser || !producto) {
+        setErrorCompra("No se pudo completar la compra. Datos del usuario o producto no disponibles.");
+        return;
+      }
+
+      setComprando(true);
+      setErrorCompra(null);
+
+      // Llamar al servicio de compra completa
+      await transactionService.completePurchase(currentUser.id, producto.id);
+
+      // Actualizar los datos del usuario para reflejar el nuevo saldo de créditos
+      await refreshUserData();
+
+      // Actualizar el estado
+      setCompraExitosa(true);
+      setShowCompraModal(false);
+
+      // Actualizar el estado del producto
+      setProducto(prev => {
+        if (!prev) return null;
+        return { ...prev, status: "Sold" };
+      });
+
+      // Mostrar mensaje de éxito
+      setMensajeAlerta("¡Compra realizada con éxito! El producto ahora es tuyo.");
+      setTipoAlerta("success");
+      setAlertaVisible(true);
+
+      // Ocultar la alerta después de 5 segundos
+      setTimeout(() => {
+        setAlertaVisible(false);
+      }, 5000);
+
+    } catch (error: any) {
+      console.error("Error al realizar la compra:", error);
+      setErrorCompra(error.response?.data?.message || "No se pudo completar la compra. Por favor, inténtalo de nuevo.");
+    } finally {
+      setComprando(false);
+    }
+  };
 
   // Función para añadir una imagen (implementación real)
   const handleAddImage = () => {
@@ -466,8 +541,8 @@ export const PaginaProducto = () => {
                   className="img-fluid rounded-4 shadow-sm mb-3"
                   style={{ width: "100%", height: "400px", objectFit: "contain" }}
                 />
-                {/* Badge de favoritos */}
-                {favoriteCount > 0 && (
+                {/* Badge de favoritos - solo mostrar si el producto no está vendido */}
+                {producto.status !== "Sold" && (
                   <Badge bg="danger" className="position-absolute bottom-0 start-0 m-2 rounded-pill">
                     <HeartFill size={12} className="me-1" />
                     {favoriteCount}
@@ -565,7 +640,7 @@ export const PaginaProducto = () => {
                 {producto.category.name}
               </Badge>
             )}
-            {!isOwner && (
+            {!isOwner && producto.status !== "Sold" && (
               <Button
                 variant={isFavorite(producto.id) ? "danger" : "outline-danger"}
                 className="rounded-circle p-2"
@@ -601,7 +676,22 @@ export const PaginaProducto = () => {
             )}
           </div>
 
-          <h2 className="h3 fw-bold text-success mb-4">{producto.price} Créditos</h2>
+          <div className="mt-4">
+            <div className="d-flex align-items-center mb-3">
+              <h3 className={`fw-bold mb-0 me-3 ${producto.status === "Sold" ? 'text-decoration-line-through text-muted' : 'text-success'}`}>
+                {producto.price} Créditos
+              </h3>
+              {producto.status === "Available" ? (
+                <Badge bg="success" className="rounded-pill px-3 py-2">
+                  Disponible
+                </Badge>
+              ) : (
+                <Badge bg="secondary" className="rounded-pill px-3 py-2">
+                  {producto.status === "Sold" ? "Vendido" : producto.status}
+                </Badge>
+              )}
+            </div>
+          </div>
 
           {producto.description && (
             <div className="mb-4">
@@ -682,95 +772,177 @@ export const PaginaProducto = () => {
             </Card>
           )}
 
-          {/* Botones de acción */}
-          <div className="d-grid gap-2">
-            {!isOwner ? (
-              <>
+          {/* Acciones del producto */}
+          <div className="d-flex flex-wrap gap-2 mb-4 mt-4">
+            {/* Mostrar botón de compra solo si el producto está disponible y no es del usuario actual */}
+            {producto.status === "Available" && !isOwner && (
+              <Button
+                variant="success"
+                className="rounded-pill px-4 py-2 d-flex align-items-center"
+                onClick={handleCompraDirecta}
+                disabled={loading}
+              >
+                <CheckCircle className="me-2" />
+                Comprar ahora
+              </Button>
+            )}
 
-                <Button
-                  variant="success"
-                  size="lg"
-                  className="rounded-pill"
-                  onClick={async () => {
-                    if (!currentUser || !producto) return;
+            {/* Mostrar botón de chat solo si el producto está disponible y no es del usuario actual */}
+            {producto.status === "Available" && !isOwner && (
+              <Button
+                variant="outline-primary"
+                className="rounded-pill px-4 py-2 d-flex align-items-center"
+                onClick={async () => {
+                  if (!currentUser || !producto) return;
 
+                  try {
+                    setLoading(true);
+
+                    // 1. Verificar si ya existe una transacción para este ítem y usuarios
+                    const transactionService = new TransactionService();
+                    const existingTransactions = await transactionService.getByUserId(currentUser.id);
+
+                    // Buscar transacción existente para este ítem
+                    const existingTransaction = existingTransactions.find(
+                      (t: any) =>
+                        t.item?.id === producto.id &&
+                        ((t.requester.id === currentUser.id && t.owner.id === producto.user.id) ||
+                          (t.requester.id === producto.user.id && t.owner.id === currentUser.id))
+                    );
+
+                    let transactionId;
+
+                    if (existingTransaction) {
+                      // Usar transacción existente
+                      transactionId = existingTransaction.id;
+                    } else {
+                      // Crear nueva transacción
+                      const transactionResponse = await transactionService.addTransaction(
+                        currentUser.id,
+                        producto.user.id,
+                        producto.id,
+                        producto.price || 0
+                      );
+                      transactionId = transactionResponse.data.id;
+                    }
+
+                    // 2. Obtener o crear el chat
+                    const chat = await chatService.getOrCreateChat(
+                      transactionId,
+                      currentUser.id,
+                      producto.user.id
+                    );
+
+                    // 3. Redirigir al chat existente o nuevo
+                    navigate(`/chat/${chat.id}`);
+
+                  } catch (error) {
+                    console.error("Error en flujo de contacto:", error);
+                    setMensajeAlerta("Error al iniciar la conversación. Inténtalo de nuevo.");
+                    setTipoAlerta("danger");
+                    setAlertaVisible(true);
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                disabled={loading}
+              >
+                <ChatLeftText className="me-2" />
+                Contactar
+              </Button>
+            )}
+
+            {/* Botón de favoritos - solo mostrar si el producto no está vendido y no es del usuario actual */}
+            {producto.status === "Available" && !isOwner && (
+              <Button
+                variant={isFavorite(producto.id) ? "danger" : "outline-danger"}
+                className="rounded-pill px-4 py-2 d-flex align-items-center"
+                onClick={toggleFavorite}
+                disabled={loading || favoritesLoading}
+              >
+                {favoritesLoading ? (
+                  <Spinner animation="border" size="sm" className="me-2" />
+                ) : isFavorite(producto.id) ? (
+                  <HeartFill className="me-2" />
+                ) : (
+                  <Heart className="me-2" />
+                )}
+                {isFavorite(producto.id) ? "Guardado" : "Guardar"}
+              </Button>
+            )}
+
+            {/* Botón de compartir - solo mostrar si el producto no está vendido */}
+            {producto.status === "Available" && (
+              <Button
+                variant="outline-secondary"
+                className="rounded-pill px-4 py-2 d-flex align-items-center"
+                onClick={() => {
+                  // Implementación de compartir
+                  if (navigator.share) {
+                    navigator.share({
+                      title: producto.title,
+                      text: `Mira este producto en Swapify: ${producto.title}`,
+                      url: window.location.href,
+                    })
+                      .catch(err => console.error('Error al compartir:', err));
+                  } else {
+                    // Fallback para navegadores que no soportan Web Share API
+                    navigator.clipboard.writeText(window.location.href);
+                    setMensajeAlerta("Enlace copiado al portapapeles");
+                    setTipoAlerta("success");
+                    setAlertaVisible(true);
+                  }
+                }}
+                disabled={loading}
+              >
+                <Share className="me-2" />
+                Compartir
+              </Button>
+            )}
+
+            {/* Botón de editar - solo para el propietario */}
+            {isOwner && (
+              <Button
+                variant="outline-primary"
+                className="rounded-pill px-4 py-2 d-flex align-items-center"
+                as={Link as any}
+                to={`/editar/${producto.id}`}
+              >
+                <Pencil className="me-2" />
+                Editar producto
+              </Button>
+            )}
+
+            {/* Botón de eliminar - solo para el propietario */}
+            {isOwner && (
+              <Button
+                variant="outline-danger"
+                className="rounded-pill px-4 py-2 d-flex align-items-center"
+                onClick={async () => {
+                  if (!producto) return;
+                  showConfirm("¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.", async () => {
                     try {
-                      // 1. Crear la transacción primero
-                      const transactionResponse = await new TransactionService().addTransaction(
-                        currentUser.id, // requesterId (usuario actual)
-                        producto.user.id, // ownerId (dueño del producto)
-                        producto.id, // itemId
-                        0 // finalPrice (puedes poner 0 o el precio del producto)
-                      );
-
-                      const transaction = transactionResponse.data;
-
-                      // 2. Crear el chat usando el transactionId
-                      const chat = await chatService.getOrCreateChat(
-                        transaction.id, // transactionId real
-                        currentUser.id, // buyerId
-                        producto.user.id // sellerId
-                      );
-
-                      // 3. Navegar al chat
-                      navigate(`/chat/${chat.id}`);
+                      setLoading(true);
+                      await itemService.deleteItem(producto.id);
+                      setMensajeAlerta("Producto eliminado correctamente.");
+                      setTipoAlerta("success");
+                      setAlertaVisible(true);
+                      setTimeout(() => {
+                        window.location.href = "/";
+                      }, 2000);
                     } catch (error) {
-                      console.error("Error al iniciar chat:", error);
-                      setMensajeAlerta("No se pudo iniciar el chat. Inténtalo de nuevo.");
+                      setMensajeAlerta("No se pudo eliminar el producto. Inténtalo de nuevo más tarde.");
                       setTipoAlerta("danger");
                       setAlertaVisible(true);
+                    } finally {
+                      setLoading(false);
                     }
-                  }}
-                >
-                  <ChatLeftText className="me-2" />
-                  Contactar con el vendedor
-                </Button>
-                <div className="d-flex gap-2">
-                  <Button variant="outline-success" className="w-100 rounded-pill">
-                    <ArrowClockwise className="me-2" />
-                    Proponer intercambio
-                  </Button>
-                  <Button variant="outline-secondary" className="rounded-pill px-3">
-                    <Share />
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                <Button variant="primary" size="lg" className="rounded-pill">
-                  <Pencil className="me-2" />
-                  Editar producto
-                </Button>
-                <div className="d-flex gap-2">
-                  <Button variant="outline-danger" className="w-100 rounded-pill" onClick={async () => {
-                    if (!producto) return;
-                    showConfirm("¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.", async () => {
-                      try {
-                        setLoading(true);
-                        await itemService.deleteItem(producto.id);
-                        setMensajeAlerta("Producto eliminado correctamente.");
-                        setTipoAlerta("success");
-                        setAlertaVisible(true);
-                        setTimeout(() => {
-                          window.location.href = "/";
-                        }, 2000);
-                      } catch (error) {
-                        setMensajeAlerta("No se pudo eliminar el producto. Inténtalo de nuevo más tarde.");
-                        setTipoAlerta("danger");
-                        setAlertaVisible(true);
-                      } finally {
-                        setLoading(false);
-                      }
-                    });
-                  }}>
-                    <Trash className="me-2" />
-                    Eliminar producto
-                  </Button>
-                  <Button variant="outline-secondary" className="rounded-pill px-3">
-                    <Share />
-                  </Button>
-                </div>
-              </>
+                  });
+                }}
+              >
+                <Trash className="me-2" />
+                Eliminar producto
+              </Button>
             )}
           </div>
         </Col>
@@ -921,6 +1093,81 @@ export const PaginaProducto = () => {
           >
             Confirmar
           </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal show={showCompraModal} onHide={() => setShowCompraModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar compra</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {errorCompra && (
+            <Alert variant="danger" className="mb-3">
+              {errorCompra}
+            </Alert>
+          )}
+          {compraExitosa ? (
+            <Alert variant="success">
+              ¡Compra realizada con éxito! El producto ahora es tuyo.
+            </Alert>
+          ) : (
+            <>
+              <p>
+                Estás a punto de comprar <strong>{producto.title}</strong> por{" "}
+                <strong>{producto.price} créditos</strong>.
+              </p>
+
+              <div className="mb-3">
+                <h5>Resumen de la transacción:</h5>
+                <ul>
+                  <li>Precio: {producto.price} créditos</li>
+                  <li>Tus créditos actuales: {currentUser?.credits || 0}</li>
+                  <li>Créditos después de la compra: {(currentUser?.credits || 0) - producto.price}</li>
+                </ul>
+              </div>
+
+              <p>¿Deseas continuar con la compra?</p>
+
+              {currentUser && producto.price > (currentUser.credits || 0) && (
+                <Alert variant="warning">
+                  No tienes suficientes créditos para esta compra. Por favor, recarga tu saldo.
+                </Alert>
+              )}
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          {!compraExitosa && (
+            <>
+              <Button variant="secondary" onClick={() => setShowCompraModal(false)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                onClick={confirmarCompra}
+                disabled={comprando || (currentUser?.credits || 0) < producto.price}
+              >
+                {comprando ? (
+                  <>
+                    <Spinner animation="border" size="sm" className="me-2" />
+                    Procesando...
+                  </>
+                ) : (
+                  "Confirmar compra"
+                )}
+              </Button>
+            </>
+          )}
+          {compraExitosa && (
+            <Button
+              variant="success"
+              onClick={() => {
+                setShowCompraModal(false);
+                navigate("/mis-compras"); // O redirige a donde prefieras
+              }}
+            >
+              Ver mis compras
+            </Button>
+          )}
         </Modal.Footer>
       </Modal>
     </Container>

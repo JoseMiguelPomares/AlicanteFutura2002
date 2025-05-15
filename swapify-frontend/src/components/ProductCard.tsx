@@ -45,6 +45,9 @@ export const ProductCard = (props: ProductCardProps) => {
 
   // Verificar si el producto pertenece al usuario actual
   const isOwnProduct = user && producto.user && user.id === producto.user.id;
+  
+  // Verificar si el producto está vendido
+  const isSold = producto.status === "Sold";
 
   // Función para obtener el color de la categoría
   const getCategoryColor = (categoryName?: string): string => {
@@ -75,6 +78,13 @@ export const ProductCard = (props: ProductCardProps) => {
       default:
         return "secondary"
     }
+  }
+
+  // Función para obtener el nombre de la categoría
+  const getCategoryDisplayName = (categoryName?: string): string => {
+    if (!categoryName) return "";
+    
+    return categoryName.toLowerCase() === "otros" ? "Servicios u Otros Productos" : categoryName;
   }
 
   const handleClick = () => {
@@ -122,7 +132,7 @@ export const ProductCard = (props: ProductCardProps) => {
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
 
-        {isAuthenticated && !isOwnProduct && (
+        {isAuthenticated && !isOwnProduct && !isSold && (
           <Button
             variant={isFavorite(producto.id) ? "danger" : "light"}
             size="sm"
@@ -151,7 +161,7 @@ export const ProductCard = (props: ProductCardProps) => {
         <div className="d-flex justify-content-between align-items-start mb-2">
           {producto.category && (
             <Badge bg={getCategoryColor(producto.category.name)} className="rounded-pill">
-              {producto.category.name}
+              {getCategoryDisplayName(producto.category.name)}
             </Badge>
           )}
           {producto.status && (
@@ -167,7 +177,9 @@ export const ProductCard = (props: ProductCardProps) => {
           {producto.description}
         </Card.Text>
         <div className="d-flex justify-content-between align-items-center">
-          <span className="fw-bold text-success">{producto.price} Créditos</span>
+          <span className={`fw-bold ${isSold ? 'text-decoration-line-through text-muted' : 'text-success'}`}>
+            {producto.price} Créditos
+          </span>
           <Button variant="outline-success" size="sm" className="rounded-pill">
             Ver
           </Button>

@@ -69,4 +69,60 @@ class TransactionService {
             ResponseEntity.notFound().build()
         }
     }
+
+    //Función para completar una compra
+    fun completePurchase(buyerId: Int, itemId: Int): ResponseEntity<Transaction> {
+        // Verificar que el ítem existe
+        val itemOptional = itemDAO.findById(itemId)
+        if (!itemOptional.isPresent) {
+            return ResponseEntity.notFound().build()
+        }
+        
+        val item = itemOptional.get()
+        
+        // Verificar que el comprador existe
+        val buyerOptional = userDAO.findById(buyerId)
+        if (!buyerOptional.isPresent) {
+            return ResponseEntity.notFound().build()
+        }
+        
+        val buyer = buyerOptional.get()
+        
+        // Verificar que el vendedor existe
+        val sellerOptional = userDAO.findById(item.user?.id ?: 0)
+        if (!sellerOptional.isPresent) {
+            return ResponseEntity.notFound().build()
+        }
+        
+        val seller = sellerOptional.get()
+        
+        // Verificar que el comprador tiene suficientes créditos
+        if (buyer.credits == null || buyer.credits!! < item.price?.toInt() ?: 0) {
+            return ResponseEntity.badRequest().build()
+        }
+        
+        // Crear o actualizar la transacción
+        val transaction = Transaction()
+        transaction.requester = buyer
+        transaction.owner = seller
+        transaction.item = item
+        transaction.finalPrice = item.price
+        transaction.status = "COMPLETED"
+        transaction.completedAt = Instant.now()
+        
+        // Transferir créditos
+        buyer.credits = buyer.credits!! - (item.price?.toInt() ?: 0)
+        seller.credits = seller.credits!! + (item.price?.toInt() ?: 0)
+        
+        // Cambiar estado del ítem
+        item.status = "Sold"
+        
+        // Guardar cambios
+        userDAO.save(buyer)
+        userDAO.save(seller)
+        itemDAO.save(item)
+        transactionDAO.save(transaction)
+        
+        return ResponseEntity.ok(transaction)
+    }
 }
