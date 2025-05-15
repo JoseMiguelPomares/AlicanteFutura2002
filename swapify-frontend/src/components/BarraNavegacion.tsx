@@ -41,7 +41,8 @@ import {
   Upload,
   CreditCard,
   CheckCircle,
-  CurrencyEuro
+  CurrencyEuro,
+  Plus
 } from "react-bootstrap-icons"
 import { useMediaQuery } from "react-responsive"
 import logo from "../assets/images/logosSwapify/logoNegroLargoFondoTransp.png"
@@ -63,13 +64,13 @@ export const BarraNavegacion = () => {
 
   // Añadir dentro de la función BarraNavegacion
   const { user, isAuthenticated, logout, refreshUserData } = useAuth()
-  
+
   // Estado para controlar la visibilidad del modal de compra de créditos
   const [showCreditModal, setShowCreditModal] = useState(false)
   const [selectedCreditPack, setSelectedCreditPack] = useState<number | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [purchaseSuccess, setPurchaseSuccess] = useState(false)
-  
+
   // Paquetes de créditos disponibles
   const creditPacks = [
     { id: 1, amount: 50, price: 5, popular: false },
@@ -86,31 +87,31 @@ export const BarraNavegacion = () => {
       setSearchTerm("")
     }
   }
-  
+
   // Función para simular la compra de créditos
   const handlePurchaseCredits = async () => {
     if (!selectedCreditPack || !user) return
-    
+
     setIsProcessing(true)
-    
+
     try {
       // Obtener el paquete seleccionado
       const pack = creditPacks.find(p => p.id === selectedCreditPack);
       if (!pack) throw new Error("Paquete de créditos no encontrado");
-      
+
       // Llamar a la API para añadir los créditos
       const userService = new UserService();
       await userService.addCredits(user.id, pack.amount);
-      
+
       // Actualizar el estado local
       setPurchaseSuccess(true);
-      
+
       // Refrescar los datos del usuario para mostrar los nuevos créditos
       await refreshUserData();
-      
+
       // Cerrar el modal después de una compra exitosa
       setShowCreditModal(false);
-      
+
       // Resetear los estados después de 3 segundos
       setTimeout(() => {
         setPurchaseSuccess(false);
@@ -140,7 +141,7 @@ export const BarraNavegacion = () => {
     position: absolute;
     top: 100%;
     right: 0;
-    width: 200px;
+    width: 220px;
     background-color: white;
     border-radius: 8px;
     padding: 10px;
@@ -160,6 +161,44 @@ export const BarraNavegacion = () => {
   .profile-dropdown-content {
     padding: 10px;
     background-color: white;
+  }
+
+  .credits-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    border: 1px solid #e9ecef;
+  }
+  
+  .credits-display:hover {
+    background-color: #e9f7ef;
+    cursor: pointer;
+  }
+  
+  .credits-display .credits-amount {
+    font-weight: 500;
+    color: #198754;
+  }
+  
+  .credits-display .add-credits {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #198754;
+    color: white;
+    font-size: 12px;
+    transition: transform 0.2s ease;
+  }
+  
+  .credits-display:hover .add-credits {
+    transform: scale(1.1);
   }
 `
 
@@ -307,10 +346,10 @@ export const BarraNavegacion = () => {
                     )}
                   </Nav.Link>
                 )}
-                
+
                 {/* Mostrar créditos justo debajo de Notificaciones */}
                 {isAuthenticated && user?.credits !== undefined && (
-                  <div 
+                  <div
                     className="py-2 d-flex align-items-center"
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
@@ -332,7 +371,7 @@ export const BarraNavegacion = () => {
                   Contacto
                 </Nav.Link>
               </div>
-              
+
               {/* Sección de Cómo funciona y Ayuda con separación */}
               <div className="py-2 mt-2">
                 <Nav.Link as={Link} to="/como-funciona" className="py-2 mb-2" onClick={() => setShowMenu(false)}>
@@ -344,7 +383,7 @@ export const BarraNavegacion = () => {
                   Ayuda
                 </Nav.Link>
               </div>
-              
+
               {/* Botón de cerrar sesión al final */}
               {isAuthenticated && (
                 <div className="mt-auto pt-3">
@@ -392,18 +431,7 @@ export const BarraNavegacion = () => {
 
               {isAuthenticated ? (
                 <>
-                  {user?.credits !== undefined && (
-                    <Button 
-                      variant="outline-light" 
-                      className="d-flex align-items-center gap-1 rounded-pill py-0 px-2" 
-                      size="sm"
-                      onClick={() => setShowCreditModal(true)}
-                    >
-                      <Cart size={16} />
-                      <span className="small">{user.credits} Créditos</span>
-                      <Badge bg="success" pill className="ms-1" style={{ fontSize: '0.6rem' }}>+</Badge>
-                    </Button>
-                  )}
+                  <div className="invisible" style={{ width: "80px" }}></div>
                   <div className="position-relative profile-dropdown-container">
                     <Nav.Link as={Link} to={`/perfil/${user?.id}`} className="text-white d-flex align-items-center">
                       {user?.imageUrl ? (
@@ -419,6 +447,17 @@ export const BarraNavegacion = () => {
                     </Nav.Link>
                     <div className="profile-dropdown-menu">
                       <div className="profile-dropdown-content shadow rounded">
+                        {user?.credits !== undefined && (
+                          <div className="credits-display mb-2" onClick={() => setShowCreditModal(true)}>
+                            <div className="d-flex align-items-center">
+                              <Cart size={16} className="me-2 text-success" />
+                              <span className="credits-amount">{user.credits} Créditos</span>
+                            </div>
+                            <div className="add-credits">
+                              <Plus size={14} />
+                            </div>
+                          </div>
+                        )}
                         <Button
                           as={Link as any}
                           to="/vender"
@@ -527,15 +566,15 @@ export const BarraNavegacion = () => {
       </div>
 
       {/* Modal para comprar créditos */}
-      <Modal 
-        show={showCreditModal} 
+      <Modal
+        show={showCreditModal}
         onHide={() => {
           if (!isProcessing) {
             setShowCreditModal(false);
             setPurchaseSuccess(false);
             setSelectedCreditPack(null);
           }
-        }} 
+        }}
         centered
         size="lg"
       >
@@ -559,11 +598,11 @@ export const BarraNavegacion = () => {
               <p className="mb-4">
                 Los créditos te permiten adquirir productos y servicios en Swapify. Elige el paquete que mejor se adapte a tus necesidades.
               </p>
-              
+
               <Row xs={1} md={2} className="g-4 mb-4">
                 {creditPacks.map(pack => (
                   <Col key={pack.id}>
-                    <Card 
+                    <Card
                       className={`h-100 ${selectedCreditPack === pack.id ? 'border-success' : ''}`}
                       onClick={() => setSelectedCreditPack(pack.id)}
                       style={{ cursor: 'pointer' }}
@@ -575,7 +614,7 @@ export const BarraNavegacion = () => {
                           </Badge>
                         )}
                         <div className="d-flex align-items-center mb-3">
-                          <div 
+                          <div
                             className="rounded-circle bg-success bg-opacity-10 p-3 me-3 d-flex align-items-center justify-content-center"
                           >
                             <CurrencyEuro size={24} className="text-success" />
@@ -586,8 +625,8 @@ export const BarraNavegacion = () => {
                           </div>
                         </div>
                         <div className="mt-auto">
-                          <Button 
-                            variant={selectedCreditPack === pack.id ? "success" : "outline-success"} 
+                          <Button
+                            variant={selectedCreditPack === pack.id ? "success" : "outline-success"}
                             className="w-100"
                             onClick={() => setSelectedCreditPack(pack.id)}
                           >
@@ -606,7 +645,7 @@ export const BarraNavegacion = () => {
                   </Col>
                 ))}
               </Row>
-              
+
               <div className="border-top pt-3">
                 <h5>Métodos de pago</h5>
                 <p className="text-muted small">
@@ -630,8 +669,8 @@ export const BarraNavegacion = () => {
         <Modal.Footer>
           {!purchaseSuccess && (
             <>
-              <Button 
-                variant="secondary" 
+              <Button
+                variant="secondary"
                 onClick={() => {
                   setShowCreditModal(false);
                   setSelectedCreditPack(null);
@@ -640,8 +679,8 @@ export const BarraNavegacion = () => {
               >
                 Cancelar
               </Button>
-              <Button 
-                variant="success" 
+              <Button
+                variant="success"
                 onClick={handlePurchaseCredits}
                 disabled={!selectedCreditPack || isProcessing}
               >
