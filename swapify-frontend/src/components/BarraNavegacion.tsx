@@ -191,17 +191,6 @@ export const BarraNavegacion = () => {
                       )}
                       Mi Perfil
                     </Button>
-                    <Button
-                      variant="outline-danger"
-                      className="w-100 py-2 rounded-pill"
-                      onClick={() => {
-                        logout()
-                        navigate("/") // Redirect to home page after logout
-                        setShowMenu(false)
-                      }}
-                    >
-                      Cerrar Sesión
-                    </Button>
                   </>
                 ) : (
                   <Button
@@ -259,26 +248,53 @@ export const BarraNavegacion = () => {
                     )}
                   </Nav.Link>
                 )}
+                
+                {/* Mostrar créditos justo debajo de Notificaciones */}
+                {isAuthenticated && user?.credits !== undefined && (
+                  <div className="py-2 d-flex align-items-center">
+                    <Cart className="me-2" size={18} />
+                    <span className="fw-bold">{user.credits} Créditos</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Sección de enlaces secundarios */}
+              <div className="border-bottom py-2">
                 <Nav.Link as={Link} to="/contacto" className="py-2" onClick={() => setShowMenu(false)}>
+                  <Envelope className="me-2" size={18} />
                   Contacto
                 </Nav.Link>
-                <Nav.Link as={Link} to="/como-funciona" className="py-2" onClick={() => setShowMenu(false)}>
+              </div>
+              
+              {/* Sección de Cómo funciona y Ayuda con separación */}
+              <div className="py-2 mt-2">
+                <Nav.Link as={Link} to="/como-funciona" className="py-2 mb-2" onClick={() => setShowMenu(false)}>
+                  <InfoCircle className="me-2" size={18} />
                   Cómo Funciona
                 </Nav.Link>
                 <Nav.Link as={Link} to="/ayuda" className="py-2" onClick={() => setShowMenu(false)}>
+                  <InfoCircle className="me-2" size={18} />
                   Ayuda
                 </Nav.Link>
               </div>
-
-              {/* Sección de perfil y créditos */}
-              <div className="d-flex justify-content-between align-items-center mt-2">
-                {isAuthenticated && user?.credits !== undefined && (
-                  <Button variant="success" size="sm" className="d-flex align-items-center gap-2 rounded-pill py-1">
-                    <Cart size={16} />
-                    <span className="fw-bold small">{user.credits} Créditos</span>
+              
+              {/* Botón de cerrar sesión al final */}
+              {isAuthenticated && (
+                <div className="mt-auto pt-3">
+                  <Button
+                    variant="outline-danger"
+                    className="w-100 py-2 rounded-pill"
+                    onClick={() => {
+                      logout()
+                      navigate("/") // Redirect to home page after logout
+                      setShowMenu(false)
+                    }}
+                  >
+                    <Power className="me-2" size={18} />
+                    Cerrar Sesión
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
             </Offcanvas.Body>
           </Navbar.Offcanvas>
 
