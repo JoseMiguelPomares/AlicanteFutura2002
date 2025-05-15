@@ -493,18 +493,18 @@ export const BarraNavegacion = () => {
                       </div>
                     </div>
                   </div>
-                  <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip-logout">Cerrar sesión</Tooltip>}>
-                    <Button
-                      variant="link"
-                      className="text-white p-0 d-flex align-items-center"
-                      onClick={() => {
-                        logout()
-                        navigate("/") // Redirect to home page after logout
-                      }}
-                    >
-                      <Power size={20} />
-                    </Button>
-                  </OverlayTrigger>
+                  <Button
+                    variant="link"
+                    className="text-white p-0 d-flex align-items-center"
+                    style={{ transition: 'color 0.3s ease' }}
+                    onClick={() => {
+                      logout()
+                      navigate("/") // Redirect to home page after logout
+                    }}
+                  >
+                    <Power size={20} onMouseOver={(e) => e.currentTarget.style.color = '#dc3545'}
+                    onMouseOut={(e) => e.currentTarget.style.color = 'white'} />
+                  </Button>
                 </>
               ) : (
                 <Button
