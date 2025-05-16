@@ -52,6 +52,6 @@ export class UserService {
 
   // Método para añadir créditos a un usuario
   addCredits(userId: number, credits: number) {
-    return axios.post(this.baseUrl + `addCredits/${userId}/${credits}`)
+    return axios.post(API_URL + `addCredits/${userId}/${credits}`)
   }
 }
