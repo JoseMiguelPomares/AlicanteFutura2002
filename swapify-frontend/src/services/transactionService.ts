@@ -26,7 +26,7 @@ export class TransactionService {
     }
 
     async completePurchase(buyerId: number, itemId: number) {
-        return axios.post(this.baseUrl + "completePurchase", {
+        return axios.post(API_URL + "completePurchase", {
             buyerId,
             itemId
         }).then(res => res.data);
