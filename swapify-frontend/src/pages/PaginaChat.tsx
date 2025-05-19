@@ -1,5 +1,5 @@
 "use client"
-;(window as any).global = window
+  ; (window as any).global = window
 
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
@@ -23,6 +23,7 @@ import { useAuth } from "../contexts/AuthContext"
 import { ChatService } from "../services/chatService"
 import { TransactionService } from "../services/transactionService"
 import { UserService } from "../services/userService"
+import { ItemService } from "../services/itemService";
 import { useNotifications } from "../contexts/NotificationContext"
 const API_URL = import.meta.env.VITE_API_BASE_URL
 
@@ -115,11 +116,13 @@ export const PaginaChat = () => {
     credits: 0,
   })
   const { refreshNotifications } = useNotifications()
+  const [userProducts, setUserProducts] = useState<Item[]>([])
 
   // Servicios
   const chatService = new ChatService()
   const transactionService = new TransactionService()
   const userService = new UserService()
+  const itemService = new ItemService()
 
   // 1) Auth: espera a que termine la comprobación antes de redirigir
   useEffect(() => {
@@ -264,10 +267,10 @@ export const PaginaChat = () => {
   // 4) Sólo cuando selectedChat y messagesLoaded, arranca STOMP
   useEffect(() => {
     if (!selectedChat || !messagesLoaded) return
-  
-    // 1) Define global aquí de forma forzada
-    ;(window as any).global = window
-  
+
+      // 1) Define global aquí de forma forzada
+      ; (window as any).global = window
+
     // 2) Carga SockJS y StompJS *dinámicamente*
     Promise.all([
       import("sockjs-client"),
@@ -276,7 +279,7 @@ export const PaginaChat = () => {
       .then(([SockJSmod, StompMod]) => {
         const SockJS = (SockJSmod as any).default
         const { Client } = StompMod as any
-  
+
         // 3) Ahora sí, crea tu cliente STOMP
         stompClient = new Client({
           // en vez de pasar simplemente `new SockJS(url)`, 
@@ -289,7 +292,7 @@ export const PaginaChat = () => {
           debug: (msg: string) => console.log("STOMP:", msg),
           onStompError: (frame: any) => console.error("STOMP ERR:", frame.body),
         })
-  
+
         stompClient.onConnect = () => {
           console.log("STOMP conectado en room", selectedChat.id)
           stompClient.subscribe(
@@ -300,14 +303,14 @@ export const PaginaChat = () => {
             }
           )
         }
-  
+
         stompClient.activate()
       })
       .catch((err) => {
         console.error("Error cargando SockJS/STOMP:", err)
         setError("No se pudo inicializar el chat en tiempo real.")
       })
-  
+
     return () => {
       stompClient?.deactivate()
       stompClient = null
@@ -400,7 +403,7 @@ export const PaginaChat = () => {
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedChat || !user || !stompClient) return;
-  
+
     const dto = { senderId: user.id, content: newMessage };
     stompClient.publish({
       destination: `/app/chat/${selectedChat.id}`,
@@ -408,16 +411,30 @@ export const PaginaChat = () => {
     });
     setNewMessage("");
   };
-  
+
 
 
 
   // Manejar selección de chat
   const handleSelectChat = (chat: Chat) => {
     setSelectedChat(chat)
+    setUserProducts([])
     navigate(`/chat/${chat.id}`)
   }
 
+
+  // Cargar productos del usuario cuando se abre el formulario de oferta
+  const loadUserProducts = async () => {
+    if (!user) return
+
+    try {
+      const products = await itemService.getByUserId(user.id)
+      setUserProducts(products)
+    } catch (error) {
+      console.error("Error al cargar los productos del usuario:", error)
+      setError("No se pudieron cargar tus productos. Por favor, inténtalo de nuevo.")
+    }
+  }
   // Manejar envío de oferta
   const handleSendOffer = () => {
     if (!selectedChat || !user) return
@@ -688,7 +705,7 @@ export const PaginaChat = () => {
                     variant="outline-success"
                     size="sm"
                     className="rounded-pill"
-                    onClick={() => setShowOfferForm(!showOfferForm)}
+                    onClick={() => { loadUserProducts(), setShowOfferForm(!showOfferForm) }}
                   >
                     <ArrowClockwise className="me-1" />
                     Proponer intercambio
@@ -707,28 +724,54 @@ export const PaginaChat = () => {
                     <Form>
                       <Form.Group className="mb-3">
                         <Form.Label>Producto que ofreces</Form.Label>
-                        <Form.Control
-                          type="text"
-                          placeholder="Nombre del producto"
-                          value={offerDetails.itemName}
-                          onChange={(e) => setOfferDetails({ ...offerDetails, itemName: e.target.value })}
-                          required
-                        />
+                        {userProducts.length === 0 ? (
+                          <div className="d-flex align-items-center mb-2">
+                            <Spinner animation="border" size="sm" className="me-2" />
+                            <small>Cargando tus productos...</small>
+                          </div>
+                        ) : userProducts.length > 0 ? (
+                          <Form.Select
+                            value={offerDetails.itemName}
+                            onChange={(e) => {
+                              const selectedProduct = userProducts.find((p) => p.title === e.target.value)
+                              setOfferDetails({
+                                ...offerDetails,
+                                itemName: e.target.value,
+                                itemDescription: selectedProduct?.description || "",
+                              })
+                            }}
+                            required
+                          >
+                            <option value="">Selecciona un producto</option>
+                            {userProducts.map((product) => (
+                              <option key={product.id} value={product.title}>
+                                {product.title} - {product.price} créditos
+                              </option>
+                            ))}
+                          </Form.Select>
+                        ) : (
+                          <div className="alert alert-warning">
+                            <small>
+                              No tienes productos para ofrecer. <Link to="/vender">Publica un producto</Link> primero.
+                            </small>
+                          </div>
+                        )}
                       </Form.Group>
 
                       <Form.Group className="mb-3">
-                        <Form.Label>Descripción (opcional)</Form.Label>
+                        <Form.Label>Descripción</Form.Label>
                         <Form.Control
                           as="textarea"
                           rows={2}
                           placeholder="Añade detalles sobre el producto"
                           value={offerDetails.itemDescription}
                           onChange={(e) => setOfferDetails({ ...offerDetails, itemDescription: e.target.value })}
+                          disabled={true}
                         />
                       </Form.Group>
 
                       <Form.Group className="mb-3">
-                        <Form.Label>Créditos adicionales</Form.Label>
+                        <Form.Label>Créditos propuestos:</Form.Label>
                         <Form.Control
                           type="number"
                           min="0"
@@ -851,7 +894,7 @@ export const PaginaChat = () => {
           )}
         </Col>
       </Row>
-    </Container>
+    </Container >
   )
 }
 
