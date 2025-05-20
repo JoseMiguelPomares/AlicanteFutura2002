@@ -53,7 +53,11 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                     favoriteService.getAllFavoritesCount() as Promise<FavoriteCountResponse>
                 ]);
     
-                const validFavorites = userFavorites.filter((fav): fav is FavoriteResponse => !!fav?.item?.id);
+                // Filtrar favoritos para excluir productos vendidos
+                const validFavorites = userFavorites
+                    .filter((fav): fav is FavoriteResponse => !!fav?.item?.id)
+                    .filter(fav => fav.item.status !== "Sold");
+                    
                 setFavorites(validFavorites.map(fav => fav.item));
                 setFavoritesCount(counts);
             } catch (error) {
