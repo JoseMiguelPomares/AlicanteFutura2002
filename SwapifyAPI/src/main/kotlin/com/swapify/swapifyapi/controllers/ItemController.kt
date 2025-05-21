@@ -101,4 +101,16 @@ class ItemController {
     fun getRecentlyAdded(): List<ItemDTO> {
         return itemService.getRecentlyAddedItems()
     }
+
+    companion object {
+        // Radio fijo en metros (5 km)
+        private const val RADIUS_METERS = 5000.0
+    }
+
+    //Función para obtener items en un radio
+    @GetMapping("/getByLocation")
+    fun itemsRadius(
+        @RequestParam lat: Double,
+        @RequestParam lng: Double,
+    ): List<Item> = itemService.getInRadius(lat, lng, RADIUS_METERS)
 }

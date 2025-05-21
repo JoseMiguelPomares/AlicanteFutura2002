@@ -305,4 +305,8 @@ class ItemService {
             emptyList()
         }
     }
+
+    //Función para obtener items dentro de un radio de una ubicación
+    fun getInRadius(lat: Double, lng: Double, radius: Double): List<Item> =
+        itemDAO.findByDistance(lat, lng, radius)
 }

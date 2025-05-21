@@ -44,6 +44,12 @@ open class Item {
     @Column(name = "location")
     open var location: String? = null
 
+    @Column(name = "latitude", nullable = false, columnDefinition = "double precision DEFAULT 0.0")
+    open var latitude: Double? = 0.0
+
+    @Column(name = "longitude", nullable = false, columnDefinition = "double precision DEFAULT 0.0")
+    open var longitude: Double? = 0.0
+
     @Column(name = "status", length = 50)
     open var status: String? = "Available"
 
