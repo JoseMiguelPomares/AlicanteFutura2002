@@ -15,6 +15,7 @@ interface ChatNotification {
   message: string
   timestamp: string
   read: boolean
+  unreadCount: number
 }
 
 interface NotificationContextType {
@@ -46,8 +47,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       // Obtener todas las transacciones del usuario
       const transactions = await transactionService.getByUserId(user.id)
 
-      // Array para almacenar todas las notificaciones
-      const allNotifications: ChatNotification[] = []
+      // Map para agrupar notificaciones por chatId
+      const chatNotificationsMap = new Map<number, ChatNotification>()
+      let totalUnreadCount = 0
 
       // Para cada transacción, obtener los mensajes no leídos
       for (const transaction of transactions) {
@@ -65,31 +67,45 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
             // Filtrar los mensajes no leídos enviados por el otro usuario
             const unreadMessages = messages.filter((msg: any) => msg.sender.id === otherUserId && !msg.read)
-
-            // Convertir los mensajes no leídos a notificaciones
-            const chatNotifications = unreadMessages.map((msg: any) => ({
-              id: msg.id,
-              chatId: chat.id,
-              senderId: msg.sender.id,
-              senderName: msg.sender.name,
-              senderImage: msg.sender.imageUrl,
-              message: msg.content,
-              timestamp: msg.createdAt,
-              read: false,
-            }))
-
-            allNotifications.push(...chatNotifications)
+            
+            // Si hay mensajes no leídos en este chat
+            if (unreadMessages.length > 0) {
+              // Ordenar los mensajes no leídos por fecha (más recientes primero)
+              unreadMessages.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              
+              // Tomar el mensaje más reciente para la notificación
+              const latestMessage = unreadMessages[0]
+              
+              // Crear o actualizar la notificación para este chat
+              chatNotificationsMap.set(chat.id, {
+                id: latestMessage.id,
+                chatId: chat.id,
+                senderId: latestMessage.sender.id,
+                senderName: latestMessage.sender.name,
+                senderImage: latestMessage.sender.imageUrl,
+                message: latestMessage.content,
+                timestamp: latestMessage.createdAt,
+                read: false,
+                unreadCount: unreadMessages.length // Número de mensajes no leídos en este chat
+              })
+              
+              // Incrementar el contador total de mensajes no leídos
+              totalUnreadCount += unreadMessages.length
+            }
           }
         } catch (error) {
           console.error(`Error al procesar la transacción ${transaction.id}:`, error)
         }
       }
 
+      // Convertir el Map a un array de notificaciones
+      const groupedNotifications = Array.from(chatNotificationsMap.values())
+      
       // Ordenar las notificaciones por fecha (más recientes primero)
-      allNotifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      groupedNotifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
-      setNotifications(allNotifications)
-      setUnreadCount(allNotifications.length)
+      setNotifications(groupedNotifications)
+      setUnreadCount(totalUnreadCount)
     } catch (error) {
       console.error("Error al cargar notificaciones:", error)
     }
@@ -110,13 +126,27 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       // Aquí iría la llamada a la API para marcar el mensaje como leído
       // Por ahora, solo actualizamos el estado local
-      setNotifications((prevNotifications) =>
-        prevNotifications.map((notification) =>
-          notification.id === notificationId ? { ...notification, read: true } : notification,
-        ),
-      )
+      setNotifications((prevNotifications) => {
+        // Encontrar la notificación que se va a marcar como leída
+        const notification = prevNotifications.find(n => n.id === notificationId)
+        
+        if (!notification) return prevNotifications
+        
+        // Decrementar el contador de mensajes no leídos para este chat
+        const updatedUnreadCount = Math.max(0, notification.unreadCount - 1)
+        
+        // Si ya no hay mensajes no leídos en este chat, eliminar la notificación
+        if (updatedUnreadCount === 0) {
+          return prevNotifications.filter(n => n.id !== notificationId)
+        }
+        
+        // De lo contrario, actualizar el contador de mensajes no leídos
+        return prevNotifications.map(n =>
+          n.id === notificationId ? { ...n, unreadCount: updatedUnreadCount } : n
+        )
+      })
 
-      // Actualizar el contador de no leídos
+      // Actualizar el contador total de no leídos
       setUnreadCount((prev) => Math.max(0, prev - 1))
     } catch (error) {
       console.error("Error al marcar notificación como leída:", error)
@@ -127,11 +157,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const markAllAsRead = async () => {
     try {
       // Aquí iría la llamada a la API para marcar todos los mensajes como leídos
-      // Por ahora, solo actualizamos el estado local
-      setNotifications((prevNotifications) =>
-        prevNotifications.map((notification) => ({ ...notification, read: true })),
-      )
-
+      // Por ahora, simplemente limpiamos todas las notificaciones ya que representan chats
+      setNotifications([])
       setUnreadCount(0)
     } catch (error) {
       console.error("Error al marcar todas las notificaciones como leídas:", error)
