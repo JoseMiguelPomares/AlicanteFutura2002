@@ -100,26 +100,37 @@ interface IItemDAO: CrudRepository<Item, Int> {
 
     @Query(
         value = """
-      SELECT *, (
-        6371000 * acos(
-          cos(radians(:latCentro)) *
-          cos(radians(latitude)) *
-          cos(radians(longitude) - radians(:lngCentro)) +
-          sin(radians(:latCentro)) *
-          sin(radians(latitude))
-        )
-      ) AS distancia
-      FROM productos
+      SELECT
+        i.id,
+        i.user_id,
+        i.title,
+        i.description,
+        i.category_id,
+        i.image_url,
+        i.price,
+        i.item_condition,
+        i.location,
+        i.status,
+        i.created_at
+      FROM items i
       WHERE (
         6371000 * acos(
           cos(radians(:latCentro)) *
-          cos(radians(latitude)) *
-          cos(radians(longitude) - radians(:lngCentro)) +
+          cos(radians(i.latitude)) *
+          cos(radians(i.longitude) - radians(:lngCentro)) +
           sin(radians(:latCentro)) *
-          sin(radians(latitude))
+          sin(radians(i.latitude))
         )
       ) <= :radio
-      ORDER BY distancia
+      ORDER BY (
+        6371000 * acos(
+          cos(radians(:latCentro)) *
+          cos(radians(i.latitude)) *
+          cos(radians(i.longitude) - radians(:lngCentro)) +
+          sin(radians(:latCentro)) *
+          sin(radians(i.latitude))
+        )
+      )
     """,
         nativeQuery = true
     )
