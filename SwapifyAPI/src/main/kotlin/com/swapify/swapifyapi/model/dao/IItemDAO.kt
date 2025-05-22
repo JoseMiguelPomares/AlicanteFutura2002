@@ -101,17 +101,7 @@ interface IItemDAO: CrudRepository<Item, Int> {
     @Query(
         value = """
       SELECT
-        i.id,
-        i.user_id,
-        i.title,
-        i.description,
-        i.category_id,
-        i.image_url,
-        i.price,
-        i.item_condition,
-        i.location,
-        i.status,
-        i.created_at
+        i.*
       FROM items i
       WHERE (
         6371000 * acos(
