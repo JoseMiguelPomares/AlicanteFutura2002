@@ -3,6 +3,7 @@ package com.swapify.swapifyapi.model.dao
 import com.swapify.swapifyapi.model.entities.Item
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
+import org.springframework.data.repository.query.Param
 import java.math.BigDecimal
 
 interface IItemDAO: CrudRepository<Item, Int> {
@@ -96,4 +97,36 @@ interface IItemDAO: CrudRepository<Item, Int> {
         """
     )
     fun findByItemTime(): MutableList<Item>
+
+    @Query(
+        value = """
+      SELECT
+        i.*
+      FROM items i
+      WHERE (
+        6371000 * acos(
+          cos(radians(:latCentro)) *
+          cos(radians(i.latitude)) *
+          cos(radians(i.longitude) - radians(:lngCentro)) +
+          sin(radians(:latCentro)) *
+          sin(radians(i.latitude))
+        )
+      ) <= :radio
+      ORDER BY (
+        6371000 * acos(
+          cos(radians(:latCentro)) *
+          cos(radians(i.latitude)) *
+          cos(radians(i.longitude) - radians(:lngCentro)) +
+          sin(radians(:latCentro)) *
+          sin(radians(i.latitude))
+        )
+      )
+    """,
+        nativeQuery = true
+    )
+    fun findByDistance(
+        @Param("latCentro") latCentro: Double,
+        @Param("lngCentro") lngCentro: Double,
+        @Param("radio") radio: Double  // en metros
+    ): List<Item>
 }

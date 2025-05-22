@@ -10,6 +10,8 @@ class ItemDTO (
     val description: String,
     val itemCondition: String?,
     val location: String,
+    val latitude: Double,
+    val longitude: Double,
     val price: BigDecimal,
     val category: CategoryDTO?,
     val imageUrl: String?,
