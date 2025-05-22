@@ -50,4 +50,7 @@ open class User {
 
     @Column(name = "about_me", length = 500)
     open var aboutMe: String? = null
+
+    @Column(name = "banned")
+    open var banned: Boolean = false
 }
