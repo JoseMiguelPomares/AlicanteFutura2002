@@ -17,6 +17,7 @@ import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
 import { useAuth } from "../contexts/AuthContext"
 import { ImageService } from "../services/imageService"
+import { latLng } from "leaflet"
 
 // Lista de categorías disponibles
 const CATEGORIAS = [
@@ -56,6 +57,8 @@ export const PaginaVender = () => {
     category_id: "",
     condition: "",
     location: "",
+    latitude: 0.0,
+    longitude: 0.0,
     price: "",
     imageUrls: [] as string[], // Ahora es un array de URLs
   })
@@ -190,6 +193,8 @@ export const PaginaVender = () => {
         imageUrl: uploadedUrls.join('|'), // Modificado: Unimos todas las URLs con un separador '|'
         userId: user?.id,
         location: formData.location,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
       }
 
       console.log("Enviando datos del producto:", itemData)

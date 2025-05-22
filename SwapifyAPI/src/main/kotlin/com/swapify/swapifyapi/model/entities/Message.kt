@@ -31,4 +31,7 @@ open class Message {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     open var createdAt: Instant? = null
+
+    @Column(name = "read")
+    open var read: Boolean = false
 }
