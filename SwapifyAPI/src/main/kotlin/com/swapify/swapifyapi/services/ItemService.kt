@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import com.swapify.swapifyapi.exception.UnsafeImageException
 import java.math.BigDecimal
 import java.time.Instant
 import java.util.*
@@ -25,6 +26,9 @@ class ItemService {
     lateinit var itemDAO: IItemDAO
     @Autowired
     lateinit var categoryDAO: ICategoryDAO
+
+    @Autowired
+    lateinit var googleVisionService: GoogleVisionService
 
     //Función para obtener todos los items de un usuario
     fun getItemsByUserId(userId: Long): List<Item>{
@@ -172,6 +176,10 @@ class ItemService {
 
     //Función para añadir un producto nuevo
     fun addItem(newItemDTO: NewItemDTO): ResponseEntity<NewItemDTO>{
+        // Validar imagen
+        if (!googleVisionService.isImageSafe(newItemDTO.imageUrl)) {
+            throw UnsafeImageException("La imagen proporcionada no es segura.")
+        }
         val item = Item()
         val optionalCategory: Optional<Category> = categoryDAO.findById(newItemDTO.categoryId)
         item.user = User()
@@ -242,6 +250,10 @@ class ItemService {
 
     //Función para modificar un item
     fun updateItem(itemId: Int, itemDTO: ModifyItemDTO): ResponseEntity<ModifyItemDTO> {
+        // Validar imagen si se proporciona una nueva URL
+        if (!itemDTO.imageUrl.isNullOrEmpty() && !googleVisionService.isImageSafe(itemDTO.imageUrl)) {
+            throw UnsafeImageException("La imagen proporcionada no es segura.")
+        }
         val optionalItem: Optional<Item> = itemDAO.findById(itemId)
         if (optionalItem.isPresent) {
             val item: Item = optionalItem.get()

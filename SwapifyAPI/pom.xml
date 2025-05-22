@@ -110,6 +110,11 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
             <version>3.4.3</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-vision</artifactId>
+            <version>3.42.0</version> <!-- Reemplaza con la última versión estable -->
+        </dependency>
     </dependencies>
 
     <build>
@@ -149,7 +154,12 @@
                         <artifactId>kotlin-maven-noarg</artifactId>
                         <version>${kotlin.version}</version>
                     </dependency>
-                </dependencies>
+                    <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-vision</artifactId>
+            <version>3.42.0</version> <!-- Reemplaza con la última versión estable -->
+        </dependency>
+    </dependencies>
             </plugin>
         </plugins>
     </build>
