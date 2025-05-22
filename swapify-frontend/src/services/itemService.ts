@@ -140,4 +140,10 @@ export class ItemService {
         headers: { 'Ngrok-Skip-Browser-Warning': 'true' }
       })
   }
+
+  getItemByRadius(latitude: number, longitude: number) {
+    return axios.get(API_URL + `/getByLocation/${latitude}/${longitude}`, {
+      headers: { 'Ngrok-Skip-Browser-Warning': 'true' }
+    })
+  }
 }

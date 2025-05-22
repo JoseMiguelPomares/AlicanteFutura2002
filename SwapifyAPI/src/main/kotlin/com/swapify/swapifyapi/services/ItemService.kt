@@ -62,6 +62,8 @@ class ItemService {
                     it.description!!,
                     it.itemCondition,
                     it.location!!,
+                    it.latitude!!,
+                    it.longitude!!,
                     it.price!!,
                     CategoryDTO(
                         it.category!!.id!!,
@@ -93,6 +95,8 @@ class ItemService {
                     it.description!!,
                     it.itemCondition,
                     it.location!!,
+                    it.latitude!!,
+                    it.longitude!!,
                     it.price!!,
                     CategoryDTO(
                         it.category!!.id!!,
@@ -124,6 +128,8 @@ class ItemService {
                     it.description!!,
                     it.itemCondition,
                     it.location!!,
+                    it.latitude!!,
+                    it.longitude!!,
                     it.price!!,
                     CategoryDTO(
                         it.category!!.id!!,
@@ -155,6 +161,8 @@ class ItemService {
                     it.description.toString(),
                     it.itemCondition,
                     it.location!!,
+                    it.latitude!!,
+                    it.longitude!!,
                     it.price!!,
                     CategoryDTO(
                         it.category!!.id!!,
@@ -188,6 +196,8 @@ class ItemService {
         item.price = newItemDTO.price
         item.itemCondition = newItemDTO.itemCondition
         item.location = newItemDTO.location
+        item.latitude = newItemDTO.latitude
+        item.longitude = newItemDTO.longitude
         item.status = "Available"
         item.createdAt = Instant.now()
 
@@ -291,6 +301,42 @@ class ItemService {
                     it.description!!,
                     it.itemCondition,
                     it.location!!,
+                    it.latitude!!,
+                    it.longitude!!,
+                    it.price!!,
+                    CategoryDTO(
+                        it.category!!.id!!,
+                        it.category!!.name!!
+                    ),
+                    it.imageUrl,
+                    it.status!!,
+                    it.createdAt
+                )
+            }
+        } else {
+            emptyList()
+        }
+    }
+
+    //Función para obtener items dentro de un radio de una ubicación
+    fun getInRadius(lat: Double, lng: Double, radius: Double): List<ItemDTO> {
+        val itemList: List<Item> = itemDAO.findByDistance(lat, lng, radius)
+
+        return if (itemList.isNotEmpty()) {
+            itemList.map {
+                ItemDTO(
+                    it.id!!,
+                    UserDTO(
+                        it.user!!.id!!,
+                        it.user!!.name!!,
+                        it.user!!.imageUrl
+                    ),
+                    it.title!!,
+                    it.description!!,
+                    it.itemCondition,
+                    it.location!!,
+                    it.latitude!!,
+                    it.longitude!!,
                     it.price!!,
                     CategoryDTO(
                         it.category!!.id!!,
