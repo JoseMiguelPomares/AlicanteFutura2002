@@ -56,7 +56,7 @@ export const NotificationDropdown = () => {
 
   // Manejar clic en una notificación
   const handleNotificationClick = (chatId: number, notificationId: number) => {
-    markAsRead(notificationId)
+    markAsRead(chatId)
     navigate(`/chat/${chatId}`)
     setIsOpen(false)
   }
@@ -147,7 +147,7 @@ export const NotificationDropdown = () => {
                         <small className="text-muted">{formatRelativeTime(notification.timestamp)}</small>
                       </div>
                       <p className="mb-0 text-muted">
-                        <TruncatedText text={notification.message} />
+                        <TruncatedText text={notification.unreadCount > 1 ? `${notification.unreadCount} mensajes nuevos` : notification.message} />
                       </p>
                       <div className="mt-1">
                         {notification.read ? (
@@ -156,7 +156,7 @@ export const NotificationDropdown = () => {
                           </small>
                         ) : (
                           <Badge bg="success" pill className="opacity-75">
-                            Nuevo
+                            {notification.unreadCount > 1 ? `${notification.unreadCount} nuevos` : "Nuevo"}
                           </Badge>
                         )}
                       </div>
