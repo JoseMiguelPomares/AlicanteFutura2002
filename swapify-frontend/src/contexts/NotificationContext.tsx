@@ -64,17 +64,23 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             // Obtener los mensajes del chat
             const messages = await chatService.getMessages(chat.id)
 
-            // Filtrar los mensajes no leídos enviados por el otro usuario
-            const unreadMessages = messages.filter((msg: any) => msg.sender.id === otherUserId && !msg.read)
-            
+            // Filtrar los mensajes enviados por el otro usuario
+            const receivedMessages = messages.filter((msg: any) => msg.sender.id === otherUserId)
+
+            // Obtener el estado de leído desde localStorage
+            const readMessages = JSON.parse(localStorage.getItem(`readMessages_${user.id}`) || '{}');
+
+            // Filtrar los mensajes no leídos
+            const unreadMessages = receivedMessages.filter((msg: any) => !readMessages[msg.id]);
+
             // Si hay mensajes no leídos en este chat
             if (unreadMessages.length > 0) {
               // Ordenar los mensajes no leídos por fecha (más recientes primero)
               unreadMessages.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-              
+
               // Tomar el mensaje más reciente para la notificación
               const latestMessage = unreadMessages[0]
-              
+
               // Crear o actualizar la notificación para este chat
               chatNotificationsMap.set(chat.id, {
                 id: latestMessage.id,
@@ -84,10 +90,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 senderImage: latestMessage.sender.imageUrl,
                 message: latestMessage.content,
                 timestamp: latestMessage.createdAt,
-                read: false,
+                read: false, // En el contexto de notificación, siempre es no leído hasta que se marca
                 unreadCount: unreadMessages.length // Número de mensajes no leídos en este chat
               })
-              
 
             }
           }
@@ -98,7 +103,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       // Convertir el Map a un array de notificaciones
       const groupedNotifications = Array.from(chatNotificationsMap.values())
-      
+
       // Ordenar las notificaciones por fecha (más recientes primero)
       groupedNotifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
@@ -119,43 +124,67 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return () => clearInterval(intervalId)
   }, [user, isAuthenticated])
 
-  // Marcar una notificación como leída
-  const markAsRead = async (notificationId: number) => {
-    try {
-      // Aquí iría la llamada a la API para marcar el mensaje como leído
-      // Por ahora, solo actualizamos el estado local
-      setNotifications((prevNotifications) => {
-        // Encontrar la notificación que se va a marcar como leída
-        const notification = prevNotifications.find(n => n.id === notificationId)
-        
-        if (!notification) return prevNotifications
-        
-        // Decrementar el contador de mensajes no leídos para este chat
-        const updatedUnreadCount = Math.max(0, notification.unreadCount - 1)
-        
-        // Si ya no hay mensajes no leídos en este chat, eliminar la notificación
-        if (updatedUnreadCount === 0) {
-          return prevNotifications.filter(n => n.id !== notificationId)
-        }
-        
-        // De lo contrario, actualizar el contador de mensajes no leídos
-        return prevNotifications.map(n =>
-          n.id === notificationId ? { ...n, unreadCount: updatedUnreadCount } : n
-        )
-      })
+  // Marcar un chat como leído
+  const markAsRead = async (chatId: number) => {
+    if (!user) return // Asegurarse de que el usuario esté autenticado
 
-      // Actualizar el contador total de no leídos
-      setUnreadCount((prev) => Math.max(0, prev - 1))
+    try {
+      // Obtener el estado actual de localStorage
+      const readMessages = JSON.parse(localStorage.getItem(`readMessages_${user.id}`) || '{}');
+
+      // Obtener todos los mensajes de este chat
+      const messages = await chatService.getMessages(chatId);
+
+      // Marcar cada mensaje como leído en localStorage
+      messages.forEach((msg: any) => {
+        readMessages[msg.id] = true;
+      });
+
+      // Guardar el estado actualizado en localStorage
+      localStorage.setItem(`readMessages_${user.id}`, JSON.stringify(readMessages));
+
+      // Opcional: Llama a la API para marcar todos los mensajes de este chat como leídos para el usuario actual (para sincronización futura si se desea)
+      // await chatService.markAllMessagesAsRead(chatId, user.id);
+
+      // Después de marcar todos en el frontend, eliminar la notificación correspondiente a este chat
+      setNotifications((prevNotifications) => prevNotifications.filter(n => n.chatId !== chatId));
+
+      // Recalcular el contador total de no leídos
+      loadNotifications();
+
     } catch (error) {
-      console.error("Error al marcar notificación como leída:", error)
+      console.error("Error al marcar chat como leído:", error)
     }
   }
 
   // Marcar todas las notificaciones como leídas
   const markAllAsRead = async () => {
+    if (!user) return // Asegurarse de que el usuario esté autenticado
+
     try {
-      // Aquí iría la llamada a la API para marcar todos los mensajes como leídos
-      // Por ahora, simplemente limpiamos todas las notificaciones ya que representan chats
+      // Obtener el estado actual de localStorage
+      const readMessages = JSON.parse(localStorage.getItem(`readMessages_${user.id}`) || '{}');
+
+      // Marcar todos los mensajes de las notificaciones actuales como leídos en localStorage
+      for (const notification of notifications) {
+        // Obtener todos los mensajes de este chat
+        const messages = await chatService.getMessages(notification.chatId);
+
+        // Marcar cada mensaje como leído en localStorage
+        messages.forEach((msg: any) => {
+          readMessages[msg.id] = true;
+        });
+      }
+
+      // Guardar el estado actualizado en localStorage
+      localStorage.setItem(`readMessages_${user.id}`, JSON.stringify(readMessages));
+
+      // Opcional: Llama a la API para marcar todos los mensajes de este chat como leídos para el usuario actual (para sincronización futura si se desea)
+      // for (const notification of notifications) {
+      //   await chatService.markAllMessagesAsRead(notification.chatId, user.id);
+      // }
+
+      // Después de marcar todos en el frontend, limpiar el estado local
       setNotifications([])
       setUnreadCount(0)
     } catch (error) {

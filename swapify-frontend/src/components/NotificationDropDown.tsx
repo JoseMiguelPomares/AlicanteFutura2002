@@ -56,7 +56,7 @@ export const NotificationDropdown = () => {
 
   // Manejar clic en una notificación
   const handleNotificationClick = (chatId: number, notificationId: number) => {
-    markAsRead(notificationId)
+    markAsRead(chatId)
     navigate(`/chat/${chatId}`)
     setIsOpen(false)
   }
