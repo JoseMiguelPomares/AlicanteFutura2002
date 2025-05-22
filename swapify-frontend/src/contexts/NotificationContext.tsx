@@ -49,7 +49,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       // Map para agrupar notificaciones por chatId
       const chatNotificationsMap = new Map<number, ChatNotification>()
-      let totalUnreadCount = 0
 
       // Para cada transacción, obtener los mensajes no leídos
       for (const transaction of transactions) {
@@ -89,8 +88,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 unreadCount: unreadMessages.length // Número de mensajes no leídos en este chat
               })
               
-              // Incrementar el contador total de mensajes no leídos
-              totalUnreadCount += unreadMessages.length
+
             }
           }
         } catch (error) {
@@ -105,7 +103,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       groupedNotifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
       setNotifications(groupedNotifications)
-      setUnreadCount(totalUnreadCount)
+      setUnreadCount(groupedNotifications.length)
     } catch (error) {
       console.error("Error al cargar notificaciones:", error)
     }
