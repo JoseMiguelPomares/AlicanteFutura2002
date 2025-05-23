@@ -78,6 +78,7 @@ class UserService {
         user.reputation = 5.0
         user.createdAt = Instant.now()
         user.imageUrl = userSignInDTO.imageUrl // Guardar la URL de la imagen
+        user.banned = false // Inicializar como no baneado
 
         userDAO.save(user)
         return ResponseEntity(HttpStatus.CREATED)
