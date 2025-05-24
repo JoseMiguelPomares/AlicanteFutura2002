@@ -24,7 +24,6 @@ import { ChatService } from "../services/chatService"
 import { TransactionService } from "../services/transactionService"
 import { UserService } from "../services/userService"
 import { ItemService } from "../services/itemService";
-import { useNotifications } from "../contexts/NotificationContext"
 const API_URL = import.meta.env.VITE_API_BASE_URL
 
 
@@ -113,9 +112,8 @@ export const PaginaChat = () => {
   const [offerDetails, setOfferDetails] = useState({
     itemName: "",
     itemDescription: "",
-    credits: 0,
+    credits: ""
   })
-  const { refreshNotifications } = useNotifications()
   const [userProducts, setUserProducts] = useState<Item[]>([])
 
   // Servicios
@@ -331,12 +329,20 @@ export const PaginaChat = () => {
     }
   }, [messages])
 
-  // Filtrar chats por término de búsqueda
-  const filteredChats = chats.filter(
-    (chat) =>
-      chat.owner.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      chat.transaction.item.title.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  // Filtrar chats por término de búsqueda y ordenar por fecha del último mensaje (más recientes primero)
+  const filteredChats = chats
+    .filter(
+      (chat) =>
+        chat.owner.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        chat.transaction.item.title.toLowerCase().includes(searchTerm.toLowerCase()),
+    )
+    .sort((a, b) => {
+      // Si no hay fecha de último mensaje, colocar al final
+      if (!a.lastMessageAt) return 1;
+      if (!b.lastMessageAt) return -1;
+      // Ordenar de más reciente a más antiguo
+      return new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime();
+    });
 
   // Manejar envío de mensaje
   {/* const handleSendMessage = async (e: React.FormEvent) => {
@@ -439,7 +445,12 @@ export const PaginaChat = () => {
   const handleSendOffer = () => {
     if (!selectedChat || !user) return
 
-    const offerMessage = `Te propongo un intercambio: ${offerDetails.itemName}${offerDetails.itemDescription ? ` - ${offerDetails.itemDescription}` : ""}${offerDetails.credits > 0 ? ` + ${offerDetails.credits} créditos` : ""}`
+    // Permitir envío si hay producto O créditos
+    if (!offerDetails.itemName && (!offerDetails.credits || offerDetails.credits === "")) {
+      return // No enviar si no hay ni producto ni créditos
+    }
+
+    const offerMessage = `Te propongo un intercambio: ${offerDetails.itemName}${offerDetails.itemDescription ? ` - ${offerDetails.itemDescription}` : ""}${offerDetails.credits && offerDetails.credits !== "" ? ` + ${offerDetails.credits} créditos` : ""}`
 
     // Enviar mensaje con la oferta
     chatService
@@ -478,7 +489,7 @@ export const PaginaChat = () => {
         setOfferDetails({
           itemName: "",
           itemDescription: "",
-          credits: 0,
+          credits: "", // Cambiar de 0 a string vacío
         })
         setShowOfferForm(false)
       })
@@ -616,11 +627,19 @@ export const PaginaChat = () => {
                         </div>
 
                         <div className="mt-1">
-                          <small className="text-truncate d-block">
-                            <Badge bg="light" text="dark" className="border">
-                              {chat.transaction.item.title}
-                            </Badge>
-                          </small>
+                          <div className="d-flex align-items-center">
+                            <Image
+                              src={chat.transaction.item.user.imageUrl || "/placeholder.svg?height=16&width=16"}
+                              width={16}
+                              height={16}
+                              className="rounded-circle me-2 object-fit-cover"
+                            />
+                            <small className="text-truncate d-block">
+                              <Badge bg="light" text="dark" className="border">
+                                {chat.transaction.item.title}
+                              </Badge>
+                            </small>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -700,16 +719,33 @@ export const PaginaChat = () => {
                       </Link>
                     </h6>
                     <p className="mb-0 text-success fw-bold">{selectedChat.transaction.item.price} Créditos</p>
+                    {/* Agregar información del dueño */}
+                    <div className="d-flex align-items-center mt-1">
+                      <Image
+                        src={selectedChat.transaction.item.user.imageUrl || "/placeholder.svg?height=20&width=20"}
+                        width={20}
+                        height={20}
+                        className="rounded-circle me-2 object-fit-cover"
+                      />
+                      <small className="text-muted">
+                        {user?.id === selectedChat.transaction.item.user.id 
+                          ? "Ofrecido por ti" 
+                          : `Ofrecido por ${selectedChat.transaction.item.user.name}`}
+                      </small>
+                    </div>
                   </div>
-                  <Button
-                    variant="outline-success"
-                    size="sm"
-                    className="rounded-pill"
-                    onClick={() => { loadUserProducts(), setShowOfferForm(!showOfferForm) }}
-                  >
-                    <ArrowClockwise className="me-1" />
-                    Proponer intercambio
-                  </Button>
+                  {/* Solo mostrar el botón si el usuario no es el vendedor */}
+                  {user?.id !== selectedChat.transaction.item.user.id && (
+                    <Button
+                      variant="outline-success"
+                      size="sm"
+                      className="rounded-pill"
+                      onClick={() => { loadUserProducts(), setShowOfferForm(!showOfferForm) }}
+                    >
+                      <ArrowClockwise className="me-1" />
+                      Proponer intercambio
+                    </Button>
+                  )}
                 </div>
 
                 {/* Formulario de oferta */}
@@ -775,10 +811,10 @@ export const PaginaChat = () => {
                         <Form.Control
                           type="number"
                           min="0"
-                          placeholder="0"
+                          placeholder="Ingresa aquí los créditos que quieres ofrecer"
                           value={offerDetails.credits}
                           onChange={(e) =>
-                            setOfferDetails({ ...offerDetails, credits: Number.parseInt(e.target.value) || 0 })
+                            setOfferDetails({ ...offerDetails, credits: e.target.value })
                           }
                         />
                       </Form.Group>
@@ -788,7 +824,7 @@ export const PaginaChat = () => {
                           variant="success"
                           className="rounded-pill"
                           onClick={handleSendOffer}
-                          disabled={!offerDetails.itemName}
+                          disabled={!offerDetails.itemName && (!offerDetails.credits || offerDetails.credits === "")}
                         >
                           Enviar oferta
                         </Button>
@@ -843,6 +879,27 @@ export const PaginaChat = () => {
                           style={{ maxWidth: "75%", minWidth: "120px" }}
                         >
                           <div className="message-content">{message.content}</div>
+                          
+                          {/* Botones de aceptar/rechazar para mensajes de oferta (SÓLO VISUAL. SIN FUNCIONALIDAD) */}
+                          {message.sender.id !== user?.id && (
+                            <div className="mt-2 d-flex gap-2">
+                              <Button 
+                                variant="primary" 
+                                size="sm" 
+                                disabled={selectedChat?.transaction.status !== "pending"}
+                              >
+                                <CheckCircle className="me-1" /> Aceptar
+                              </Button>
+                              <Button 
+                                variant="outline-danger" 
+                                size="sm" 
+                                disabled={selectedChat?.transaction.status !== "pending"}
+                              >
+                                <XCircle className="me-1" /> Rechazar
+                              </Button>
+                            </div>
+                          )}
+                          
                           <div
                             className={`message-time mt-1 text-end small ${message.sender.id === user?.id ? "text-white-50" : "text-muted"
                               }`}
