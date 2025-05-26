@@ -70,6 +70,14 @@ export const PaginaInicio = () => {
       .slice(0, 4)
   }, [getFavoritesCount])
 
+  const shouldHideProduct = (producto: Producto) => {
+    // No ocultar nada mientras auth está en progreso (undefined)
+    if (user === undefined) return false;
+
+    // Ocultar SOLO si hay un usuario logueado y es el dueño
+    return user !== null && producto.user?.id === user.id;
+  };
+
   // Productos filtrados con memoización
   const [serviciosCercanos, setServiciosCercanos] = useState<Producto[]>([]);
   const productosFiltrados = useMemo(() => {
@@ -81,7 +89,7 @@ export const PaginaInicio = () => {
       serviciosCercanos: []
     }
 
-    const productosDisponibles = productos.filter(p => p.status !== "Sold" && (!user || p.user?.id !== user.id))
+    const productosDisponibles = productos.filter(p => p.status !== "Sold" && !shouldHideProduct(p))
     const servicios = productosDisponibles.filter(p => p.category?.name?.toLowerCase() === "otros")
 
     return {
@@ -100,6 +108,8 @@ export const PaginaInicio = () => {
   const [ubicacionUsuario, setUbicacionUsuario] = useState<{ lat: number, lng: number } | null>(null);
 
   useEffect(() => {
+    if (user === undefined) return; // Espera a que auth se resuelva
+
     const obtenerUbicacion = () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -110,7 +120,7 @@ export const PaginaInicio = () => {
             try {
               const response = await itemService.getItemByRadius(latitude, longitude);
               const serviciosCercanos = response.data.filter(
-                (item: Producto) => item.category?.name?.toLowerCase() === 'otros' && item.status !== 'Sold' && (!user || item.user?.id !== user.id)
+                (item: Producto) => item.category?.name?.toLowerCase() === 'otros' && item.status !== 'Sold' && !shouldHideProduct(item)
               );
               setServiciosCercanos(serviciosCercanos);
             } catch (error) {
@@ -130,8 +140,8 @@ export const PaginaInicio = () => {
   // Productos mostrados según categoría activa
   const productosMostrados = useMemo(() => {
     return categoriaActiva === "Todos"
-      ? productos.filter(p => p.status !== "Sold" && (!user || p.user?.id !== user.id))
-      : productos.filter(p => p.status !== "Sold" && p.category?.name === categoriaActiva && (!user || p.user?.id !== user.id))
+      ? productos.filter(p => p.status !== "Sold" && !shouldHideProduct(p))
+      : productos.filter(p => p.status !== "Sold" && p.category?.name === categoriaActiva && !shouldHideProduct(p))
   }, [categoriaActiva, productos, user])
 
   // Productos aleatorios
@@ -337,17 +347,17 @@ export const PaginaInicio = () => {
                   </Col>
                 ))}
               </Row>
-              </>
-              ) : ubicacionUsuario ? (
-              <Alert variant="info" className="mt-3" dismissible>
-                No se encontraron servicios cercanos en tu ubicación.
-              </Alert>
-              ) : (
-              <Alert variant="info" className="mt-3" dismissible>
-                Activa la ubicación para ver servicios cercanos a ti.
-              </Alert>
-            )}
-            </Container>
+            </>
+          ) : ubicacionUsuario ? (
+            <Alert variant="info" className="mt-3" dismissible>
+              No se encontraron servicios cercanos en tu ubicación.
+            </Alert>
+          ) : user ? (
+            <Alert variant="info" className="mt-3" dismissible>
+              Activa la ubicación para ver servicios cercanos a ti.
+            </Alert>
+          ) : null}
+        </Container>
       </section>
 
       {/* Productos Destacados */}
