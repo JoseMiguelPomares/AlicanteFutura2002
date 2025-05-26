@@ -89,6 +89,9 @@ class UserService {
         val userEmailOptional: Optional<User> = userDAO.findByEmail(identification)
         if (userEmailOptional.isPresent) {
             val user = userEmailOptional.get()
+            if (user.banned) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build() // Usuario baneado
+            }
             if (PasswordUtils.checkPassword(password, user.passwordHash.toString())) {
                 return ResponseEntity.ok(user)
             } else {
@@ -98,6 +101,9 @@ class UserService {
             val userNameOptional: Optional<User> = userDAO.findByName(identification)
             if (userNameOptional.isPresent) {
                 val user = userNameOptional.get()
+                if (user.banned) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build() // Usuario baneado
+                }
                 if (PasswordUtils.checkPassword(password, user.passwordHash.toString())) {
                     return ResponseEntity.ok(user)
                 } else {
