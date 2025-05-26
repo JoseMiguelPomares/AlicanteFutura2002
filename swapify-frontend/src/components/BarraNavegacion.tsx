@@ -40,7 +40,8 @@ import {
   CreditCard,
   CheckCircle,
   CurrencyEuro,
-  Plus
+  Plus,
+  Tag
 } from "react-bootstrap-icons"
 import { useMediaQuery } from "react-responsive"
 import logo from "../assets/images/logosSwapify/logoNegroLargoFondoTransp.png"
@@ -128,6 +129,7 @@ export const BarraNavegacion = () => {
     { name: "Ropa", icon: <Handbag className="me-1" />, path: "/categoria/ropa" },
     { name: "Hogar", icon: <House className="me-1" />, path: "/categoria/hogar" },
     { name: "Deporte", icon: <Bicycle className="me-1" />, path: "/categoria/deporte" },
+    { name: "Servicios", icon: <Tag className="me-1" />, path: `/categoria/${encodeURIComponent("otros / servicios")}` },
   ]
 
   const dropdownStyles = `

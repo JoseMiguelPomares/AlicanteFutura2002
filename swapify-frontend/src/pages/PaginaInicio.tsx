@@ -90,7 +90,7 @@ export const PaginaInicio = () => {
     }
 
     const productosDisponibles = productos.filter(p => p.status !== "Sold" && !shouldHideProduct(p))
-    const servicios = productosDisponibles.filter(p => p.category?.name?.toLowerCase() === "otros")
+    const servicios = productosDisponibles.filter(p => p.category?.name?.toLowerCase() === "otros / servicios")
 
     return {
       destacados: getProductosMasFavoritos(productosDisponibles),
@@ -120,7 +120,7 @@ export const PaginaInicio = () => {
             try {
               const response = await itemService.getItemByRadius(latitude, longitude);
               const serviciosCercanos = response.data.filter(
-                (item: Producto) => item.category?.name?.toLowerCase() === 'otros' && item.status !== 'Sold' && !shouldHideProduct(item)
+                (item: Producto) => item.category?.name?.toLowerCase() === 'otros / servicios' && item.status !== 'Sold' && !shouldHideProduct(item)
               );
               setServiciosCercanos(serviciosCercanos);
             } catch (error) {
@@ -407,7 +407,7 @@ export const PaginaInicio = () => {
             <h2 className="h3 fw-bold mb-0">Servicios disponibles</h2>
             <Button
               as={Link as any}
-              to="/categoria/otros"
+              to="/categoria/otros / servicios"
               variant="link"
               className="text-decoration-none text-success"
             >
