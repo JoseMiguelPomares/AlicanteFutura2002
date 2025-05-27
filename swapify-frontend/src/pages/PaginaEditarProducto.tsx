@@ -17,7 +17,7 @@ import {
   ProgressBar,
   Modal,
 } from "react-bootstrap"
-import { ArrowLeft, PlusCircle, CheckCircle, ExclamationTriangle, Trash } from "react-bootstrap-icons"
+import { ArrowLeft, PlusCircle, CheckCircle, ExclamationTriangle, Trash, GeoAlt } from "react-bootstrap-icons"
 import { ItemService } from "../services/itemService"
 import { CategoryService } from "../services/categoryService"
 import { ImageService } from "../services/imageService"
@@ -47,6 +47,8 @@ interface Producto {
   }
   itemCondition?: string
   location?: string
+  latitude?: number
+  longitude?: number
 }
 
 export const PaginaEditarProducto = () => {
@@ -73,6 +75,15 @@ export const PaginaEditarProducto = () => {
   const [productImages, setProductImages] = useState<string[]>([])
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [currentUploadingImage, setCurrentUploadingImage] = useState<string | null>(null)
+
+  // Estados para autocompletado de ubicación
+  const [locationSuggestions, setLocationSuggestions] = useState<any[]>([])
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false)
+  const [locationLoading, setLocationLoading] = useState(false)
+  const [locationData, setLocationData] = useState({
+    latitude: null as number | null,
+    longitude: null as number | null,
+  })
 
   // Estados para categorías
   const [categories, setCategories] = useState<Category[]>([])
@@ -127,6 +138,14 @@ export const PaginaEditarProducto = () => {
           setProductImages(producto.imageUrl.split("|"))
         } else {
           setProductImages([])
+        }
+
+        // Si el producto tiene coordenadas, establecerlas
+        if (producto.latitude && producto.longitude) {
+          setLocationData({
+            latitude: producto.latitude,
+            longitude: producto.longitude,
+          })
         }
       } catch (error) {
         console.error("Error al cargar los datos:", error)
@@ -202,6 +221,118 @@ export const PaginaEditarProducto = () => {
     })
   }
 
+  // Función para buscar ubicaciones con autocompletado
+  const searchLocations = async (query: string) => {
+    if (query.length < 3) {
+      setLocationSuggestions([])
+      setShowLocationDropdown(false)
+      return
+    }
+
+    setLocationLoading(true)
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`,
+      )
+      const data = await response.json()
+
+      const suggestions = data.map((item: any) => ({
+        display_name: item.display_name,
+        lat: Number.parseFloat(item.lat),
+        lon: Number.parseFloat(item.lon),
+        formatted:
+          `${item.address?.city || item.address?.town || item.address?.village || ""}, ${item.address?.state || item.address?.province || ""}, ${item.address?.country || ""}`.replace(
+            /^,\s*|,\s*$/g,
+            "",
+          ),
+      }))
+
+      setLocationSuggestions(suggestions)
+      setShowLocationDropdown(true)
+    } catch (error) {
+      console.error("Error al buscar ubicaciones:", error)
+      setLocationSuggestions([])
+    } finally {
+      setLocationLoading(false)
+    }
+  }
+
+  // Función para seleccionar una ubicación
+  const selectLocation = (suggestion: any) => {
+    setLocation(suggestion.formatted)
+    setLocationData({
+      latitude: suggestion.lat,
+      longitude: suggestion.lon,
+    })
+    setShowLocationDropdown(false)
+    setLocationSuggestions([])
+  }
+
+  // Función para obtener ubicación actual
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("La geolocalización no está soportada en este navegador")
+      return
+    }
+
+    setLocationLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords
+
+        try {
+          // Geocodificación inversa para obtener la dirección
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+          )
+          const data = await response.json()
+
+          const address =
+            `${data.address?.city || data.address?.town || data.address?.village || ""}, ${data.address?.state || data.address?.province || ""}, ${data.address?.country || ""}`.replace(
+              /^,\s*|,\s*$/g,
+              "",
+            )
+
+          setLocation(address)
+          setLocationData({ latitude, longitude })
+        } catch (error) {
+          console.error("Error al obtener la dirección:", error)
+          setLocation(`${latitude}, ${longitude}`)
+          setLocationData({ latitude, longitude })
+        } finally {
+          setLocationLoading(false)
+        }
+      },
+      (error) => {
+        console.error("Error al obtener la ubicación:", error)
+        alert("No se pudo obtener tu ubicación. Por favor, introduce la ubicación manualmente.")
+        setLocationLoading(false)
+      },
+    )
+  }
+
+  // Debounce para la búsqueda de ubicaciones
+  const debounceLocationSearch = (() => {
+    let timeoutId: NodeJS.Timeout
+    return (query: string) => {
+      clearTimeout(timeoutId)
+      timeoutId = setTimeout(() => searchLocations(query), 300)
+    }
+  })()
+
+  // Manejar cambios en el campo de ubicación
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setLocation(value)
+
+    if (value.length >= 3) {
+      debounceLocationSearch(value)
+    } else {
+      setShowLocationDropdown(false)
+      setLocationSuggestions([])
+    }
+  }
+
   // Función para guardar los cambios
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -241,6 +372,8 @@ export const PaginaEditarProducto = () => {
         itemCondition,
         location,
         status,
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
       }
 
       // Actualizar el producto
@@ -385,25 +518,116 @@ export const PaginaEditarProducto = () => {
 
                   <Col md={6}>
                     <Form.Group className="mb-3">
-                      <Form.Label>Ubicación</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        placeholder="Ciudad, Provincia"
-                      />
+                      <Form.Label>Estado de publicación</Form.Label>
+                      <Form.Select value={status} onChange={(e) => setStatus(e.target.value)}>
+                        <option value="Available">Disponible</option>
+                        <option value="Reserved">Reservado</option>
+                        <option value="Sold">Vendido</option>
+                        <option value="Hidden">Oculto</option>
+                      </Form.Select>
                     </Form.Group>
                   </Col>
                 </Row>
 
                 <Form.Group className="mb-3">
-                  <Form.Label>Estado de publicación</Form.Label>
-                  <Form.Select value={status} onChange={(e) => setStatus(e.target.value)}>
-                    <option value="Available">Disponible</option>
-                    <option value="Reserved">Reservado</option>
-                    <option value="Sold">Vendido</option>
-                    <option value="Hidden">Oculto</option>
-                  </Form.Select>
+                  <Form.Label>Ubicación</Form.Label>
+                  <div className="position-relative">
+                    <div className="input-group">
+                      <span className="input-group-text bg-light">
+                        <GeoAlt className="text-muted" />
+                      </span>
+                      <Form.Control
+                        type="text"
+                        value={location}
+                        onChange={handleLocationChange}
+                        onFocus={() => {
+                          if (locationSuggestions.length > 0) {
+                            setShowLocationDropdown(true)
+                          }
+                        }}
+                        onBlur={() => {
+                          // Delay para permitir clicks en el dropdown
+                          setTimeout(() => setShowLocationDropdown(false), 200)
+                        }}
+                        placeholder="Ciudad, Provincia"
+                        autoComplete="off"
+                      />
+                      <Button
+                        variant="outline-secondary"
+                        onClick={getCurrentLocation}
+                        disabled={locationLoading}
+                        title="Usar mi ubicación actual"
+                      >
+                        {locationLoading ? (
+                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        ) : (
+                          <GeoAlt />
+                        )}
+                      </Button>
+                    </div>
+
+                    {/* Dropdown de sugerencias */}
+                    {showLocationDropdown && locationSuggestions.length > 0 && (
+                      <div
+                        className="position-absolute w-100 bg-white border rounded-3 shadow-sm mt-1"
+                        style={{ zIndex: 1000, maxHeight: "200px", overflowY: "auto" }}
+                      >
+                        {locationSuggestions.map((suggestion, index) => (
+                          <div
+                            key={index}
+                            className="p-3 border-bottom"
+                            style={{ cursor: "pointer" }}
+                            onClick={() => selectLocation(suggestion)}
+                            onMouseDown={(e) => e.preventDefault()} // Prevenir blur
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#f8f9fa"
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "white"
+                            }}
+                          >
+                            <div className="d-flex align-items-center">
+                              <GeoAlt className="text-muted me-2" size={16} />
+                              <div>
+                                <div className="fw-medium">{suggestion.formatted}</div>
+                                <small className="text-muted">{suggestion.display_name}</small>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Indicador de búsqueda */}
+                    {locationLoading && location.length >= 3 && (
+                      <div
+                        className="position-absolute w-100 bg-white border rounded-3 shadow-sm mt-1 p-3"
+                        style={{ zIndex: 1000 }}
+                      >
+                        <div className="d-flex align-items-center">
+                          <span
+                            className="spinner-border spinner-border-sm me-2"
+                            role="status"
+                            aria-hidden="true"
+                          ></span>
+                          <span className="text-muted">Buscando ubicaciones...</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <Form.Text className="text-muted">
+                    Escribe para buscar ubicaciones o usa el botón para detectar tu ubicación actual.
+                  </Form.Text>
+
+                  {/* Mostrar coordenadas si están disponibles */}
+                  {locationData.latitude && locationData.longitude && (
+                    <div className="mt-2">
+                      <small className="text-success">
+                        📍 Coordenadas: {locationData.latitude.toFixed(6)}, {locationData.longitude.toFixed(6)}
+                      </small>
+                    </div>
+                  )}
                 </Form.Group>
               </Col>
 
