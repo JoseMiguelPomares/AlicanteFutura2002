@@ -439,7 +439,7 @@ export const PaginaVender = () => {
                     {/* Imagen del producto */}
                     <Form.Group className="mb-4" controlId="formImage">
                       <Form.Label className="fw-medium">
-                        Imágenes del producto <span className="text-danger">*</span>
+                        Imágenes del producto
                       </Form.Label>
 
                       {imagePreviewUrls.length > 0 ? (
