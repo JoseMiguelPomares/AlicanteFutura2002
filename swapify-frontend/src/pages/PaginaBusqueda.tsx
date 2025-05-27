@@ -603,6 +603,13 @@ export const PaginaBusqueda = () => {
                 ))}
               </Row>
             </>
+          ) : mostrarSoloServiciosCercanos && cargandoUbicacion ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-success" role="status">
+                <span className="visually-hidden">Cargando...</span>
+              </div>
+              <p className="mt-3">Obteniendo servicios y productos cercanos...</p>
+            </div>
           ) : (
             <div className="text-center py-5">
               <div className="mb-4">

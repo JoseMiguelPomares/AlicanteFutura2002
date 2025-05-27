@@ -441,7 +441,7 @@ export const PaginaPorCategoria = () => {
               <div className="spinner-border text-success" role="status">
                 <span className="visually-hidden">Cargando...</span>
               </div>
-              <p className="mt-3">Cargando productos...</p>
+              <p className="mt-3">Buscando productos...</p>
             </div>
           ) : error ? (
             <Alert variant="danger">{error}</Alert>
@@ -451,7 +451,7 @@ export const PaginaPorCategoria = () => {
               <div className="spinner-border text-success" role="status">
                 <span className="visually-hidden">Cargando...</span>
               </div>
-              <p className="mt-3">Obteniendo servicios cercanos...</p>
+              <p className="mt-3">Obteniendo servicios y productos cercanos...</p>
             </div>
           ) : filteredProductos.length > 0 ? (
             <>

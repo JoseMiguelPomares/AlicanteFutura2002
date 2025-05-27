@@ -90,7 +90,7 @@ export const BarraLateral: React.FC<BarraLateralProps> = ({ mostrar, alCerrar })
   const RenderizarCategoria = ({ categoria }: { categoria: Categoria }) => (
     <motion.li className="mb-2" whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
       <Link
-        to={`/categoria/${encodeURIComponent("otros / servicios")}`}
+        to={`/categoria/${encodeURIComponent(categoria.nombre.toLowerCase())}`}
         className="d-flex justify-content-between align-items-center py-2 px-3 rounded-pill text-decoration-none"
         style={{
           backgroundColor: categoria.subcategorias ? "transparent" : "#f8f9fa",
