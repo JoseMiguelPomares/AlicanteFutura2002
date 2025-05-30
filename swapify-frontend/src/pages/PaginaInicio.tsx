@@ -1,7 +1,7 @@
 "use client"
 
 import { Link } from "react-router-dom"
-import { Container, Row, Col, Button } from "react-bootstrap"
+import { Container, Row, Col, Button, Alert } from "react-bootstrap"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
@@ -14,6 +14,7 @@ import {
   Gift,
   Award,
   ArrowDownCircle,
+  GeoAlt,
 } from "react-bootstrap-icons"
 import { useNavigate } from "react-router-dom" // <-- Agrega esta línea
 import { useAuth } from "../contexts/AuthContext"
@@ -69,17 +70,27 @@ export const PaginaInicio = () => {
       .slice(0, 4)
   }, [getFavoritesCount])
 
+  const shouldHideProduct = (producto: Producto) => {
+    // No ocultar nada mientras auth está en progreso (undefined)
+    if (user === undefined) return false;
+
+    // Ocultar SOLO si hay un usuario logueado y es el dueño
+    return user !== null && producto.user?.id === user.id;
+  };
+
   // Productos filtrados con memoización
+  const [serviciosCercanos, setServiciosCercanos] = useState<Producto[]>([]);
   const productosFiltrados = useMemo(() => {
     if (productos.length === 0) return {
       destacados: [],
       recientes: [],
       populares: [],
-      servicios: []
+      servicios: [],
+      serviciosCercanos: []
     }
 
-    const productosDisponibles = productos.filter(p => p.status !== "Sold" && (!user || p.user?.id !== user.id))
-    const servicios = productosDisponibles.filter(p => p.category?.name?.toLowerCase() === "otros")
+    const productosDisponibles = productos.filter(p => p.status !== "Sold" && !shouldHideProduct(p))
+    const servicios = productosDisponibles.filter(p => p.category?.name?.toLowerCase() === "otros / servicios")
 
     return {
       destacados: getProductosMasFavoritos(productosDisponibles),
@@ -89,15 +100,48 @@ export const PaginaInicio = () => {
       populares: productosDisponibles
         .filter(p => p.category?.name?.toLowerCase() !== "otros")
         .slice(8, 12),
-      servicios: servicios.slice(0, 4)
+      servicios: servicios.slice(0, 4),
+      serviciosCercanos: serviciosCercanos.slice(0, 4) // Usamos el estado ya filtrado
     }
-  }, [productos, user, getProductosMasFavoritos])
+  }, [productos, user, serviciosCercanos, getProductosMasFavoritos])
+
+  const [ubicacionUsuario, setUbicacionUsuario] = useState<{ lat: number, lng: number } | null>(null);
+
+  useEffect(() => {
+    if (user === undefined) return; // Espera a que auth se resuelva
+
+    const obtenerUbicacion = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+            setUbicacionUsuario({ lat: latitude, lng: longitude });
+
+            try {
+              const response = await itemService.getItemByRadius(latitude, longitude);
+              const serviciosCercanos = response.data.filter(
+                (item: Producto) => item.category?.name?.toLowerCase() === 'otros / servicios' && item.status !== 'Sold' && !shouldHideProduct(item)
+              );
+              setServiciosCercanos(serviciosCercanos);
+            } catch (error) {
+              console.error('Error al obtener servicios cercanos:', error);
+            }
+          },
+          (error) => {
+            console.error('Error al obtener la ubicación:', error);
+          }
+        );
+      }
+    };
+
+    obtenerUbicacion();
+  }, [user]);
 
   // Productos mostrados según categoría activa
   const productosMostrados = useMemo(() => {
     return categoriaActiva === "Todos"
-      ? productos.filter(p => p.status !== "Sold" && (!user || p.user?.id !== user.id))
-      : productos.filter(p => p.status !== "Sold" && p.category?.name === categoriaActiva && (!user || p.user?.id !== user.id))
+      ? productos.filter(p => p.status !== "Sold" && !shouldHideProduct(p))
+      : productos.filter(p => p.status !== "Sold" && p.category?.name === categoriaActiva && !shouldHideProduct(p))
   }, [categoriaActiva, productos, user])
 
   // Productos aleatorios
@@ -282,6 +326,40 @@ export const PaginaInicio = () => {
         </Container>
       </div>
 
+      {/* Servicios cercanos */}
+      <section className="my-5">
+        <Container>
+          {serviciosCercanos.length > 0 ? (
+            <>
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <h2 className="fw-bold">
+                  <GeoAlt className="me-2 text-danger" />
+                  Servicios cerca de mí
+                </h2>
+              </div>
+
+              <Row xs={1} sm={2} md={2} lg={4} className="g-4">
+                {serviciosCercanos.map((producto) => (
+                  <Col key={`cercano-${producto.id}`}>
+                    <Suspense fallback={<div>Cargando tarjeta...</div>}>
+                      <ProductCard producto={producto} />
+                    </Suspense>
+                  </Col>
+                ))}
+              </Row>
+            </>
+          ) : ubicacionUsuario ? (
+            <Alert variant="info" className="mt-3" dismissible>
+              No se encontraron servicios cercanos en tu ubicación.
+            </Alert>
+          ) : user ? (
+            <Alert variant="info" className="mt-3" dismissible>
+              Activa la ubicación para ver servicios cercanos a ti.
+            </Alert>
+          ) : null}
+        </Container>
+      </section>
+
       {/* Productos Destacados */}
       <Container className="my-5">
         <div className="d-flex justify-content-between align-items-center mb-4">
@@ -329,7 +407,7 @@ export const PaginaInicio = () => {
             <h2 className="h3 fw-bold mb-0">Servicios disponibles</h2>
             <Button
               as={Link as any}
-              to="/categoria/otros"
+              to="/categoria/otros / servicios"
               variant="link"
               className="text-decoration-none text-success"
             >

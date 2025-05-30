@@ -277,6 +277,8 @@ class ItemService {
             item.price = itemDTO.price
             item.itemCondition = itemDTO.itemCondition  // Ya validado
             item.location = itemDTO.location
+            item.latitude = itemDTO.latitude
+            item.longitude = itemDTO.longitude
 
             itemDAO.save(item)
             return ResponseEntity(itemDTO, HttpStatus.OK)

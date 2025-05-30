@@ -10,6 +10,8 @@ class ModifyItemDTO (
     val imageUrl: String?,
     val price: BigDecimal,
     val itemCondition: String?,
-    val location: String?
+    val location: String?,
+    val latitude: Double,
+    val longitude: Double
 ){
 }

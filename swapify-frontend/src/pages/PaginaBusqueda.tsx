@@ -86,7 +86,6 @@ export const PaginaBusqueda = () => {
   const [filteredProductos, setFilteredProductos] = useState<Producto[]>([])
   const { user } = useAuth();
 
-
   // Estado para las categorías
   const [, setCategorias] = useState<{ id: number; name: string; parent_id?: number }[]>([])
   const [categoriasAgrupadas, setCategoriasAgrupadas] = useState<{ [key: string]: { id: number; name: string }[] }>({})
@@ -108,9 +107,32 @@ export const PaginaBusqueda = () => {
 
   const [activeKeys, setActiveKeys] = useState<string[]>(["0"]);
 
+  // Estado para ubicación y servicios cercanos
+  const [ubicacionUsuario, setUbicacionUsuario] = useState<{ lat: number; lng: number } | null>(null)
+  const [serviciosCercanos, setServiciosCercanos] = useState<Producto[]>([])
+  const [mostrarSoloServiciosCercanos, setMostrarSoloServiciosCercanos] = useState(false)
+  const [cargandoUbicacion, setCargandoUbicacion] = useState(false)
+
   // Servicios
   const itemService = new ItemService()
   const categoryService = new CategoryService()
+
+  const formatCompoundCategory = (name: string): string => {
+    if (!name) return "";
+
+    // Caso especial para "servicios" individual
+    if (name.toLowerCase().trim() === "servicios") return "Servicios";
+
+    // Divide y capitaliza cada palabra (incluyendo las separadas por "/")
+    return name
+      .split(/(\/|\s+)/) // Divide por slash o espacios
+      .map(word => {
+        if (word === '/') return '/'; // Mantiene el slash
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(' ') // Une con espacios
+      .replace(/\s+\/\s+/g, ' / '); // Normaliza espacios alrededor del slash
+  };
 
   // Cargar todos los productos y categorías
   useEffect(() => {
@@ -145,10 +167,52 @@ export const PaginaBusqueda = () => {
     fetchData()
   }, [])
 
+  // Función para obtener ubicación y servicios cercanos
+  const obtenerServiciosCercanos = async () => {
+    if (ubicacionUsuario) {
+      // Si ya tenemos la ubicación, usar los servicios ya cargados
+      return
+    }
+
+    setCargandoUbicacion(true)
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords
+          setUbicacionUsuario({ lat: latitude, lng: longitude })
+
+          try {
+            const response = await itemService.getItemByRadius(latitude, longitude)
+            const serviciosCercanosData = response.data.filter(
+              (item: Producto) => item.status !== "Sold" && (!user || item.user?.id !== user.id),
+            )
+            setServiciosCercanos(serviciosCercanosData)
+          } catch (error) {
+            console.error("Error al obtener servicios y productos cercanos:", error)
+          } finally {
+            setCargandoUbicacion(false)
+          }
+        },
+        (error) => {
+          console.error("Error al obtener la ubicación:", error)
+          setCargandoUbicacion(false)
+        },
+      )
+    } else {
+      setCargandoUbicacion(false)
+    }
+  }
+
   // Filtrar productos basados en la búsqueda y filtros
   useEffect(() => {
     if (productos.length > 0) {
       let filtered = [...productos]
+
+      // Si está activado el filtro de servicios cercanos, usar solo esos
+      if (mostrarSoloServiciosCercanos) {
+        filtered = [...serviciosCercanos]
+      }
 
       // Filtrar productos del usuario autenticado
       if (user) {
@@ -209,7 +273,7 @@ export const PaginaBusqueda = () => {
 
       setFilteredProductos(filtered)
     }
-  }, [query, productos, filtros])
+  }, [query, productos, filtros, mostrarSoloServiciosCercanos, serviciosCercanos, user])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -260,12 +324,8 @@ export const PaginaBusqueda = () => {
 
   const handleAccordionToggle = (eventKey: string) => {
     // Función para determinar el icono según la categoría
-    setActiveKeys((prev) =>
-      prev.includes(eventKey)
-        ? prev.filter((key) => key !== eventKey)
-        : [...prev, eventKey]
-    );
-  };
+    setActiveKeys((prev) => (prev.includes(eventKey) ? prev.filter((key) => key !== eventKey) : [...prev, eventKey]))
+  }
 
   // Función para determinar el icono según la categoría
   const getCategoryIcon = (categoryName: string) => {
@@ -357,7 +417,7 @@ export const PaginaBusqueda = () => {
                                 label={
                                   <span className="d-flex align-items-center">
                                     {getCategoryIcon(categoria.name)}
-                                    {categoria.name.charAt(0).toUpperCase() + categoria.name.slice(1)}
+                                    {formatCompoundCategory(categoria.name)}
                                   </span>
                                 }
                                 checked={filtros.categorias.includes(categoria.id)}
@@ -400,6 +460,44 @@ export const PaginaBusqueda = () => {
                           </Button>
                         </Badge>
                       </div>
+                    )}
+                    <hr className="my-3" />
+                    <Form.Check
+                      type="checkbox"
+                      id="servicios-cercanos"
+                      className="mb-3"
+                      label={
+                        <div>
+                          <div className="fw-medium">Mostrar sólo servicios y productos cercanos</div>
+                          <small className="text-muted">Encuentra servicios en tu área</small>
+                        </div>
+                      }
+                      checked={mostrarSoloServiciosCercanos}
+                      onChange={(e) => {
+                        const checked = e.target.checked
+                        setMostrarSoloServiciosCercanos(checked)
+                        if (checked && !ubicacionUsuario) {
+                          obtenerServiciosCercanos()
+                        }
+                      }}
+                    />
+
+                    {cargandoUbicacion && (
+                      <div className="text-center">
+                        <div className="spinner-border spinner-border-sm text-success me-2" role="status">
+                          <span className="visually-hidden">Cargando...</span>
+                        </div>
+                        <small className="text-muted">Obteniendo ubicación...</small>
+                      </div>
+                    )}
+
+                    {mostrarSoloServiciosCercanos &&
+                      serviciosCercanos.length === 0 &&
+                      !cargandoUbicacion &&
+                      ubicacionUsuario && <small className="text-muted">No se encontraron servicios ni productos cercanos</small>}
+
+                    {mostrarSoloServiciosCercanos && !ubicacionUsuario && !cargandoUbicacion && (
+                      <small className="text-warning">Activa la ubicación para ver servicios cercanos</small>
                     )}
                   </Accordion.Body>
                 </Accordion.Item>
@@ -505,6 +603,13 @@ export const PaginaBusqueda = () => {
                 ))}
               </Row>
             </>
+          ) : mostrarSoloServiciosCercanos && cargandoUbicacion ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-success" role="status">
+                <span className="visually-hidden">Cargando...</span>
+              </div>
+              <p className="mt-3">Obteniendo servicios y productos cercanos...</p>
+            </div>
           ) : (
             <div className="text-center py-5">
               <div className="mb-4">

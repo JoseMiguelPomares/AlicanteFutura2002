@@ -17,6 +17,7 @@ import {
   Flower1,
   CarFrontFill,
   Bicycle,
+  GeoAlt,
 } from "react-bootstrap-icons"
 import { ItemService } from "../services/itemService"
 import { CategoryService } from "../services/categoryService"
@@ -60,6 +61,11 @@ export const PaginaPorCategoria = () => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000])
   const [sortBy, setSortBy] = useState<string>("recent")
   const [error, setError] = useState<string | null>(null)
+  // Estado para ubicación y servicios cercanos
+  const [ubicacionUsuario, setUbicacionUsuario] = useState<{ lat: number; lng: number } | null>(null)
+  const [serviciosCercanos, setServiciosCercanos] = useState<Producto[]>([])
+  const [mostrarSoloServiciosCercanos, setMostrarSoloServiciosCercanos] = useState(false)
+  const [cargandoUbicacion, setCargandoUbicacion] = useState(false)
   const itemService = new ItemService()
   const categoryService = new CategoryService()
   const { user } = useAuth();
@@ -138,10 +144,54 @@ export const PaginaPorCategoria = () => {
     }
   }, [productos])
 
+  // Función para obtener ubicación y servicios cercanos
+  const obtenerServiciosCercanos = async () => {
+    if (ubicacionUsuario) {
+      return
+    }
+
+    setCargandoUbicacion(true)
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords
+          setUbicacionUsuario({ lat: latitude, lng: longitude })
+
+          try {
+            const response = await itemService.getItemByRadius(latitude, longitude)
+            const serviciosCercanosData = response.data.filter(
+              (item: Producto) => item.status !== "Sold" && (!user || item.user?.id !== user.id),
+            )
+            setServiciosCercanos(serviciosCercanosData)
+          } catch (error) {
+            console.error("Error al obtener servicios y productos cercanos:", error)
+          } finally {
+            setCargandoUbicacion(false)
+          }
+        },
+        (error) => {
+          console.error("Error al obtener la ubicación:", error)
+          setCargandoUbicacion(false)
+        },
+      )
+    } else {
+      setCargandoUbicacion(false)
+    }
+  }
+
   // Filtrar y ordenar productos
   useEffect(() => {
     if (productos.length > 0) {
       let filtered = [...productos]
+
+      // Si está activado el filtro de servicios cercanos, usar solo esos
+      if (mostrarSoloServiciosCercanos) {
+        // Filtrar servicios cercanos por la categoría actual
+        filtered = serviciosCercanos.filter(
+          (p) => categoria && p.category?.name?.toLowerCase() === categoria.toLowerCase(),
+        )
+      }
 
       // Filtrar productos vendidos
       filtered = filtered.filter(p => p.status !== "Sold")
@@ -174,21 +224,21 @@ export const PaginaPorCategoria = () => {
     } else {
       setFilteredProductos([])
     }
-  }, [productos, priceRange, sortBy])
+  }, [productos, priceRange, sortBy, mostrarSoloServiciosCercanos, serviciosCercanos, categoria, user])
 
   // Función para determinar el icono según la categoría
   const getCategoryIcon = (categoryName: string) => {
     switch (categoryName.toLowerCase()) {
-      case "tecnología":
-        return <Laptop className="text-info" />
-      case "hogar":
-        return <House className="text-success" />
-      case "libros":
-        return <Book className="text-info" />
+      case "juguetes":
+        return <Controller className="text-danger" />
       case "ropa":
         return <Handbag className="text-primary" />
       case "calzado":
         return <Basket className="text-warning" />
+      case "tecnología":
+        return <Laptop className="text-info" />
+      case "hogar":
+        return <House className="text-success" />
       case "electrodomésticos":
         return <Tools className="text-secondary" />
       case "vehículos":
@@ -199,31 +249,52 @@ export const PaginaPorCategoria = () => {
         return <Bicycle className="text-primary" />
       case "música":
         return <MusicNoteBeamed className="text-warning" />
-      case "juguetes":
-        return <Controller className="text-danger" />
+      case "libros":
+        return <Book className="text-info" />
+      case "otros / servicios":
+        return <Tag className="text-muted" />
       default:
         return <Tag className="text-muted" />
     }
   }
 
-  // Función para formatear el nombre de la categoría
   const formatCategoryName = (name: string): string => {
-    if (!name) return ""
-    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()
-  }
+    if (!name) return "";
+
+    // Caso especial para "servicios" (individual o en combinaciones)
+    const processedName = name.toLowerCase().trim();
+
+    if (processedName === "servicios") return "Servicios";
+    if (processedName.includes("servicios")) {
+      return name
+        .split(/(\/|\s+)/) // Divide por slash o espacios
+        .map(word => {
+          const lowerWord = word.toLowerCase();
+          if (lowerWord === "servicios") return "Servicios";
+          if (word === '/') return '/';
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        })
+        .join(' ') // Une con espacios
+        .replace(/\s+\/\s+/g, ' / '); // Normaliza espacios alrededor del slash
+    }
+
+    // Formato estándar para otras categorías
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  };
 
   // Función para obtener el color de la categoría
   const getCategoryColor = (categoryName: string): string => {
     switch (categoryName.toLowerCase()) {
-      case "tecnología":
+      case "juguetes":
+        return "danger"
+      case "ropa":
         return "primary"
+      case "calzado":
+        return "warning"
+      case "tecnología":
+        return "info"
       case "hogar":
         return "success"
-      case "libros":
-        return "info"
-      case "ropa":
-      case "calzado":
-        return "danger"
       case "electrodomésticos":
         return "secondary"
       case "vehículos":
@@ -234,8 +305,10 @@ export const PaginaPorCategoria = () => {
         return "primary"
       case "música":
         return "warning"
-      case "juguetes":
-        return "danger"
+      case "libros":
+        return "info"
+      case "otros / servicios":
+        return "secondary"
       default:
         return "secondary"
     }
@@ -286,6 +359,52 @@ export const PaginaPorCategoria = () => {
                   onChange={(e) => setPriceRange([priceRange[0], Number.parseInt(e.target.value)])}
                 />
               </div>
+              {/* Filtro por servicios cercanos */}
+              <div className="mb-4">
+                <h6 className="fw-bold mb-2">
+                  <GeoAlt className="me-1" />
+                  Servicios y Productos cercanos
+                </h6>
+                <Form.Check
+                  type="checkbox"
+                  id="servicios-cercanos"
+                  className="mb-2"
+                  label={
+                    <div>
+                      <div className="fw-medium">Sólo servicios y productos cercanos</div>
+                      <small className="text-muted">Encuentra servicios en tu área</small>
+                    </div>
+                  }
+                  checked={mostrarSoloServiciosCercanos}
+                  onChange={(e) => {
+                    const checked = e.target.checked
+                    setMostrarSoloServiciosCercanos(checked)
+                    if (checked && !ubicacionUsuario) {
+                      obtenerServiciosCercanos()
+                    }
+                  }}
+                />
+
+                {cargandoUbicacion && (
+                  <div className="text-center mt-2">
+                    <div className="spinner-border spinner-border-sm text-success me-2" role="status">
+                      <span className="visually-hidden">Cargando...</span>
+                    </div>
+                    <small className="text-muted">Obteniendo ubicación...</small>
+                  </div>
+                )}
+
+                {mostrarSoloServiciosCercanos &&
+                  serviciosCercanos.length === 0 &&
+                  !cargandoUbicacion &&
+                  ubicacionUsuario && (
+                    <small className="text-muted">No se encontraron servicios cercanos en esta categoría</small>
+                  )}
+
+                {mostrarSoloServiciosCercanos && !ubicacionUsuario && !cargandoUbicacion && (
+                  <small className="text-warning">Activa la ubicación para ver servicios cercanos</small>
+                )}
+              </div>
             </Card.Body>
           </Card>
 
@@ -294,11 +413,11 @@ export const PaginaPorCategoria = () => {
             <Card.Body>
               <h5 className="fw-bold mb-3">Categorías</h5>
               <div className="d-flex flex-column gap-2">
-                {categorias.slice(0, 8).map((cat) => (
+                {categorias.slice(0, 12).map((cat) => (
                   <Button
                     key={cat.id}
                     as={Link as any}
-                    to={`/categoria/${cat.name.toLowerCase()}`}
+                    to={`/categoria/${encodeURIComponent(cat.name.toLowerCase())}`}
                     variant={
                       cat.name.toLowerCase() === categoria?.toLowerCase()
                         ? getCategoryColor(cat.name)
@@ -322,10 +441,18 @@ export const PaginaPorCategoria = () => {
               <div className="spinner-border text-success" role="status">
                 <span className="visually-hidden">Cargando...</span>
               </div>
-              <p className="mt-3">Cargando productos...</p>
+              <p className="mt-3">Buscando productos...</p>
             </div>
           ) : error ? (
             <Alert variant="danger">{error}</Alert>
+          ) : mostrarSoloServiciosCercanos && cargandoUbicacion ? (
+            // Añade esta nueva condición para mostrar el estado de carga
+            <div className="text-center py-5">
+              <div className="spinner-border text-success" role="status">
+                <span className="visually-hidden">Cargando...</span>
+              </div>
+              <p className="mt-3">Obteniendo servicios y productos cercanos...</p>
+            </div>
           ) : filteredProductos.length > 0 ? (
             <>
               <p className="mb-4">Se encontraron {filteredProductos.length} productos en esta categoría</p>

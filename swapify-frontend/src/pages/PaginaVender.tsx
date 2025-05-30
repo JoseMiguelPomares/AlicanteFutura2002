@@ -17,7 +17,6 @@ import { motion } from "framer-motion"
 import { ItemService } from "../services/itemService"
 import { useAuth } from "../contexts/AuthContext"
 import { ImageService } from "../services/imageService"
-import { latLng } from "leaflet"
 
 // Lista de categorías disponibles
 const CATEGORIAS = [
@@ -57,8 +56,6 @@ export const PaginaVender = () => {
     category_id: "",
     condition: "",
     location: "",
-    latitude: 0.0,
-    longitude: 0.0,
     price: "",
     imageUrls: [] as string[], // Ahora es un array de URLs
   })
@@ -68,6 +65,15 @@ export const PaginaVender = () => {
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([])
   const [currentUploadIndex, setCurrentUploadIndex] = useState<number>(-1)
   const [uploadProgress, setUploadProgress] = useState(0)
+
+  // Estados para autocompletado de ubicación
+  const [locationSuggestions, setLocationSuggestions] = useState<any[]>([])
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false)
+  const [locationLoading, setLocationLoading] = useState(false)
+  const [locationData, setLocationData] = useState({
+    latitude: null as number | null,
+    longitude: null as number | null,
+  })
 
   // Estados para la UI
   const [loading, setLoading] = useState(false)
@@ -123,6 +129,118 @@ export const PaginaVender = () => {
     setImageFiles(newFiles)
     setImagePreviewUrls(newPreviewUrls)
     setFormData({ ...formData, imageUrls: newImageUrls })
+  }
+
+  // Función para buscar ubicaciones con autocompletado
+  const searchLocations = async (query: string) => {
+    if (query.length < 3) {
+      setLocationSuggestions([])
+      setShowLocationDropdown(false)
+      return
+    }
+
+    setLocationLoading(true)
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`,
+      )
+      const data = await response.json()
+
+      const suggestions = data.map((item: any) => ({
+        display_name: item.display_name,
+        lat: Number.parseFloat(item.lat),
+        lon: Number.parseFloat(item.lon),
+        formatted:
+          `${item.address?.city || item.address?.town || item.address?.village || ""}, ${item.address?.state || item.address?.province || ""}, ${item.address?.country || ""}`.replace(
+            /^,\s*|,\s*$/g,
+            "",
+          ),
+      }))
+
+      setLocationSuggestions(suggestions)
+      setShowLocationDropdown(true)
+    } catch (error) {
+      console.error("Error al buscar ubicaciones:", error)
+      setLocationSuggestions([])
+    } finally {
+      setLocationLoading(false)
+    }
+  }
+
+  // Función para seleccionar una ubicación
+  const selectLocation = (suggestion: any) => {
+    setFormData({ ...formData, location: suggestion.formatted })
+    setLocationData({
+      latitude: suggestion.lat,
+      longitude: suggestion.lon,
+    })
+    setShowLocationDropdown(false)
+    setLocationSuggestions([])
+  }
+
+  // Función para obtener ubicación actual
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("La geolocalización no está soportada en este navegador")
+      return
+    }
+
+    setLocationLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords
+
+        try {
+          // Geocodificación inversa para obtener la dirección
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+          )
+          const data = await response.json()
+
+          const address =
+            `${data.address?.city || data.address?.town || data.address?.village || ""}, ${data.address?.state || data.address?.province || ""}, ${data.address?.country || ""}`.replace(
+              /^,\s*|,\s*$/g,
+              "",
+            )
+
+          setFormData({ ...formData, location: address })
+          setLocationData({ latitude, longitude })
+        } catch (error) {
+          console.error("Error al obtener la dirección:", error)
+          setFormData({ ...formData, location: `${latitude}, ${longitude}` })
+          setLocationData({ latitude, longitude })
+        } finally {
+          setLocationLoading(false)
+        }
+      },
+      (error) => {
+        console.error("Error al obtener la ubicación:", error)
+        alert("No se pudo obtener tu ubicación. Por favor, introduce la ubicación manualmente.")
+        setLocationLoading(false)
+      },
+    )
+  }
+
+  // Debounce para la búsqueda de ubicaciones
+  const debounceLocationSearch = (() => {
+    let timeoutId: NodeJS.Timeout
+    return (query: string) => {
+      clearTimeout(timeoutId)
+      timeoutId = setTimeout(() => searchLocations(query), 300)
+    }
+  })()
+
+  // Manejar cambios en el campo de ubicación
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setFormData({ ...formData, location: value })
+
+    if (value.length >= 3) {
+      debounceLocationSearch(value)
+    } else {
+      setShowLocationDropdown(false)
+      setLocationSuggestions([])
+    }
   }
 
   // Avanzar al siguiente paso
@@ -190,11 +308,11 @@ export const PaginaVender = () => {
         itemCondition: formData.condition,
         status: "Available",
         price: Number.parseFloat(formData.price),
-        imageUrl: uploadedUrls.join('|'), // Modificado: Unimos todas las URLs con un separador '|'
+        imageUrl: uploadedUrls.join("|"),
         userId: user?.id,
         location: formData.location,
-        latitude: formData.latitude,
-        longitude: formData.longitude,
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
       }
 
       console.log("Enviando datos del producto:", itemData)
@@ -225,11 +343,19 @@ export const PaginaVender = () => {
     }
   }
 
+  // Añadir estilos para hover en las sugerencias
+  const hoverStyle = `
+    .hover-bg-light:hover {
+      background-color: #f8f9fa !important;
+    }
+  `
+
   return (
     <Container className="py-5">
       <Row className="justify-content-center">
         <Col lg={10}>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <style>{hoverStyle}</style>
             {/* Cabecera */}
             <div className="text-center mb-5">
               <h1 className="fw-bold mb-2">Publica tu producto</h1>
@@ -313,7 +439,7 @@ export const PaginaVender = () => {
                     {/* Imagen del producto */}
                     <Form.Group className="mb-4" controlId="formImage">
                       <Form.Label className="fw-medium">
-                        Imágenes del producto <span className="text-danger">*</span>
+                        Imágenes del producto
                       </Form.Label>
 
                       {imagePreviewUrls.length > 0 ? (
@@ -518,25 +644,106 @@ export const PaginaVender = () => {
                       <Form.Label className="fw-medium">
                         Ubicación <span className="text-danger">*</span>
                       </Form.Label>
-                      <div className="input-group">
-                        <span className="input-group-text bg-light">
-                          <GeoAlt className="text-muted" />
-                        </span>
-                        <Form.Control
-                          type="text"
-                          name="location"
-                          value={formData.location}
-                          onChange={handleChange}
-                          placeholder="Ej: Madrid, España"
-                          required
-                        />
+                      <div className="position-relative">
+                        <div className="input-group">
+                          <span className="input-group-text bg-light">
+                            <GeoAlt className="text-muted" />
+                          </span>
+                          <Form.Control
+                            type="text"
+                            name="location"
+                            value={formData.location}
+                            onChange={handleLocationChange}
+                            onFocus={() => {
+                              if (locationSuggestions.length > 0) {
+                                setShowLocationDropdown(true)
+                              }
+                            }}
+                            onBlur={() => {
+                              // Delay para permitir clicks en el dropdown
+                              setTimeout(() => setShowLocationDropdown(false), 200)
+                            }}
+                            placeholder="Ej: Madrid, España"
+                            required
+                            autoComplete="off"
+                          />
+                          <Button
+                            variant="outline-secondary"
+                            onClick={getCurrentLocation}
+                            disabled={locationLoading}
+                            title="Usar mi ubicación actual"
+                          >
+                            {locationLoading ? (
+                              <span
+                                className="spinner-border spinner-border-sm"
+                                role="status"
+                                aria-hidden="true"
+                              ></span>
+                            ) : (
+                              <GeoAlt />
+                            )}
+                          </Button>
+                        </div>
+
+                        {/* Dropdown de sugerencias */}
+                        {showLocationDropdown && locationSuggestions.length > 0 && (
+                          <div
+                            className="position-absolute w-100 bg-white border rounded-3 shadow-sm mt-1"
+                            style={{ zIndex: 1000, maxHeight: "200px", overflowY: "auto" }}
+                          >
+                            {locationSuggestions.map((suggestion, index) => (
+                              <div
+                                key={index}
+                                className="p-3 border-bottom cursor-pointer hover-bg-light"
+                                style={{ cursor: "pointer" }}
+                                onClick={() => selectLocation(suggestion)}
+                                onMouseDown={(e) => e.preventDefault()} // Prevenir blur
+                              >
+                                <div className="d-flex align-items-center">
+                                  <GeoAlt className="text-muted me-2" size={16} />
+                                  <div>
+                                    <div className="fw-medium">{suggestion.formatted}</div>
+                                    <small className="text-muted">{suggestion.display_name}</small>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Indicador de búsqueda */}
+                        {locationLoading && formData.location.length >= 3 && (
+                          <div
+                            className="position-absolute w-100 bg-white border rounded-3 shadow-sm mt-1 p-3"
+                            style={{ zIndex: 1000 }}
+                          >
+                            <div className="d-flex align-items-center">
+                              <span
+                                className="spinner-border spinner-border-sm me-2"
+                                role="status"
+                                aria-hidden="true"
+                              ></span>
+                              <span className="text-muted">Buscando ubicaciones...</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
+
                       <Form.Control.Feedback type="invalid">
                         Por favor, indica la ubicación del producto.
                       </Form.Control.Feedback>
                       <Form.Text className="text-muted">
-                        Indica dónde se encuentra el producto para facilitar el intercambio.
+                        Escribe para buscar ubicaciones o usa el botón para detectar tu ubicación actual.
                       </Form.Text>
+
+                      {/* Mostrar coordenadas si están disponibles */}
+                      {locationData.latitude && locationData.longitude && (
+                        <div className="mt-2">
+                          <small className="text-success">
+                            📍 Coordenadas: {locationData.latitude.toFixed(6)}, {locationData.longitude.toFixed(6)}
+                          </small>
+                        </div>
+                      )}
                     </Form.Group>
 
                     {/* Términos y condiciones */}

@@ -78,6 +78,7 @@ class UserService {
         user.reputation = 5.0
         user.createdAt = Instant.now()
         user.imageUrl = userSignInDTO.imageUrl // Guardar la URL de la imagen
+        user.banned = false // Inicializar como no baneado
 
         userDAO.save(user)
         return ResponseEntity(HttpStatus.CREATED)
@@ -88,6 +89,9 @@ class UserService {
         val userEmailOptional: Optional<User> = userDAO.findByEmail(identification)
         if (userEmailOptional.isPresent) {
             val user = userEmailOptional.get()
+            if (user.banned) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build() // Usuario baneado
+            }
             if (PasswordUtils.checkPassword(password, user.passwordHash.toString())) {
                 return ResponseEntity.ok(user)
             } else {
@@ -97,6 +101,9 @@ class UserService {
             val userNameOptional: Optional<User> = userDAO.findByName(identification)
             if (userNameOptional.isPresent) {
                 val user = userNameOptional.get()
+                if (user.banned) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build() // Usuario baneado
+                }
                 if (PasswordUtils.checkPassword(password, user.passwordHash.toString())) {
                     return ResponseEntity.ok(user)
                 } else {

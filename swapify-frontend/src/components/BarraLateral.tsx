@@ -11,8 +11,6 @@ import {
   Book,
   Handbag,
   Tools,
-  Mortarboard,
-  Truck,
   Controller,
   Basket,
   MusicNoteBeamed,
@@ -35,8 +33,26 @@ const CATEGORIAS = [
   { id: 9, name: "deporte", icon: <Bicycle className="text-primary" /> },
   { id: 10, name: "música", icon: <MusicNoteBeamed className="text-warning" /> },
   { id: 11, name: "libros", icon: <Book className="text-info" /> },
-  { id: 12, name: "otros", icon: <Tag className="text-muted" /> },
+  { id: 12, name: "otros / servicios", icon: <Tag className="text-muted" /> },
 ]
+
+// Función para formatear nombres de categoría compuestos
+const formatCategoryName = (name: string): string => {
+  if (!name) return "";
+
+  // Caso especial para "servicios" individual
+  if (name.toLowerCase().trim() === "servicios") return "Servicios";
+
+  // Capitaliza todas las palabras (incluyendo combinaciones con "/")
+  return name
+    .split(/(\/|\s+)/) // Divide por slash o espacios
+    .map(word => {
+      if (word === '/') return '/'; // Mantiene el slash
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(' ') // Une con espacios
+    .replace(/\s+\/\s+/g, ' / '); // Normaliza espacios alrededor del slash
+};
 
 type Categoria = {
   nombre: string
@@ -58,7 +74,7 @@ type BarraLateralProps = {
 export const BarraLateral: React.FC<BarraLateralProps> = ({ mostrar, alCerrar }) => {
   // Convertir las categorías al formato que espera el componente
   const categoriasProductos: Categoria[] = CATEGORIAS.map((cat) => ({
-    nombre: cat.name.charAt(0).toUpperCase() + cat.name.slice(1),
+    nombre: formatCategoryName(cat.name),
     icono: cat.icon,
     badge: cat.id === 4 ? "Popular" : undefined, // Marcar "tecnología" como popular
   }))
@@ -68,30 +84,13 @@ export const BarraLateral: React.FC<BarraLateralProps> = ({ mostrar, alCerrar })
     {
       titulo: "Productos",
       categorias: categoriasProductos,
-    },
-    {
-      titulo: "Servicios",
-      categorias: [
-        {
-          nombre: "Reparaciones",
-          icono: <Tools className="text-warning" />,
-        },
-        {
-          nombre: "Clases",
-          icono: <Mortarboard className="text-primary" />,
-        },
-        {
-          nombre: "Transporte",
-          icono: <Truck className="text-success" />,
-        },
-      ],
-    },
+    }
   ]
 
   const RenderizarCategoria = ({ categoria }: { categoria: Categoria }) => (
     <motion.li className="mb-2" whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
       <Link
-        to={`/categoria/${categoria.nombre.toLowerCase()}`}
+        to={`/categoria/${encodeURIComponent(categoria.nombre.toLowerCase())}`}
         className="d-flex justify-content-between align-items-center py-2 px-3 rounded-pill text-decoration-none"
         style={{
           backgroundColor: categoria.subcategorias ? "transparent" : "#f8f9fa",
