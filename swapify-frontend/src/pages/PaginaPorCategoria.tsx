@@ -51,8 +51,13 @@ interface Categoria {
   name: string
 }
 
+// Añadir este import al principio del archivo
+import { useSearchParams } from "react-router-dom"
+
 export const PaginaPorCategoria = () => {
   const { categoria } = useParams<{ categoria: string }>()
+  const [searchParams] = useSearchParams()
+  const mostrarCercanos = searchParams.get("cercanos") === "true"
   const [productos, setProductos] = useState<Producto[]>([])
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [productosMostrar, setProductosMostrar] = useState<Producto[]>([]);
@@ -64,7 +69,8 @@ export const PaginaPorCategoria = () => {
   // Estado para ubicación y servicios cercanos
   const [ubicacionUsuario, setUbicacionUsuario] = useState<{ lat: number; lng: number } | null>(null)
   const [serviciosCercanos, setServiciosCercanos] = useState<Producto[]>([])
-  const [mostrarSoloServiciosCercanos, setMostrarSoloServiciosCercanos] = useState(false)
+  // Modificar el estado inicial de mostrarSoloServiciosCercanos
+  const [mostrarSoloServiciosCercanos, setMostrarSoloServiciosCercanos] = useState(mostrarCercanos)
   const [cargandoUbicacion, setCargandoUbicacion] = useState(false)
   const itemService = new ItemService()
   const categoryService = new CategoryService()
@@ -133,6 +139,13 @@ export const PaginaPorCategoria = () => {
       fetchProductos()
     }
   }, [categoria])
+
+  // Añadir este useEffect para obtener servicios cercanos si el parámetro está presente
+  useEffect(() => {
+    if (mostrarCercanos && !ubicacionUsuario) {
+      obtenerServiciosCercanos()
+    }
+  }, [mostrarCercanos])
 
   // Actualizar rango de precios cuando cambian los productos
   useEffect(() => {

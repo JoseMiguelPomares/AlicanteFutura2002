@@ -107,11 +107,15 @@ export const PaginaInicio = () => {
 
   const [ubicacionUsuario, setUbicacionUsuario] = useState<{ lat: number, lng: number } | null>(null);
 
+  // Añadir este estado para controlar la carga de servicios cercanos
+  const [cargandoServiciosCercanos, setCargandoServiciosCercanos] = useState<boolean>(false);
+
   useEffect(() => {
     if (user === undefined) return; // Espera a que auth se resuelva
 
     const obtenerUbicacion = () => {
       if (navigator.geolocation) {
+        setCargandoServiciosCercanos(true); // Indicar que estamos cargando
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             const { latitude, longitude } = position.coords;
@@ -125,10 +129,13 @@ export const PaginaInicio = () => {
               setServiciosCercanos(serviciosCercanos);
             } catch (error) {
               console.error('Error al obtener servicios cercanos:', error);
+            } finally {
+              setCargandoServiciosCercanos(false); // Finalizar carga
             }
           },
           (error) => {
             console.error('Error al obtener la ubicación:', error);
+            setCargandoServiciosCercanos(false); // Finalizar carga en caso de error
           }
         );
       }
@@ -205,7 +212,7 @@ export const PaginaInicio = () => {
 
   if (cargando || favoritesLoading)
     return (
-      <Container className="text-center py-5">
+      <Container className="text-center d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '80vh', paddingTop: '10vh', paddingBottom: '15vh' }}>
         <div className="spinner-border text-success" role="status">
           <span className="visually-hidden">Cargando...</span>
         </div>
@@ -336,10 +343,21 @@ export const PaginaInicio = () => {
                   <GeoAlt className="me-2 text-danger" />
                   Servicios cerca de mí
                 </h2>
+                {serviciosCercanos.length > 4 && (
+                  <Button
+                    as={Link as any}
+                    to="/categoria/otros%20%2F%20servicios?cercanos=true"
+                    variant="outline-success"
+                    className="rounded-pill"
+                    size="sm"
+                  >
+                    Ver más <ArrowRight className="ms-1" />
+                  </Button>
+                )}
               </div>
 
               <Row xs={1} sm={2} md={2} lg={4} className="g-4">
-                {serviciosCercanos.map((producto) => (
+                {serviciosCercanos.slice(0, 4).map((producto) => (
                   <Col key={`cercano-${producto.id}`}>
                     <Suspense fallback={<div>Cargando tarjeta...</div>}>
                       <ProductCard producto={producto} />
@@ -348,6 +366,13 @@ export const PaginaInicio = () => {
                 ))}
               </Row>
             </>
+          ) : cargandoServiciosCercanos ? (
+            <div className="text-center py-3">
+              <div className="text-success" role="status">
+                <span className="visually-hidden">Cargando servicios cercanos...</span>
+              </div>
+              <p className="my-0 py-0">Buscando servicios cercanos...</p>
+            </div>
           ) : ubicacionUsuario ? (
             <Alert variant="info" className="mt-3" dismissible>
               No se encontraron servicios cercanos en tu ubicación.
