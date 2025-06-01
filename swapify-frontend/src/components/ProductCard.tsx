@@ -186,8 +186,10 @@ export const ProductCard = (props: ProductCardProps) => {
         </div>
         {(producto.location || producto.user?.location) && (
           <div className="mt-2 small text-muted">
+            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "inline-block", maxWidth: "94%" }}>
             <GeoAlt size={12} className="me-1" />
-            {producto.location || producto.user?.location}
+              {producto.location || producto.user?.location}
+            </span>
           </div>
         )}
         {producto.createdAt && (
