@@ -22,6 +22,7 @@ interface User {
   email: string
   imageUrl?: string
   credits: number
+  isAdmin: boolean  // Nuevo campo
 }
 
 interface AuthContextType {

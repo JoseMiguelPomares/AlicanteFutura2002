@@ -53,4 +53,8 @@ open class User {
 
     @Column(name = "banned")
     open var banned: Boolean = false
+    
+    @Column(name = "is_admin")
+    @ColumnDefault("false")
+    open var isAdmin: Boolean = false
 }

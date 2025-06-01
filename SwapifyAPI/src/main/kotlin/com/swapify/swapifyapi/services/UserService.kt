@@ -213,4 +213,45 @@ class UserService {
             ResponseEntity.notFound().build()
         }
     }
+
+    // Función para promover o degradar a un usuario como administrador
+    fun toggleAdminStatus(id: Int): ResponseEntity<User> {
+        val userOptional = userDAO.findById(id)
+        
+        if (userOptional.isEmpty) {
+            return ResponseEntity.notFound().build()
+        }
+        
+        val user = userOptional.get()
+        user.isAdmin = !user.isAdmin
+        userDAO.save(user)
+        
+        return ResponseEntity.ok(user)
+    }
+    
+    // Función para verificar si un usuario es administrador
+    fun isUserAdmin(id: Int): ResponseEntity<Boolean> {
+        val userOptional = userDAO.findById(id)
+        
+        if (userOptional.isEmpty) {
+            return ResponseEntity.notFound().build()
+        }
+        
+        return ResponseEntity.ok(userOptional.get().isAdmin)
+    }
+
+    // Función para cambiar el estado de ban de un usuario
+    fun toggleUserBan(id: Int): ResponseEntity<User> {
+        val userOptional = userDAO.findById(id)
+        
+        if (userOptional.isEmpty) {
+            return ResponseEntity.notFound().build()
+        }
+        
+        val user = userOptional.get()
+        user.banned = !user.banned
+        userDAO.save(user)
+        
+        return ResponseEntity.ok(user)
+    }
 }

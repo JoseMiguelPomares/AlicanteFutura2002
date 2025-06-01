@@ -24,6 +24,7 @@ interface NotificationContextType {
   markAsRead: (notificationId: number) => void
   markAllAsRead: () => void
   refreshNotifications: () => Promise<void>
+  addNotification: (notification: Omit<ChatNotification, "id" | "timestamp" | "read">) => void
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined)
@@ -197,6 +198,19 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     await loadNotifications()
   }
 
+  // Función para añadir una nueva notificación manualmente
+  const addNotification = (notification: Omit<ChatNotification, "id" | "timestamp" | "read">) => {
+    const newNotification: ChatNotification = {
+      ...notification,
+      id: Date.now(), // Generamos un ID temporal basado en timestamp
+      timestamp: new Date().toISOString(),
+      read: false,
+    }
+
+    setNotifications((prevNotifications) => [newNotification, ...prevNotifications])
+    setUnreadCount((prev) => prev + 1)
+  }
+
   return (
     <NotificationContext.Provider
       value={{
@@ -205,6 +219,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         markAsRead,
         markAllAsRead,
         refreshNotifications,
+        addNotification,
       }}
     >
       {children}
