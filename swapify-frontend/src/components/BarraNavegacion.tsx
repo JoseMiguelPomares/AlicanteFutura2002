@@ -578,19 +578,8 @@ export const BarraNavegacion = () => {
                 Todas las categorías
               </Button>
 
-              {/* Categorías destacadas - solo visibles en pantallas medianas y grandes */}
-              <div className="d-none" style={{ display: 'none' }}>
-                {/* Añadimos un media query personalizado para controlar la visibilidad */}
-                <style>
-                  {`
-                    @media (min-width: 1120px) {
-                      .categories-container {
-                        display: flex !important;
-                      }
-                    }
-                  `}
-                </style>
-                <div className="categories-container">
+              {/* Categorías destacadas - solo visibles en pantallas grandes */}
+              <div className="d-none d-xl-flex align-items-center">
                   {featuredCategories.map((category, index) => (
                     <Link
                       key={index}
@@ -600,7 +589,6 @@ export const BarraNavegacion = () => {
                       {category.icon} {category.name}
                     </Link>
                   ))}
-                </div>
               </div>
             </div>
 
