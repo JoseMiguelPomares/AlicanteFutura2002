@@ -19,6 +19,8 @@ import { PaginaChat } from "./pages/PaginaChat"
 import { PaginaEditarPerfil } from "./pages/PaginaEditarPerfil"
 import { ScrollToTopButton } from "./components/ScrollToTopButton"
 import { NotificationProvider } from "./contexts/NotificationContext"
+import { AdminRoute } from './components/AdminRoute';
+import { PaginaAdminPanel } from './pages/PaginaAdminPanel';
 
 import { useState, useEffect } from "react"
 import { Button, Form } from "react-bootstrap"
@@ -39,6 +41,7 @@ export const App: React.FC = () => {
               <BarraNavegacion />
               <main className="flex-grow-1">
                 <Routes>
+                  <Route path="/admin" element={<AdminRoute><PaginaAdminPanel /></AdminRoute>}/>
                   <Route path="/" element={<PaginaInicio />} />
                   <Route path="/perfil/:id" element={<PaginaPerfil />} />
                   <Route path="/editar-perfil" element={<PaginaEditarPerfil />} />

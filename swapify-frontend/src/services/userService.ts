@@ -54,4 +54,16 @@ export class UserService {
   addCredits(userId: number, credits: number) {
     return axios.post(API_URL + `addCredits/${userId}/${credits}`)
   }
+
+  toggleAdminStatus(userId: number) {
+    return axios.put(API_URL + `toggleAdmin/${userId}`);
+  }
+  
+  isUserAdmin(userId: number) {
+    return axios.get(API_URL + `isAdmin/${userId}`);
+  }
+
+  toggleUserBan(userId: number) {
+    return axios.put(API_URL + `toggleBan/${userId}`);
+  }
 }

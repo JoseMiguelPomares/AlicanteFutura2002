@@ -83,4 +83,22 @@ class UserController {
     fun addCreditsToUser(@PathVariable id: Int, @PathVariable credits: Int): ResponseEntity<CreditsUserDTO> {
         return userService.addCreditsToUser(id, credits)
     }
+
+    // Función para cambiar el estado de administrador de un usuario
+    @PutMapping("/toggleAdmin/{id}")
+    fun toggleAdminStatus(@PathVariable id: Int): ResponseEntity<User> {
+        return userService.toggleAdminStatus(id)
+    }
+
+    // Función para verificar si un usuario es administrador
+    @GetMapping("/isAdmin/{id}")
+    fun isUserAdmin(@PathVariable id: Int): ResponseEntity<Boolean> {
+        return userService.isUserAdmin(id)
+    }
+
+    // Función para cambiar el estado de ban de un usuario
+    @PutMapping("/toggleBan/{id}")
+    fun toggleUserBan(@PathVariable id: Int): ResponseEntity<User> {
+        return userService.toggleUserBan(id)
+    }
 }

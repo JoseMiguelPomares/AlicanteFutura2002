@@ -274,35 +274,41 @@ export const BarraNavegacion = () => {
             placement="end"
             className="d-lg-none"
           >
-            <Offcanvas.Header closeButton className="border-bottom">
-              <Offcanvas.Title className="fw-bold">Menú de Navegación</Offcanvas.Title>
-            </Offcanvas.Header>
             <Offcanvas.Body className="d-flex flex-column gap-3">
-              {/* Botones principales */}
+
+              {/* Información del usuario en el menú */}
+              {isAuthenticated && (
+                <div className="d-flex align-items-center mb-4 pb-3 border-bottom">
+                  <Link to={`/perfil/${user?.id}`} className="d-flex align-items-center text-decoration-none text-dark" onClick={() => setShowMenu(false)}>
+                    {user?.imageUrl ? (
+                      <img
+                        src={user.imageUrl || "/placeholder.svg"}
+                        alt={user.name}
+                        className="rounded-circle me-3"
+                        style={{ width: "48px", height: "48px", objectFit: "cover" }}
+                      />
+                    ) : (
+                      <div className="bg-light rounded-circle p-2 me-3">
+                        <Person size={32} />
+                      </div>
+                    )}
+                    <div>
+                      <div className="d-flex align-items-center">
+                        <h5 className="mb-0 fw-bold">{user?.name}</h5>
+                        {user?.isAdmin && (
+                          <Badge bg="danger" className="ms-2" style={{ fontSize: '0.7rem' }}>
+                            ADMIN
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-muted small mb-0">Ver mi perfil</p>
+                    </div>
+                  </Link>
+                </div>
+              )}
+              {/* Botones principales - SOLO para no autenticados y botón Vender */}
               <div className="d-flex flex-column gap-3">
-                {isAuthenticated ? (
-                  <>
-                    <Button
-                      as={Link as any}
-                      to={`/perfil/${user?.id}`}
-                      variant="success"
-                      className="w-100 py-2 rounded-pill d-flex align-items-center justify-content-center"
-                      onClick={() => setShowMenu(false)}
-                    >
-                      {user?.imageUrl ? (
-                        <img
-                          src={user.imageUrl || "/placeholder.svg"}
-                          alt={user.name}
-                          className="rounded-circle me-2"
-                          style={{ width: "18px", height: "18px", objectFit: "cover" }}
-                        />
-                      ) : (
-                        <Person className="me-2" size={18} />
-                      )}
-                      {user?.name || "Mi Perfil"}
-                    </Button>
-                  </>
-                ) : (
+                {!isAuthenticated && (
                   <Button
                     as={Link as any}
                     to="/login"
@@ -386,6 +392,13 @@ export const BarraNavegacion = () => {
 
               {/* Sección de Cómo funciona y Ayuda con separación */}
               <div className="py-2 mt-2">
+                {/* Añadir enlace al panel de administración solo para administradores */}
+                {isAuthenticated && user?.isAdmin && (
+                  <Nav.Link as={Link} to="/admin" className="py-2 mb-2" onClick={() => setShowMenu(false)}>
+                    <Person className="me-2" size={18} />
+                    Panel de Administración
+                  </Nav.Link>
+                )}
                 <Nav.Link as={Link} to="/como-funciona" className="py-2 mb-2" onClick={() => setShowMenu(false)}>
                   <InfoCircle className="me-2" size={18} />
                   Cómo Funciona
@@ -457,6 +470,11 @@ export const BarraNavegacion = () => {
                         <Person size={22} className="me-2" />
                       )}
                       <span className="d-none d-md-inline">{user?.name}</span>
+                      {user?.isAdmin && (
+                        <Badge bg="danger" className="ms-2 d-none d-md-inline" style={{ fontSize: '0.7rem' }}>
+                          ADMIN
+                        </Badge>
+                      )}
                     </Nav.Link>
                     <div className="profile-dropdown-menu">
                       <div className="profile-dropdown-content shadow rounded">
@@ -471,6 +489,15 @@ export const BarraNavegacion = () => {
                             </div>
                           </div>
                         )}
+
+                        {/* Añadir enlace al panel de administración solo para administradores */}
+                        {user?.isAdmin && (
+                          <Button as={Link as any} to="/admin" variant="light" size="sm" className="d-flex align-items-center gap-2 w-100 mb-2 text-start">
+                            <Person size={16} />
+                            Panel de Administración
+                          </Button>
+                        )}
+
                         <Button
                           as={Link as any}
                           to="/vender"
@@ -516,7 +543,7 @@ export const BarraNavegacion = () => {
                     }}
                   >
                     <Power size={20} onMouseOver={(e) => e.currentTarget.style.color = '#dc3545'}
-                    onMouseOut={(e) => e.currentTarget.style.color = 'white'} />
+                      onMouseOut={(e) => e.currentTarget.style.color = 'white'} />
                   </Button>
                 </>
               ) : (
@@ -551,19 +578,8 @@ export const BarraNavegacion = () => {
                 Todas las categorías
               </Button>
 
-              {/* Categorías destacadas - solo visibles en pantallas medianas y grandes */}
-              <div className="d-none" style={{ display: 'none' }}>
-                {/* Añadimos un media query personalizado para controlar la visibilidad */}
-                <style>
-                  {`
-                    @media (min-width: 1120px) {
-                      .categories-container {
-                        display: flex !important;
-                      }
-                    }
-                  `}
-                </style>
-                <div className="categories-container">
+              {/* Categorías destacadas - solo visibles en pantallas grandes */}
+              <div className="d-none d-xl-flex align-items-center">
                   {featuredCategories.map((category, index) => (
                     <Link
                       key={index}
@@ -573,7 +589,6 @@ export const BarraNavegacion = () => {
                       {category.icon} {category.name}
                     </Link>
                   ))}
-                </div>
               </div>
             </div>
 

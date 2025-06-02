@@ -13,6 +13,7 @@ import { ProductCard } from "../components/ProductCard"
 import { ImageService } from "../services/imageService"
 
 interface User {
+  isAdmin: boolean
   id: number
   name: string
   email: string
@@ -97,13 +98,13 @@ export const PaginaPerfil = () => {
   const [showLightbox, setShowLightbox] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [lightboxImages, setLightboxImages] = useState<string[]>([])
-  
+
   // Estados para la compra de créditos
   const [showCreditModal, setShowCreditModal] = useState(false)
   const [selectedCreditPack, setSelectedCreditPack] = useState<number | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [purchaseSuccess, setPurchaseSuccess] = useState(false)
-  
+
   // Paquetes de créditos disponibles
   const creditPacks = [
     { id: 1, amount: 50, price: 5, popular: false },
@@ -462,31 +463,31 @@ export const PaginaPerfil = () => {
       console.error("Error al eliminar la valoración:", error)
     }
   }
-  
+
   // Función para simular la compra de créditos
   const handlePurchaseCredits = async () => {
     if (!selectedCreditPack || !user) return
-    
+
     setIsProcessing(true)
-    
+
     try {
       // Obtener el paquete seleccionado
       const pack = creditPacks.find(p => p.id === selectedCreditPack);
       if (!pack) throw new Error("Paquete de créditos no encontrado");
-      
+
       // Llamar a la API para añadir los créditos
       await userService.addCredits(user.id, pack.amount);
-      
+
       // Actualizar el estado local
       setPurchaseSuccess(true);
 
       // Refrescar los datos del usuario para mostrar los nuevos créditos
       await refreshUserData();
-      
+
       // Cerrar el modal después de una compra exitosa
       setTimeout(() => {
         setShowCreditModal(false);
-        
+
         // Resetear los estados después de 3 segundos
         setTimeout(() => {
           setPurchaseSuccess(false);
@@ -550,7 +551,12 @@ export const PaginaPerfil = () => {
                 )}
               </div>
 
-              <h3 className="fw-bold mb-1">{userProfile.name}</h3>
+              <h3 className="fw-bold mb-1">{userProfile.name} {userProfile.isAdmin && (
+                <Badge bg="danger" className="ms-2" style={{ fontSize: '0.8rem', verticalAlign: 'middle' }}>
+                  ADMINISTRADOR
+                </Badge>
+                )}
+              </h3>
               <div className="d-flex justify-content-center align-items-center mb-2">
                 <Badge bg="info" className="rounded-pill px-3 py-2">
                   <span className="fw-bold">
@@ -561,8 +567,8 @@ export const PaginaPerfil = () => {
 
               {isOwnProfile && user?.credits !== undefined && (
                 <div className="mb-3">
-                  <Badge 
-                    bg="success" 
+                  <Badge
+                    bg="success"
                     className="rounded-pill px-3 py-2"
                     style={{ cursor: 'pointer' }}
                     onClick={() => setShowCreditModal(true)}
@@ -949,8 +955,8 @@ export const PaginaPerfil = () => {
                               </div>
                               <div className="flex-grow-1">
                                 <div className="d-flex align-items-center gap-2 mb-2">
-                                  <Link 
-                                    to={`/perfil/${review.reviewer.id}`} 
+                                  <Link
+                                    to={`/perfil/${review.reviewer.id}`}
                                     className={`fw-bold text-decoration-none ${isAuthenticated && user?.id === review.reviewer.id ? 'text-success' : ''}`}
                                   >
                                     {review.reviewer.name}
@@ -1062,7 +1068,7 @@ export const PaginaPerfil = () => {
           </Carousel>
         </Modal.Body>
       </Modal>
-      
+
       {/* Modal para comprar créditos */}
       <Modal
         show={showCreditModal}
@@ -1085,11 +1091,11 @@ export const PaginaPerfil = () => {
           ) : (
             <>
               <p className="text-muted mb-4">Los créditos te permiten destacar tus productos y acceder a funciones premium.</p>
-              
+
               <Row xs={1} md={2} className="g-3 mb-4">
                 {creditPacks.map((pack) => (
                   <Col key={pack.id}>
-                    <Card 
+                    <Card
                       className={`h-100 ${selectedCreditPack === pack.id ? 'border-success' : ''} ${pack.popular ? 'border-primary' : ''}`}
                       onClick={() => !isProcessing && setSelectedCreditPack(pack.id)}
                       style={{ cursor: isProcessing ? 'default' : 'pointer' }}
@@ -1114,11 +1120,11 @@ export const PaginaPerfil = () => {
                   </Col>
                 ))}
               </Row>
-              
+
               <div className="d-grid gap-2">
-                <Button 
-                  variant="success" 
-                  onClick={handlePurchaseCredits} 
+                <Button
+                  variant="success"
+                  onClick={handlePurchaseCredits}
                   disabled={!selectedCreditPack || isProcessing}
                 >
                   {isProcessing ? (
@@ -1130,8 +1136,8 @@ export const PaginaPerfil = () => {
                     'Comprar Ahora'
                   )}
                 </Button>
-                <Button 
-                  variant="outline-secondary" 
+                <Button
+                  variant="outline-secondary"
                   onClick={() => !isProcessing && setShowCreditModal(false)}
                   disabled={isProcessing}
                 >
