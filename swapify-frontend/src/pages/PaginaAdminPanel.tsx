@@ -19,9 +19,11 @@ import {
   ToastContainer,
 } from "react-bootstrap"
 import { UserService } from "../services/userService"
+import { ShieldCheck, PersonX, PersonCheck, ShieldLock, ArrowClockwise, People, Funnel, Search, Envelope, ShieldX, ExclamationTriangle, CheckCircle, ExclamationCircle, InfoCircle, Bell } from "react-bootstrap-icons"
 
 interface User {
   id: number
+  imageUrl?: string
   name: string
   email: string
   banned: boolean
@@ -174,20 +176,20 @@ export const PaginaAdminPanel: React.FC = () => {
     if (user.banned) {
       return (
         <Badge bg="danger" className="d-flex align-items-center gap-1">
-          <i className="bi bi-person-x"></i> Baneado
+          <PersonX size={24} className="me-2" /> Baneado
         </Badge>
       )
     }
     if (user.isAdmin) {
       return (
         <Badge bg="primary" className="d-flex align-items-center gap-1">
-          <i className="bi bi-shield-check"></i> Admin
+          <ShieldCheck size={24} className="me-2" /> Admin
         </Badge>
       )
     }
     return (
       <Badge bg="success" className="d-flex align-items-center gap-1">
-        <i className="bi bi-person-check"></i> Activo
+        <PersonX size={24} className="me-2" /> Activo
       </Badge>
     )
   }
@@ -218,17 +220,17 @@ export const PaginaAdminPanel: React.FC = () => {
   const getToastIcon = (type: string) => {
     switch (type) {
       case "success":
-        return "bi-check-circle"
+        return <CheckCircle size={18} className="me-2" />;
       case "error":
-        return "bi-exclamation-circle"
+        return <ExclamationCircle size={18} className="me-2" />;
       case "warning":
-        return "bi-exclamation-triangle"
+        return <ExclamationTriangle size={18} className="me-2" />;
       case "info":
-        return "bi-info-circle"
+        return <InfoCircle size={18} className="me-2" />;
       default:
-        return "bi-bell"
+        return <Bell size={18} className="me-2" />;
     }
-  }
+  };
 
   const stats = getUserStats()
 
@@ -285,14 +287,13 @@ export const PaginaAdminPanel: React.FC = () => {
             <div className="d-flex justify-content-between align-items-center">
               <div>
                 <h1 className="display-6 mb-1">
-                  <i className="bi bi-shield-lock me-2"></i>
+                  <ShieldLock size={24} className="me-2" />
                   Panel de Administración
                 </h1>
                 <p className="text-muted">Gestiona usuarios y permisos del sistema</p>
               </div>
               <Button variant="outline-primary" onClick={loadUsers} className="d-flex align-items-center gap-2">
-                <i className="bi bi-arrow-clockwise"></i>
-                Actualizar
+                <ArrowClockwise size={24} />                Actualizar
               </Button>
             </div>
           </Col>
@@ -304,8 +305,7 @@ export const PaginaAdminPanel: React.FC = () => {
             <Card className="h-100 border-0 shadow-sm">
               <Card.Body className="d-flex align-items-center">
                 <div className="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
-                  <i className="bi bi-people fs-4 text-primary"></i>
-                </div>
+                  <People size={32} className="text-primary" />                </div>
                 <div>
                   <h6 className="text-muted mb-1">Total Usuarios</h6>
                   <h3 className="mb-0">{stats.total}</h3>
@@ -317,7 +317,7 @@ export const PaginaAdminPanel: React.FC = () => {
             <Card className="h-100 border-0 shadow-sm">
               <Card.Body className="d-flex align-items-center">
                 <div className="rounded-circle bg-success bg-opacity-10 p-3 me-3">
-                  <i className="bi bi-person-check fs-4 text-success"></i>
+                  <PersonX size={24} className="fs-4 text-success" />
                 </div>
                 <div>
                   <h6 className="text-muted mb-1">Usuarios Activos</h6>
@@ -330,7 +330,7 @@ export const PaginaAdminPanel: React.FC = () => {
             <Card className="h-100 border-0 shadow-sm">
               <Card.Body className="d-flex align-items-center">
                 <div className="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
-                  <i className="bi bi-person-x fs-4 text-danger"></i>
+                  <PersonX size={24} className="fs-4 text-danger" />
                 </div>
                 <div>
                   <h6 className="text-muted mb-1">Usuarios Baneados</h6>
@@ -343,8 +343,7 @@ export const PaginaAdminPanel: React.FC = () => {
             <Card className="h-100 border-0 shadow-sm">
               <Card.Body className="d-flex align-items-center">
                 <div className="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
-                  <i className="bi bi-shield-check fs-4 text-warning"></i>
-                </div>
+                  <ShieldCheck size={32} className="text-warning" />                </div>
                 <div>
                   <h6 className="text-muted mb-1">Administradores</h6>
                   <h3 className="mb-0">{stats.admins}</h3>
@@ -358,8 +357,7 @@ export const PaginaAdminPanel: React.FC = () => {
         <Card className="mb-4 border-0 shadow-sm">
           <Card.Header className="bg-light">
             <h5 className="mb-0">
-              <i className="bi bi-funnel me-2"></i>
-              Filtros y Búsqueda
+              <Funnel size={24} className="me-2" />              Filtros y Búsqueda
             </h5>
           </Card.Header>
           <Card.Body>
@@ -367,8 +365,7 @@ export const PaginaAdminPanel: React.FC = () => {
               <Col md={8} className="mb-3">
                 <InputGroup>
                   <InputGroup.Text>
-                    <i className="bi bi-search"></i>
-                  </InputGroup.Text>
+                    <Search size={24} />                  </InputGroup.Text>
                   <Form.Control
                     type="text"
                     placeholder="Buscar por nombre o email..."
@@ -421,8 +418,7 @@ export const PaginaAdminPanel: React.FC = () => {
           <Card.Body className="p-0">
             {filteredUsers.length === 0 ? (
               <div className="text-center py-5">
-                <i className="bi bi-people display-1 text-muted mb-3"></i>
-                <h4>No se encontraron usuarios</h4>
+                <People size={64} className="text-muted mb-3" />                <h4>No se encontraron usuarios</h4>
                 <p className="text-muted">
                   {searchTerm || filterStatus !== "all"
                     ? "Intenta ajustar los filtros de búsqueda"
@@ -448,32 +444,40 @@ export const PaginaAdminPanel: React.FC = () => {
                         <td className="fw-bold">{user.id}</td>
                         <td>
                           <div className="d-flex align-items-center">
-                            <div
-                              className="rounded-circle bg-gradient d-flex align-items-center justify-content-center text-white fw-bold me-2"
-                              style={{
-                                width: "32px",
-                                height: "32px",
-                                background: "linear-gradient(45deg, #007bff, #6f42c1)",
-                                fontSize: "14px",
-                              }}
-                            >
-                              {user.name.charAt(0).toUpperCase()}
-                            </div>
+                            {user?.imageUrl ? (
+                              <img
+                                src={user.imageUrl || "/placeholder.svg"}
+                                alt={user.name}
+                                className="rounded-circle me-2"
+                                style={{ width: "32px", height: "32px" }}
+                              />
+                            ) : (
+                              <div
+                                className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold me-2"
+                                style={{
+                                  width: "32px",
+                                  height: "32px",
+                                  background: "linear-gradient(45deg, #007bff, #6f42c1)",
+                                  fontSize: "14px",
+                                }}
+                              >
+                                {user.name.charAt(0).toUpperCase()}
+                              </div>
+                            )}
                             <span className="fw-medium">{user.name}</span>
                           </div>
+
                         </td>
                         <td>
                           <div className="d-flex align-items-center">
-                            <i className="bi bi-envelope me-2 text-muted"></i>
-                            {user.email}
+                            <Envelope size={24} className="me-2 text-muted" />                            {user.email}
                           </div>
                         </td>
                         <td>{getStatusBadge(user)}</td>
                         <td>
                           {user.isAdmin ? (
                             <Badge bg="primary">
-                              <i className="bi bi-shield-check me-1"></i>
-                              Administrador
+                              <ShieldCheck size={24} className="me-1" />                              Administrador
                             </Badge>
                           ) : (
                             <Badge bg="secondary">Usuario</Badge>
@@ -491,8 +495,7 @@ export const PaginaAdminPanel: React.FC = () => {
                               {actionLoading === user.id ? (
                                 <Spinner animation="border" size="sm" />
                               ) : (
-                                <i className={`bi ${user.banned ? "bi-person-check" : "bi-person-x"}`}></i>
-                              )}
+                                user.banned ? <PersonCheck size={18} /> : <PersonX size={18} />)}
                               {user.banned ? "Desbanear" : "Banear"}
                             </Button>
 
@@ -508,8 +511,7 @@ export const PaginaAdminPanel: React.FC = () => {
                               {actionLoading === user.id ? (
                                 <Spinner animation="border" size="sm" />
                               ) : (
-                                <i className={`bi ${user.isAdmin ? "bi-shield-x" : "bi-shield-check"}`}></i>
-                              )}
+                                user.isAdmin ? <ShieldX size={18} /> : <ShieldCheck size={18} />)}
                               {user.isAdmin ? "Quitar Admin" : "Hacer Admin"}
                             </Button>
                           </div>
@@ -527,8 +529,7 @@ export const PaginaAdminPanel: React.FC = () => {
         <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>
           <Modal.Header closeButton>
             <Modal.Title>
-              <i className="bi bi-exclamation-triangle me-2"></i>
-              {modalContent.title}
+              <ExclamationTriangle size={24} className="me-2" />              {modalContent.title}
             </Modal.Title>
           </Modal.Header>
           <Modal.Body>
@@ -558,7 +559,7 @@ export const PaginaAdminPanel: React.FC = () => {
             className="text-white"
           >
             <Toast.Header className="text-dark">
-              <i className={`bi ${getToastIcon(toast.type)} me-2`}></i>
+              {getToastIcon(toast.type)}
               <strong className="me-auto">{toast.title}</strong>
             </Toast.Header>
             <Toast.Body>{toast.message}</Toast.Body>
