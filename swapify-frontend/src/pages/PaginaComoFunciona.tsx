@@ -162,7 +162,7 @@ export const PaginaComoFunciona: React.FC = () => {
                 transition={{ delay: 0.3, duration: 0.8 }}
               >
                 <img
-                  src="https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3"
+                  src="https://images.unsplash.com/photo-1586726370832-3440a511e479?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fGludGVyY2FtYmlvJTIwY29tdW58ZW58MHx8MHx8fDI%3D"
                   alt="Intercambio sostenible"
                   className="img-fluid rounded-4 shadow-lg"
                   style={{ width: "100%", height: "80vh", objectFit: "cover" }}
