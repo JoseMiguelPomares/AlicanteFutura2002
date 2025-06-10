@@ -991,10 +991,6 @@ export const PaginaProducto = () => {
                           <span className="fw-bold">{new Date(producto.createdAt).toLocaleDateString()}</span>
                         </ListGroup.Item>
                       )}
-                      <ListGroup.Item className="d-flex justify-content-between align-items-center px-0">
-                        <span className="text-muted">ID del producto</span>
-                        <span className="fw-bold">{producto.id}</span>
-                      </ListGroup.Item>
                     </ListGroup>
                   </Col>
                 </Row>
