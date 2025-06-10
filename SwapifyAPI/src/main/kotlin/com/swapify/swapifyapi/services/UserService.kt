@@ -240,6 +240,17 @@ class UserService {
         return ResponseEntity.ok(userOptional.get().isAdmin)
     }
 
+    // Función para verificar si un usuario es super administrador
+    fun isUserSuperAdmin(id: Int): ResponseEntity<Boolean> {
+        val userOptional = userDAO.findById(id)
+        
+        if (userOptional.isEmpty) {
+            return ResponseEntity.notFound().build()
+        }
+        
+        return ResponseEntity.ok(userOptional.get().isSuperAdmin)
+    }
+
     // Función para cambiar el estado de ban de un usuario
     fun toggleUserBan(id: Int): ResponseEntity<User> {
         val userOptional = userDAO.findById(id)

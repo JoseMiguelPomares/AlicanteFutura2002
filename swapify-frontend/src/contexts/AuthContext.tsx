@@ -13,8 +13,6 @@ import {
   type User as FirebaseUser,
 } from "firebase/auth"
 import { auth, facebookProvider, googleProvider } from "../services/firebase"
-import axios from "axios"
-
 
 interface User {
   id: number
@@ -22,7 +20,8 @@ interface User {
   email: string
   imageUrl?: string
   credits: number
-  isAdmin: boolean  // Nuevo campo
+  isAdmin: boolean
+  isSuperAdmin: boolean // Nuevo campo para superadministrador
 }
 
 interface AuthContextType {
@@ -34,7 +33,9 @@ interface AuthContextType {
   loginWithFacebook: () => Promise<void>
   logout: () => void
   isAuthenticated: boolean
-  refreshUserData: () => Promise<void> // Nueva función
+  isAdmin: boolean // Helper para verificar si es admin
+  isSuperAdmin: boolean // Helper para verificar si es superadmin
+  refreshUserData: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -76,7 +77,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Asegurarnos de tener una imagen de perfil
       // Si no hay photoURL, generamos una imagen con las iniciales del usuario
-      const imageUrl = photoURL || 
+      const imageUrl =
+        photoURL ||
         `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName || email.split("@")[0])}&background=random`
 
       // Verificar si el usuario existe en nuestra base de datos
@@ -101,22 +103,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Añadir esta nueva función para actualizar los datos del usuario
   const refreshUserData = async () => {
-    if (!user) return;
-    
+    if (!user) return
+
     try {
-      setLoading(true);
-      const response = await userService.getUserById(user.id);
+      setLoading(true)
+      const response = await userService.getUserById(user.id)
       if (response && response.data) {
         // Actualizar el usuario en el estado y en localStorage
-        localStorage.setItem("user", JSON.stringify(response.data));
-        setUser(response.data);
+        localStorage.setItem("user", JSON.stringify(response.data))
+        setUser(response.data)
       }
     } catch (err) {
-      console.error("Error al actualizar datos del usuario:", err);
+      console.error("Error al actualizar datos del usuario:", err)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const login = async (email: string, password: string) => {
     setLoading(true)
@@ -128,15 +130,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(response.data)
       }
     } catch (err) {
-      if (
-        axios.isAxiosError(err) &&
-        err.response?.status === 403
-      ) {
-        setError("Cuenta bloqueada. Por favor, contacta al administrador.");
-      } else {
-        setError("Credenciales inválidas. Por favor, verifica tu email y contraseña.");
-      }
-      throw err;
+      setError("Credenciales inválidas. Por favor, verifica tu email y contraseña.")
+      throw err
     } finally {
       setLoading(false)
     }
@@ -199,7 +194,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (typeof window !== "undefined") {
       // @ts-ignore
-      window.swapifyAuth = { isAuthenticated: !!user, user }
+      window.swapifyAuth = {
+        isAuthenticated: !!user,
+        user,
+        isAdmin: !!user?.isAdmin,
+        isSuperAdmin: !!user?.isSuperAdmin,
+      }
     }
   }, [user])
 
@@ -214,7 +214,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithFacebook,
         logout,
         isAuthenticated: !!user,
-        refreshUserData, // Añadir la nueva función al contexto
+        isAdmin: !!user?.isAdmin,
+        isSuperAdmin: !!user?.isSuperAdmin,
+        refreshUserData,
       }}
     >
       {children}

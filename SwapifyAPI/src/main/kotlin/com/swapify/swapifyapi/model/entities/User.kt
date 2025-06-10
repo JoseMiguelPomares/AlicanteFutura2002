@@ -57,4 +57,8 @@ open class User {
     @Column(name = "is_admin")
     @ColumnDefault("false")
     open var isAdmin: Boolean = false
+
+    @Column(name = "issuperadmin")
+    @ColumnDefault("false")
+    open var isSuperAdmin: Boolean = false
 }

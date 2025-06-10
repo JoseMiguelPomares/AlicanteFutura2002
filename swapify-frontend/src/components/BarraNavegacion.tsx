@@ -295,7 +295,12 @@ export const BarraNavegacion = () => {
                     <div>
                       <div className="d-flex align-items-center">
                         <h5 className="mb-0 fw-bold">{user?.name}</h5>
-                        {user?.isAdmin && (
+                        {user?.isSuperAdmin && (
+                          <Badge bg="warning" className="ms-2" style={{ fontSize: '0.7rem' }}>
+                            SUPERADMIN
+                          </Badge>
+                        )}
+                        {user?.isAdmin && !user?.isSuperAdmin && (
                           <Badge bg="danger" className="ms-2" style={{ fontSize: '0.7rem' }}>
                             ADMIN
                           </Badge>
@@ -470,7 +475,12 @@ export const BarraNavegacion = () => {
                         <Person size={22} className="me-2" />
                       )}
                       <span className="d-none d-md-inline">{user?.name}</span>
-                      {user?.isAdmin && (
+                      {user?.isSuperAdmin && (
+                        <Badge bg="warning" className="ms-2" style={{ fontSize: '0.7rem' }}>
+                          SUPERADMIN
+                        </Badge>
+                      )}
+                      {user?.isAdmin && !user?.isSuperAdmin && (
                         <Badge bg="danger" className="ms-2 d-none d-md-inline" style={{ fontSize: '0.7rem' }}>
                           ADMIN
                         </Badge>
@@ -491,7 +501,7 @@ export const BarraNavegacion = () => {
                         )}
 
                         {/* Añadir enlace al panel de administración solo para administradores */}
-                        {user?.isAdmin && (
+                        {(user?.isAdmin || user?.isSuperAdmin) && (
                           <Button as={Link as any} to="/admin" variant="light" size="sm" className="d-flex align-items-center gap-2 w-100 mb-2 text-start">
                             <Person size={16} />
                             Panel de Administración
@@ -580,15 +590,15 @@ export const BarraNavegacion = () => {
 
               {/* Categorías destacadas - solo visibles en pantallas grandes */}
               <div className="d-none d-xl-flex align-items-center">
-                  {featuredCategories.map((category, index) => (
-                    <Link
-                      key={index}
-                      to={category.path}
-                      className="text-dark fw-medium mx-3 text-decoration-none d-flex align-items-center nav-link-hover"
-                    >
-                      {category.icon} {category.name}
-                    </Link>
-                  ))}
+                {featuredCategories.map((category, index) => (
+                  <Link
+                    key={index}
+                    to={category.path}
+                    className="text-dark fw-medium mx-3 text-decoration-none d-flex align-items-center nav-link-hover"
+                  >
+                    {category.icon} {category.name}
+                  </Link>
+                ))}
               </div>
             </div>
 
