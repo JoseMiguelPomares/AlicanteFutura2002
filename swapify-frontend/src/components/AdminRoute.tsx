@@ -12,7 +12,7 @@ export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     return <div>Cargando...</div>;
   }
   
-  if (!user || !user.isAdmin) {
+  if (!user || (!user.isAdmin && !user.isSuperAdmin)) {
     return <Navigate to="/" replace />;
   }
   

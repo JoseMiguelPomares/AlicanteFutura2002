@@ -63,6 +63,10 @@ export class UserService {
     return axios.get(API_URL + `isAdmin/${userId}`);
   }
 
+  isUserSuperAdmin(userId: number) {
+    return axios.get(API_URL + `isSuperAdmin/${userId}`);
+  }
+
   toggleUserBan(userId: number) {
     return axios.put(API_URL + `toggleBan/${userId}`);
   }

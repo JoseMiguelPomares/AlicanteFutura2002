@@ -43,7 +43,6 @@
     "@types/sockjs-client": "^1.5.4",
     "@types/stompjs": "^2.3.9",
     "@vitejs/plugin-react": "^4.3.4",
-    "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",

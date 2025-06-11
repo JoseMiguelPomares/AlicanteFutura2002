@@ -96,6 +96,12 @@ class UserController {
         return userService.isUserAdmin(id)
     }
 
+    // Función para verificar si un usuario es super administrador
+    @GetMapping("/isSuperAdmin/{id}")
+    fun isUserSuperAdmin(@PathVariable id: Int): ResponseEntity<Boolean> {
+        return userService.isUserSuperAdmin(id)
+    }
+
     // Función para cambiar el estado de ban de un usuario
     @PutMapping("/toggleBan/{id}")
     fun toggleUserBan(@PathVariable id: Int): ResponseEntity<User> {
