@@ -87,7 +87,7 @@ interface ToastNotification {
 }
 
 export const PaginaAdminPanel: React.FC = () => {
-  const { user: currentUser, isSuperAdmin } = useAuth()
+  const { isSuperAdmin } = useAuth()
 
   // Estados para usuarios
   const [users, setUsers] = useState<User[]>([])
@@ -104,7 +104,7 @@ export const PaginaAdminPanel: React.FC = () => {
   const [productFilterStatus, setProductFilterStatus] = useState<"all" | "active" | "sold">("all")
 
   // Estados generales
-  const [actionLoading, setActionLoading] = useState<number | null>(null)
+  const [actionLoading, setActionLoading] = useState<{ userId: number | null; actionType: "ban" | "unban" | "makeAdmin" | "removeAdmin" | "deleteProduct" | null }>({ userId: null, actionType: null })
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [confirmAction, setConfirmAction] = useState<{
     type: "ban" | "unban" | "makeAdmin" | "removeAdmin" | "deleteProduct"
@@ -243,7 +243,7 @@ export const PaginaAdminPanel: React.FC = () => {
     if (!confirmAction) return
 
     try {
-      setActionLoading(confirmAction.id)
+      setActionLoading({ userId: confirmAction.id, actionType: confirmAction.type })
       setShowConfirmModal(false)
 
       switch (confirmAction.type) {
@@ -283,7 +283,7 @@ export const PaginaAdminPanel: React.FC = () => {
       console.error("Error al ejecutar acción:", error)
       addToast("error", "Error", "No se pudo completar la acción.")
     } finally {
-      setActionLoading(null)
+      setActionLoading({ userId: null, actionType: null })
       setConfirmAction(null)
     }
   }
@@ -659,13 +659,11 @@ export const PaginaAdminPanel: React.FC = () => {
                                   <Button
                                     variant={user.banned ? "success" : "danger"}
                                     size="sm"
-                                    disabled={actionLoading === user.id}
-                                    onClick={() =>
-                                      handleConfirmAction(user.banned ? "unban" : "ban", user.id, user.name)
-                                    }
+                                    disabled={actionLoading.userId === user.id}
+                                    onClick={() => handleConfirmAction(user.banned ? "unban" : "ban", user.id, user.name)}
                                     className="d-flex align-items-center gap-1"
                                   >
-                                    {actionLoading === user.id ? (
+                                    {actionLoading.userId === user.id && (actionLoading.actionType === "ban" || actionLoading.actionType === "unban") ? (
                                       <Spinner animation="border" size="sm" />
                                     ) : user.banned ? (
                                       <PersonCheck size={14} />
@@ -681,7 +679,7 @@ export const PaginaAdminPanel: React.FC = () => {
                                   <Button
                                     variant={user.isAdmin ? "outline-warning" : "warning"}
                                     size="sm"
-                                    disabled={actionLoading === user.id}
+                                    disabled={actionLoading.userId === user.id}
                                     onClick={() =>
                                       handleConfirmAction(
                                         user.isAdmin ? "removeAdmin" : "makeAdmin",
@@ -691,7 +689,7 @@ export const PaginaAdminPanel: React.FC = () => {
                                     }
                                     className="d-flex align-items-center gap-1"
                                   >
-                                    {actionLoading === user.id ? (
+                                    {actionLoading.userId === user.id && (actionLoading.actionType === "makeAdmin" || actionLoading.actionType === "removeAdmin") ? (
                                       <Spinner animation="border" size="sm" />
                                     ) : user.isAdmin ? (
                                       <ShieldX size={14} />
@@ -881,11 +879,11 @@ export const PaginaAdminPanel: React.FC = () => {
                                 <Button
                                   variant="danger"
                                   size="sm"
-                                  disabled={actionLoading === product.id}
+                                  disabled={actionLoading.userId === product.id}
                                   onClick={() => handleConfirmAction("deleteProduct", product.id, product.title)}
                                   className="d-flex align-items-center gap-1"
                                 >
-                                  {actionLoading === product.id ? (
+                                  {actionLoading.userId === product.id && actionLoading.actionType == "deleteProduct" ? (
                                     <Spinner animation="border" size="sm" />
                                   ) : (
                                     <Trash size={14} />
